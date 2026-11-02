@@ -137,6 +137,8 @@ For the next game (NHL 95), copy this file and change 94 to 95 throughout. Keep 
 
 ## ROM map
 
+This table and the History below are the record of the segment matching, with the file names of that time. The files were regrouped later (on 31 Oct: `checks94`, `assign94` and `input94` into `logic94`; `data94` and `attract94` into `setup94`; the old `video94` became `middle94` and `display94` became `video94`). The current files and their order are the includes in `src/nhl94.asm`.
+
 The first row that is not matched is the current segment. Ranges are provisional until that row is matched.
 
 The rows are in ROM address order, the same order as the includes in `src/nhl94.asm` (the full build top level). Each file is one contiguous range and starts at a global label; its end is the byte before the next row's org. The `Org` column is the stub `org` and the `seg:` verify address.
