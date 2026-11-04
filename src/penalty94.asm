@@ -1723,7 +1723,7 @@ SetTickerAreaPosition				;Set printx/printy/printm for the ticker box (x 3, y $1
 	moveq	#$1A,d0					;box size 26x5
 	moveq	#5,d1
 	rts
-Fprintsmall							;92 Fprint, but printing with printsmall (92 used print). Print string d0
+Fprintsmall							;but printing with printsmall (92 used print). Print string d0
 									;of the String list a1 with printsmall
 	bsr.w	AdvanceStringPtr
 	bra.w	printsmall

@@ -2,11 +2,11 @@
 
 ## Now
 
-- Stage / unit: see the shared plan (https://github.com/abdulahmad/nhl-disasm-report/blob/main/docs/ALIGNMENT.md); alignment work for 94G is on `claude/project-thread-ggw7zu`.
+- Stage / unit: CONTRIBUTING.md rewrite; `from 92 <name>` comments moved into `docs/name_map.csv` and deleted.
 - Branch: `claude/project-thread-ggw7zu`
-- Last check: (update when you stop)
-- Next: (update when you stop)
-- Open PRs: none
+- Last check: comment-only 94G pass pending MATCH (`tools/verify_all.sh -q`)
+- Next: pairing/MATCH as needed; do not merge to main
+- Open PRs: (this unit)
 
 ## Status (2026-10-20)
 

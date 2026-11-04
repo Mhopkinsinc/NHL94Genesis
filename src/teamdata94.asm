@@ -25,7 +25,7 @@
 ;	Then the palettes, scouting ratings, scoring odds, line sets (8 lines of 8 bytes), players, and the
 ;	city, abbreviation, nickname and arena strings.
 
-null								;92 null: a zero long, the tile pointer when there is nothing to draw
+null								;a zero long, the tile pointer when there is nothing to draw
 									;(no tiles). Not part of TeamList
 	dc.l	0
 
