@@ -15,11 +15,11 @@ shortcall	macro
 	shortcall	StartGame,setup94.asm
 	shortcall	restoreteams,penalty94.asm
 	shortcall	ResetClock,setup94.asm
-	shortcall	GetPeriodTime,collide94.asm data94.asm
+	shortcall	GetPeriodTime,collide94.asm setup94.asm
 	shortcall	StartPer,setup94.asm
 	shortcall	DoGameFrame,penalty94.asm
-	shortcall	updatecrowdf,video94.asm
+	shortcall	updatecrowdf,middle94.asm
 	shortcall	Pausemode_pall,penalty94.asm
 	shortcall	Pausemode_top,penalty94.asm
 	shortcall	DrawMenuScreen,penalty94.asm
-	shortcall	HandleMenuInput,video94.asm
+	shortcall	HandleMenuInput,middle94.asm

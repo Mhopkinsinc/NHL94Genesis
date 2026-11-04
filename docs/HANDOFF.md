@@ -1,5 +1,13 @@
 # HANDOFF: NHL94 Genesis
 
+## Now
+
+- Stage / unit: CONTRIBUTING.md rewrite; `from 92 <name>` comments moved into `docs/name_map.csv` and deleted.
+- Branch: `claude/project-thread-ggw7zu`
+- Last check: comment-only 94G pass pending MATCH (`tools/verify_all.sh -q`)
+- Next: pairing/MATCH as needed; do not merge to main
+- Open PRs: (this unit)
+
 ## Status (2026-10-20)
 
 - Everything is merged and `tools/verify_all.sh -q` prints ALL MATCH.

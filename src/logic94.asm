@@ -6982,7 +6982,7 @@ avdgoal								;don't try to skate thru goal: if d0/d1 cords intersect thru goal
 	move.w	d3,(deltax).w			;deltax = net edge - crossing x
 	rts
 ; find where the puck is going to be
-skatetopuckinit						;from 92 skatetopuck head. d0/d1 = puck x/y plus half the high byte of its
+skatetopuckinit						;d0/d1 = puck x/y plus half the high byte of its
 									;velocity. Called from skatetopuck and assnearest
 	move.b	(puckvx).w,d0			;high byte of the puck x velocity (signed)
 	asr.b	#1,d0					;halved

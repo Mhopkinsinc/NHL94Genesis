@@ -121,6 +121,7 @@ goalline equ 176					;distance from blue line to goalline
 
 replaystart equ $FFFF0000			;start of ram area for replay frames, also the start of RAM
 M68K_RAM equ replaystart
+RAMStart equ $FF0000				;start of work RAM, as a 24-bit address
 varstart equ $FFFFB000				;start of variable space (end of replay; 93G)
 replaysize equ 98					;bytes per replay frame (92G/93G name; 92G 84)
 replaynum equ ((varstart-replaystart)/replaysize)-1	;number of frames for replay
