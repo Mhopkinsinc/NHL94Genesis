@@ -27,3 +27,4 @@ rule in the same commit as the fix that confirmed it, newest last: `- YYYY-MM-DD
 
 - 2026-11-04 contributing: CONTRIBUTING.md must not contradict History: lineage lives only in the name history file, never in source comments. (CONTRIBUTING rewrite vs RULES History row)
 - 2026-11-04 name_map: a `from 92 Parent` split is not a rename row. `old,new` is this repo's previous name to its current name; recording Fprint→Fprintsmall made the pairing gate treat 93S/94S Fprint as a stale 94G name (lineage count rose). Delete the comment; do not invent a rename.
+- 2026-11-05 names: CreditsList is 93G CreditsPages (String pages after Credits). 92G has only Credits. (owner)
