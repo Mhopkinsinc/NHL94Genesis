@@ -177,7 +177,9 @@ The rows are in ROM address order, the same order as the includes in `src/nhl94.
 | period94 | matched | org $FD618, EndShootout | 3008 bytes, `$0FD618-$0FE1D7`. EndShootout ... ShortenMsgTimer: shootout end, arena animations, Period Stats / Game Statistics. First part of high94_3 |
 | goalie94 | matched | org $FE1D8, ManualGoalieMenu | 240 bytes, `$0FE1D8-$0FE2C7`. ManualGoalieMenu only. Second part of high94_3 |
 | arena94 | matched | org $FE2C8, RunArenaAnim | 654 bytes, `$0FE2C8-$0FE555`. RunArenaAnim ... EndArenaAnim: arena / faceoff animations |
-| title94 | matched | org $FE556, ChooseSong | 5482 bytes, `$0FE556-$0FFABF`. ChooseSong ... j_setc2player: ChooseSong, shootout paths, title screen and credits, TeamLogoPalettes (incbin), chgplayer. Last part of high94_3 |
+| songs94 | matched | org $FE556, ChooseSong | 2796 bytes, `$0FE556-$0FF041`. ChooseSong ... EndOneTimer: song pick and leftover helpers before the title |
+| title94 | matched | org $FF042, TitleScreen | 1056 bytes, `$0FF042-$0FF461`. TitleScreen ... CreditsScrollStep: title screen and credits |
+| logos94 | matched | org $FF462, TeamLogoPalettes | 1630 bytes, `$0FF462-$0FFABF`. TeamLogoPalettes ... j_setc2player: logo palettes, LeadSong, leftover helpers |
 | checksum94 | matched | org $FFAC0, ValidationRoutine | 80 bytes, `$0FFAC0-$0FFB0F`. ValidationRoutine (IDA Calc_Checksum), as 93 checksum93. The `$FF` fill `$FFB10-$FFFFF` after it is the nhl94.asm `dcb.b` |
 
 ## History
