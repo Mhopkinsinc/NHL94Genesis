@@ -1897,13 +1897,13 @@ PlayoffSeatsEnd						;end of playoffseats (size check below)
 	ENDIF
 
 Credits								;title screen scroller: movea.l #Credits (copyright lines), then
-									;#CreditsList
+									;#CreditsPages
 	String	'$ 1993 Electronic Arts'
 	String	'Licensed by'
 	String	'Sega Enterprises Ltd.'
 	String	CC_PageEnd
 
-CreditsList							;the credits after the copyright lines
+CreditsPages						;the credits after the copyright lines
 	String	'Design adapted by'
 	String	'Michael Brook'
 	String	CC_PageEnd

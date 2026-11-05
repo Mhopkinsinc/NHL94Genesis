@@ -2,10 +2,10 @@
 
 ## Now
 
-- Stage / unit: CONTRIBUTING.md rewrite; `from 92 <name>` comments moved into `docs/name_map.csv` and deleted.
-- Branch: `claude/project-thread-ggw7zu`
-- Last check: comment-only 94G pass pending MATCH (`tools/verify_all.sh -q`)
-- Next: pairing/MATCH as needed; do not merge to main
+- Stage / unit: rename CreditsList → CreditsPages (93G name; 92G has only Credits).
+- Branch: `cursor/creditspages-399a`
+- Last check: `tools/verify_all.sh -q` ALL MATCH (2026-11-05).
+- Next: PR. Same rename in 95G / 96G / 95S.
 - Open PRs: (this unit)
 
 ## Status (2026-10-20)

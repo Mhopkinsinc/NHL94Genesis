@@ -817,7 +817,7 @@ EndOneTimer							;End a one-timer for a3: bits cleared, onetimerplayer = -1, Se
 	rts
 TitleScreen							;the title screen (TitleScreenImg, NHLShieldImg, PAlogoImg, TitleImg) with
 									;the vblank VBlank_TitleScreen, song $78, then the
-									;scrolling credits (Credits, CreditsList text; CreditsPrintRow,
+									;scrolling credits (Credits, CreditsPages text; CreditsPrintRow,
 									;CreditsWait) until start. Called from Opening
 	move	#$2700,sr				;interrupts off
 	move.w	(HVcount).l,(seed).w	;seed the random numbers from the beam position
@@ -955,7 +955,7 @@ TitleScreen							;the title screen (TitleScreenImg, NHLShieldImg, PAlogoImg, Ti
 	dbf	d3,.loop2					;loop
 	jsr	(printz).l					;map 1 at the top left
 	String	CC_Font1Pal1,0,0
-	movea.l	#CreditsList,a1
+	movea.l	#CreditsPages,a1
 .loop3								;each credits entry
 	jsr	(CreditsPrintRow).l			;print the entry
 	adda.w	(a1),a1
