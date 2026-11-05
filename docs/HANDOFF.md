@@ -2,11 +2,11 @@
 
 ## Now
 
-- Stage / unit: MOVE `title94` — TitleScreen/credits stay; pre-title leftovers to `songs94.asm`, palettes/helpers after credits to `logos94.asm`.
-- Branch: `cursor/94g-split-title-songs-8ce4`
-- Last check: `tools/verify_all.sh -q` ALL MATCH (2026-11-05). songs94 2796 bytes `$0FE556-$0FF041`, title94 1056 bytes `$0FF042-$0FF461`, logos94 1630 bytes `$0FF462-$0FFABF`. pairing OK.
-- Next: pairing; do not merge to main until MATCH
-- Open PRs: stacked on `cursor/94g-split-goalie-arena-8ce4`
+- Stage / unit: leftover split merged — `goalie94` is ManualGoalieMenu only; `arena94` / `songs94` / `title94` / `logos94` are the ROM-order cuts.
+- Branch: `main` (`27e3bfc` after #232 then #233)
+- Last check: `tools/verify_all.sh -q` ALL MATCH (2026-11-05) on the #233 head. pairing OK (`tools/gate.sh main`).
+- Next: none for this unit. Report regen is nhl-disasm-report #72.
+- Open PRs: none for this unit
 
 ## Status (2026-10-20)
 
