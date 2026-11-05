@@ -489,7 +489,7 @@ const assets = [
     { name: 'MatchupPalASEB.pal', folder: 'NHL94/Graphics/Pals', start: 0x000F9294, end: 0x000F92B4 }, // ASE other side
     { name: 'MatchupPalASWA.pal', folder: 'NHL94/Graphics/Pals', start: 0x000F92B4, end: 0x000F92D4 }, // ASW matchup logo
     { name: 'MatchupPalASWB.pal', folder: 'NHL94/Graphics/Pals', start: 0x000F92D4, end: 0x000F92F4 }, // ASW other side
-    // src/title94.asm TeamLogoPalettes ($FF462): the 4 team logo palettes that differ from MatchupPal<team>A.pal; the other 24 incbin that file.
+    // src/logos94.asm TeamLogoPalettes ($FF462): the 4 team logo palettes that differ from MatchupPal<team>A.pal; the other 24 incbin that file.
     { name: 'TeamLogoPalBOS.pal', folder: 'NHL94/Graphics/Pals', start: 0x000FF482, end: 0x000FF4A2 }, // BOS team logo
     { name: 'TeamLogoPalFLA.pal', folder: 'NHL94/Graphics/Pals', start: 0x000FF562, end: 0x000FF582 }, // FLA team logo
     { name: 'TeamLogoPalHFD.pal', folder: 'NHL94/Graphics/Pals', start: 0x000FF582, end: 0x000FF5A2 }, // HFD team logo

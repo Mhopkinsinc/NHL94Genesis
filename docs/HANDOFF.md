@@ -2,11 +2,11 @@
 
 ## Now
 
-- Stage / unit: MOVE `goalie94` — `ManualGoalieMenu` stays; arena/faceoff anims to `arena94.asm` (next include).
-- Branch: `cursor/94g-split-goalie-arena-8ce4`
-- Last check: `tools/verify_all.sh -q` ALL MATCH (2026-11-05). goalie94 240 bytes `$0FE1D8-$0FE2C7`, arena94 654 bytes `$0FE2C8-$0FE555`.
-- Next: title94 split (songs94 / title94 / logos94) on a second MOVE PR; do not merge to main until MATCH
-- Open PRs: (this unit)
+- Stage / unit: MOVE `title94` — TitleScreen/credits stay; pre-title leftovers to `songs94.asm`, palettes/helpers after credits to `logos94.asm`.
+- Branch: `cursor/94g-split-title-songs-8ce4`
+- Last check: `tools/verify_all.sh -q` ALL MATCH (2026-11-05). songs94 2796 bytes `$0FE556-$0FF041`, title94 1056 bytes `$0FF042-$0FF461`, logos94 1630 bytes `$0FF462-$0FFABF`. pairing OK.
+- Next: pairing; do not merge to main until MATCH
+- Open PRs: stacked on `cursor/94g-split-goalie-arena-8ce4`
 
 ## Status (2026-10-20)
 
