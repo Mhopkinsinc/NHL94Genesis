@@ -40,6 +40,7 @@
 	include	scout94.asm				; $0FCB9A  NEW in 94: matchups and scouting report
 	include	period94.asm			; $0FD618  NEW in 94: period stats and game statistics
 	include	goalie94.asm			; $0FE1D8  NEW in 94: manual goalie
+	include	arena94.asm				; $0FE2C8  NEW in 94: arena / faceoff animations
 	include	title94.asm				; $0FE556  NEW in 94: song select, title, credits
 	include	checksum94.asm			; $0FFAC0 checksum
 	dcb.b	$100000-*,$FF			;fill the retail 1MB image. Includes for a larger ROM go after this line;

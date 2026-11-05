@@ -2,10 +2,10 @@
 
 ## Now
 
-- Stage / unit: rename CreditsList → CreditsPages (93G name; 92G has only Credits).
-- Branch: `cursor/creditspages-399a`
-- Last check: `tools/verify_all.sh -q` ALL MATCH (2026-11-05).
-- Next: PR. Same rename in 95G / 96G / 95S.
+- Stage / unit: MOVE `goalie94` — `ManualGoalieMenu` stays; arena/faceoff anims to `arena94.asm` (next include).
+- Branch: `cursor/94g-split-goalie-arena-8ce4`
+- Last check: `tools/verify_all.sh -q` ALL MATCH (2026-11-05). goalie94 240 bytes `$0FE1D8-$0FE2C7`, arena94 654 bytes `$0FE2C8-$0FE555`.
+- Next: title94 split (songs94 / title94 / logos94) on a second MOVE PR; do not merge to main until MATCH
 - Open PRs: (this unit)
 
 ## Status (2026-10-20)
