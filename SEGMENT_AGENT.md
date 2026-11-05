@@ -174,12 +174,14 @@ The rows are in ROM address order, the same order as the includes in `src/nhl94.
 | records94 | matched | org $FB018, NameEntryScreen | 4872 bytes, `$0FB018-$0FC31F`. NameEntryScreen ... WriteNameRecord, UserNameEntry ... ReadTeamRecords: NAME ENTRY, Record Holders. Second part of high94_2 |
 | shootout94 | matched | org $FC320, ShootoutModeBox | 2170 bytes, `$0FC320-$0FCB99`. ShootoutModeBox, ClearShootout ... PrintShooterNames: shootout. Last part of high94_2 |
 | scout94 | matched | org $FCB9A, ScoutCrowdRecord | 2686 bytes, `$0FCB9A-$0FD617`. ScoutCrowdRecord ... ScoutStub; ScoutingReport (`$FCC76`) is the 94 MATCHUPS screen. Was hockey94_07 |
-| period94 | matched | org $FD618, EndShootout | 3008 bytes, `$0FD618-$0FE1D7`. EndShootout ... ShortenMsgTimer: shootout end, arena animations, Period Stats / Game Statistics. First part of high94_3 |
-| goalie94 | matched | org $FE1D8, ManualGoalieMenu | 240 bytes, `$0FE1D8-$0FE2C7`. ManualGoalieMenu only. Second part of high94_3 |
-| arena94 | matched | org $FE2C8, RunArenaAnim | 654 bytes, `$0FE2C8-$0FE555`. RunArenaAnim ... EndArenaAnim: arena / faceoff animations |
-| songs94 | matched | org $FE556, ChooseSong | 2796 bytes, `$0FE556-$0FF041`. ChooseSong ... EndOneTimer: song pick and leftover helpers before the title |
+| period94 | matched | org $FD618, EndShootout | 3248 bytes, `$0FD618-$0FE2C7`. EndShootout ... ManualGoalieMenu: shootout end, Period Stats / Game Statistics, Manual Goalie |
+| arena94 | matched | org $FE2C8, RunArenaAnim | 920 bytes, `$0FE2C8-$0FE65F`. RunArenaAnim ... RandomSongs: arena / faceoff animations and organ song pick |
+| shootoutpath94 | matched | org $FE660, ReadLineData | 810 bytes, `$0FE660-$0FE989`. ReadLineData ... ShootoutShootCheck: saved lines and shootout skate paths. The shootout UI is shootout94 |
+| ui94 | matched | org $FE98A, UnpackPicture | 1500 bytes, `$0FE98A-$0FEF65`. UnpackPicture ... PlayedByAway: unpack, rink gfx, HiScore, played-by |
+| helpers94 | matched | org $FEF66, SetSflags8Bit1 | 220 bytes, `$0FEF66-$0FF041`. SetSflags8Bit1 ... EndOneTimer: leftover helpers before the title |
 | title94 | matched | org $FF042, TitleScreen | 1056 bytes, `$0FF042-$0FF461`. TitleScreen ... CreditsScrollStep: title screen and credits |
-| logos94 | matched | org $FF462, TeamLogoPalettes | 1630 bytes, `$0FF462-$0FFABF`. TeamLogoPalettes ... j_setc2player: logo palettes, LeadSong, leftover helpers |
+| logos94 | matched | org $FF462, TeamLogoPalettes | 1350 bytes, `$0FF462-$0FF9A7`. TeamLogoPalettes ... HotColdIcon: logo palettes, LeadSong, penalties, hot/cold icon |
+| chgplayer94 | matched | org $FF9A8, chgplayer | 280 bytes, `$0FF9A8-$0FFABF`. chgplayer ... j_setc2player |
 | checksum94 | matched | org $FFAC0, ValidationRoutine | 80 bytes, `$0FFAC0-$0FFB0F`. ValidationRoutine (IDA Calc_Checksum), as 93 checksum93. The `$FF` fill `$FFB10-$FFFFF` after it is the nhl94.asm `dcb.b` |
 
 ## History

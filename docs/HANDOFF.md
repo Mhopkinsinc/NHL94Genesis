@@ -2,11 +2,11 @@
 
 ## Now
 
-- Stage / unit: leftover split merged — `goalie94` is ManualGoalieMenu only; `arena94` / `songs94` / `title94` / `logos94` are the ROM-order cuts.
-- Branch: `main` (`27e3bfc` after #232 then #233)
-- Last check: `tools/verify_all.sh -q` ALL MATCH (2026-11-05) on the #233 head. pairing OK (`tools/gate.sh main`).
-- Next: none for this unit. Report regen is nhl-disasm-report #72.
-- Open PRs: none for this unit
+- Stage / unit: leftover recut (Abdul 2026-11-05) — period94 EndShootout…ManualGoalieMenu; arena94 RunArenaAnim…RandomSongs; shootoutpath94 ReadLineData…ShootoutShootCheck; ui94 UnpackPicture…PlayedByAway; helpers94 SetSflags8Bit1…EndOneTimer; title94 TitleScreen…CreditsScrollStep; logos94 TeamLogoPalettes…HotColdIcon; chgplayer94 chgplayer…j_setc2player. `shootout94` stays the $FC320 UI (name already taken).
+- Branch: `cursor/leftover-recut-f6fc`
+- Last check: `tools/verify_all.sh -q` ALL MATCH
+- Next: pairing gate in nhl-disasm-report after this lands
+- Open PRs: this unit
 
 ## Status (2026-10-20)
 

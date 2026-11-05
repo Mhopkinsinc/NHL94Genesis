@@ -57,8 +57,8 @@ The stock game has 28 teams in TeamList order. The first 26 (`ANH` through `WPG`
 | Logo palette | `TeamLogoPalettes` in `src/logos94.asm` | 16 colors. Most teams reuse their matchup palette; BOS, FLA, HFD and SJ have their own. |
 | Matchup palettes | `TeamPalettes` in `src/cards94.asm` | Two palettes of 16 colors. A is the matchup logo palette. B is A with colors 1-2 and 3-4 swapped. |
 | Featured pictures | `FeaturedPictures` in `src/cards94.asm` | One pointer, then that team's list of picture and roster index, ending in 0. |
-| Songs | `TeamSongs` in `src/songs94.asm` | 6 bytes. 0 picks from `RandomSongs`. |
-| Ice logo | `TeamGfxList` in `src/songs94.asm` | One address in `NHLPALogoMap`. |
+| Songs | `TeamSongs` in `src/arena94.asm` | 6 bytes. 0 picks from `RandomSongs`. |
+| Ice logo | `TeamGfxList` in `src/ui94.asm` | One address in `NHLPALogoMap`. |
 | Rating | `TeamRatings` in `src/period94.asm` | One byte. |
 | Team blocks | `Teamblocksmap` (`TeamBlocks.map.jim`) | Two rows, 11 tiles wide, in the shared banner image. |
 | Team block bitmaps | `TeamBitmaps` (`TeamBlocks94.map.jim`) | The same shape, the other shared image. |

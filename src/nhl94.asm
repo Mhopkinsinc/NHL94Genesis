@@ -38,12 +38,14 @@
 	include	records94.asm			; $0FB018  NEW in 94: name entry and record holders
 	include	shootout94.asm			; $0FC320  NEW in 94: shootout
 	include	scout94.asm				; $0FCB9A  NEW in 94: matchups and scouting report
-	include	period94.asm			; $0FD618  NEW in 94: period stats and game statistics
-	include	goalie94.asm			; $0FE1D8  NEW in 94: manual goalie
-	include	arena94.asm				; $0FE2C8  NEW in 94: arena / faceoff animations
-	include	songs94.asm				; $0FE556  NEW in 94: song pick and leftover helpers before the title
+	include	period94.asm			; $0FD618  NEW in 94: period stats, game statistics, Manual Goalie
+	include	arena94.asm				; $0FE2C8  NEW in 94: arena / faceoff animations and organ song pick
+	include	shootoutpath94.asm		; $0FE660  NEW in 94: saved lines and shootout skate paths
+	include	ui94.asm				; $0FE98A  NEW in 94: unpack, rink gfx, HiScore, played-by
+	include	helpers94.asm			; $0FEF66  NEW in 94: leftover helpers before the title
 	include	title94.asm				; $0FF042  NEW in 94: title screen and credits
-	include	logos94.asm				; $0FF462  NEW in 94: team logo palettes, leftover helpers after the credits
+	include	logos94.asm				; $0FF462  NEW in 94: team logo palettes, LeadSong, hot/cold icon
+	include	chgplayer94.asm			; $0FF9A8  NEW in 94: chgplayer and far thunks
 	include	checksum94.asm			; $0FFAC0 checksum
 	dcb.b	$100000-*,$FF			;fill the retail 1MB image. Includes for a larger ROM go after this line;
 									;tools/fixrom.js pads the image and sets the header ROM end
