@@ -1,7 +1,23 @@
 # HANDOFF: NHL94 Genesis
 
+## Now
+
+- Stage / unit: leftover recut (Abdul 2026-11-05) — period94 EndShootout…ManualGoalieMenu; arena94 RunArenaAnim…RandomSongs; shootoutpath94 ReadLineData…ShootoutShootCheck; ui94 UnpackPicture…PlayedByAway; helpers94 SetSflags8Bit1…EndOneTimer; title94 TitleScreen…CreditsScrollStep; logos94 TeamLogoPalettes…HotColdIcon; chgplayer94 chgplayer…j_setc2player. `shootout94` stays the $FC320 UI (name already taken).
+- Branch: `cursor/leftover-recut-f6fc`
+- Last check: `tools/verify_all.sh -q` ALL MATCH
+- Next: pairing gate in nhl-disasm-report after this lands
+- Open PRs: this unit
+
+## Status (2026-10-20)
+
+- Everything is merged and `tools/verify_all.sh -q` prints ALL MATCH.
+- `SngScout` is now `SngScouting` (as in 93G; recorded in `docs/name_map.csv`). Fifty trailing comments came over from identical NHLPA93Genesis code.
+- This repo is the layout reference for NHL94SNES: its `src/routines` folders mirror the files here. NHL94SNES is the repo with open work (the comment pass); see its `docs/HANDOFF.md`.
+- NHL9XStudio lists this game's pictures in the 93 group order and names the shared songs `SngTitle`, `SngEOP`, `SngScouting`.
+
+
 ## Purpose
-A byte-matching 68000 SNASM disassembly of the retail cartridge that reads like clean original source: accurate names that follow the NHL92 Genesis (EA original) lineage, and comments without disassembler or porting artifacts. Every build must still MATCH `lst/nhl94.bin`. `main` keeps only changes that emit identical bytes (Current rules in SEGMENT_AGENT.md).
+A byte-matching 68000 SNASM disassembly of the retail cartridge that reads like clean original source: accurate names that follow the NHL92 Genesis (EA original) lineage, and comments without disassembler or porting artifacts. Every build must still MATCH `nhl94retail.bin`. `main` keeps only changes that emit identical bytes (Current rules in SEGMENT_AGENT.md).
 
 ## Build
 `npm run build:retail` (or `node tools/build.js retail`) on Windows, or on Linux with wine (`apt install wine wine32`, i386 enabled). It prints one line per step: prebuild, assemble, fixopcodes, fixrom, verify. `npm run build:dev` builds with CHECKSUM=0 and skips the verify. One segment: `npm run seg -- <name>` (full build, then that segment's address range from the listing is compared; `--all` for every segment). `--verbose` shows each step's full output. `tools/verify_all.sh` extracts fresh and checks the full ROM and every segment; it must end in `ALL MATCH` before every commit.
@@ -12,7 +28,7 @@ A byte-matching 68000 SNASM disassembly of the retail cartridge that reads like 
 - A name not from 92 that is inaccurate (checked against the routine body / usage) gets fixed, and the fix is propagated
   forward: 93 -> 94 -> 95, and to abdulahmad/NHLPA93SNES for 93 names that exist there.
 - Clash rule: never reuse a name already used for a different item; pick a descriptive name instead.
-- Teams: 93 (unlicensed) uses city names only; 94/95 use NYIslanders/NYRangers (NYI/NYR) style names.
+- Teams: 93 (unlicensed) uses city names only; 94/95 use NYI/NYR style abbreviations (team nicknames are not in the repo).
 
 ## Comment rules
 No other games' names or "X name" notes, no source-file/segment names, no IDA references (IDA, loc_, sub_, unk_),
@@ -111,7 +127,7 @@ Branch `feature/season-mode`. Retail stays `SEASON=0` and must MATCH. `npm run b
 
 ## Current state (main)
 - Every segment and the full ROM MATCH. The comment review, the name pass, the local label pass and the file header rewrites are done for 94G (renames are in docs/name_map.csv).
-- Oct 14 cleanup: main is a faithful retail disassembly again (SRAMTOGGLE, absjsr/absjmp and LONGBRA removed; plain 1MB fill). Kept: NumTeams equates and table checks, the NoTiles/TeamList labels, CHECKSUM/REV, `tools/fixrom.js` (size, header ROM end, checksum) and `src/shortcalls.inc`. Mod fixes and the team checklist: docs/EXPANDING_THE_ROM.md.
-- Left numeric on purpose (no safe name): checks94 `cmp.w #$180,d4` / `move.w #$180,d4` (speed clamp) and `cmp.w #-50,d1`; display94 showcrowd and showzam constants and the pad arrow frames `#$346` / `#$349`; setup94 `.listffo` `$34C` / `$34D`; replay94 `cmp.w #$34E`.
+- Oct 14 cleanup: main is a faithful retail disassembly again (SRAMTOGGLE, absjsr/absjmp and LONGBRA removed; plain 1MB fill). Kept: NumTeams equates and table checks, the null/TeamList labels, CHECKSUM/REV, `tools/fixrom.js` (size, header ROM end, checksum) and `src/shortcalls.inc`. Mod fixes and the team checklist: docs/EXPANDING_THE_ROM.md.
+- Left numeric on purpose (no safe name): logic94 `cmp.w #$180,d4` / `move.w #$180,d4` (speed clamp) and `cmp.w #-50,d1`; video94 showcrowd and showzam constants and the pad arrow frames `#$346` / `#$349`; setup94 `.listffo` `$34C` / `$34D`; replay94 `cmp.w #$34E`.
 - Next: the same local label pass for 95G.
 - feature/season-mode after merging main: build with `npm run build:season` (tools/build.js season -> output/nhl94-season.bin, SEASON=1, needs NHL95_ROM; not verified). Retail `npm run build:retail` passes SEASON=0 and must MATCH. Season sram94 keeps SaveMirrorBytes/SaveRamBase equates (no SRAMTOGGLE map port); 2MB ROM with save RAM at $200000 needs no mapping.

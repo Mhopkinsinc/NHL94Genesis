@@ -10,7 +10,7 @@ InitSaveRAM	;Called from Begin. Copy the save RAM mirror (the odd bytes) to M68K
 	clr.w	(ValidSRAM).w	;good until checked
 	jsr	(ReadJoy1).l	;get joypad buttons held
 	move.w	d3,d0	;d3 = buttons held
-	movea.l	#SaveRamBase,a0	;move SRAM address into a0
+	movea.l	#SaveRAM,a0	;move SRAM address into a0
 	move.w	#$E,d3	;red ($00E), fading by 2 a frame
 	move.w	#2,d4	;move 2 into d4
 	cmp.b	#$E0,d0	;Start+A+C button held down
@@ -50,7 +50,7 @@ InitSaveRAM	;Called from Begin. Copy the save RAM mirror (the odd bytes) to M68K
 	dbf	d0,.setto80
 	adda.w	#2,a0
 	dbf	d2,.SRAMloop
-	movea.l	#SaveRamBase,a0
+	movea.l	#SaveRAM,a0
 	move.l	#$120034,(a0)+	;bytes 0-3 = $12,$34,$56,$78 (word writes: the low byte goes to the odd SRAM byte)
 	move.l	#$560078,(a0)+
 	move.w	#$E0,d3	;green ($0E0), fading by $20 a frame
@@ -157,7 +157,7 @@ ClearSRAM	;Clears the save RAM. Retail: zero the mirror, byte SaveChecksumByte =
 WriteSRAM	;Write data from a0 into SaveRAM: d1 = number of bytes, d0 = first save RAM byte (each byte is the odd byte of a word at
 	;Called from ClearSRAM, MakeSRAMChecksum and the save code (ReadCrowdRecord ...)
 	movem.l	d0-d2/a0-a1,-(sp)
-	movea.l	#SaveRamBase,a1
+	movea.l	#SaveRAM,a1
 	add.l	d0,d0
 	subq.l	#1,d1
 	clr.w	d2
@@ -178,7 +178,7 @@ MakeSRAMChecksum	;Sum the save RAM and write the checksum bytes back. Called fro
 	btst	#7,(GameFlags).l
 	bne.w	.x
 	movem.l	d0-d2/a0-a1,-(sp)
-	movea.l	#SaveRamBase,a1
+	movea.l	#SaveRAM,a1
 	move.w	#SaveSumDb,d1
 	clr.l	d0
 	clr.l	d2
@@ -268,7 +268,7 @@ KeepRetailSave	;The low window still has a retail checksum: keep the records, mo
 	ENDIF
 ReadSRAM	;Copy d1 save RAM bytes from byte d0 (the odd bytes + d0 * 2) to (a0)+. Called from InitSaveRAM, MakeSRAMChecksum and the save code
 	movem.l	d0-d2/a0-a1,-(sp)
-	movea.l	#SaveRamBase,a1
+	movea.l	#SaveRAM,a1
 	add.l	d0,d0
 	subq.l	#1,d1
 .loop
