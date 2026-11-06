@@ -2,10 +2,10 @@
 
 ## Now
 
-- Stage / unit: leftover recut (Abdul 2026-11-05) — period94 EndShootout…ManualGoalieMenu; arena94 RunArenaAnim…RandomSongs; shootoutpath94 ReadLineData…ShootoutShootCheck; ui94 UnpackPicture…PlayedByAway; helpers94 SetSflags8Bit1…EndOneTimer; title94 TitleScreen…CreditsScrollStep; logos94 TeamLogoPalettes…HotColdIcon; chgplayer94 chgplayer…j_setc2player. `shootout94` stays the $FC320 UI (name already taken).
-- Branch: `cursor/leftover-recut-f6fc`
+- Stage / unit: asstab slot $00 named `anull` (same job as 93S/94S `rtss`). Shared 92G `a*`/`p*` names unchanged.
+- Branch: `cursor/asstab-anull-063b`
 - Last check: `tools/verify_all.sh -q` ALL MATCH
-- Next: pairing gate in nhl-disasm-report after this lands
+- Next: merge when MATCH, then report regen
 - Open PRs: this unit
 
 ## Status (2026-10-20)
