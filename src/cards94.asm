@@ -52,7 +52,7 @@ PlayerCardScreen					;Draw a player card on one side. setupcardflags bit 1 set: 
 									;Called from PlayerCardTimer
 	movem.l	d0-d7/a0-a6,-(sp)		;the whole card is drawn here, keep all registers
 	jsr	(printz).l
-	String	-TXMAP1,0,0				;x3
+	String	CC_Font1,0,0			;x3
 	move.w	#$1C,(printx).w			;visitors: erase the other logo box at $1C
 	btst	#1,(setupcardflags).w	;which side?
 	bne.w	.0
@@ -64,7 +64,7 @@ PlayerCardScreen					;Draw a player card on one side. setupcardflags bit 1 set: 
 	move.w	#$7FF,d2				;blank char
 	jsr	(eraser).l
 	jsr	(printz).l
-	String	-TXMAP1,0,0				;x3
+	String	CC_Font1,0,0			;x3
 	move.w	#3,(printx).w
 	btst	#1,(setupcardflags).w
 	bne.w	.1
@@ -84,7 +84,7 @@ PlayerCardScreen					;Draw a player card on one side. setupcardflags bit 1 set: 
 	addq.w	#1,(featuredplayer).w	;each visitors card moves to the next featured player
 .3									;both sides: wrap featuredplayer after the sixth picture
 	jsr	(printz).l
-	String	-TXMAP1,0,0				;x3 / add.b
+	String	CC_Font1,0,0			;x3 / add.b
 	cmpi.w	#6,(featuredplayer).l
 	blt.w	.4
 	clr.w	(featuredplayer).w		;back to the first picture
@@ -136,7 +136,7 @@ PlayerCardScreen					;Draw a player card on one side. setupcardflags bit 1 set: 
 	move.l	(sp)+,(palfadenew+$26).w
 	move.l	(sp)+,(palfadenew+$22).w
 	jsr	(printz).l
-	String	-(TXPRI+TXMAP1),0,0		;(the routine here)
+	String	CC_Font1Pri,0,0			;(the routine here)
 	move.w	#$6000,(printa).w
 	move.w	#3,(printx).w
 	move.w	#$19,d0
@@ -278,7 +278,7 @@ TeamPalettes						;Matchup and player card palettes: 56 of 16 colors, two per te
 									;teams, TeamList order). A is the matchup logo palette (the
 									;TeamLogoPalettes
 									;entry, except BOS, FLA, HFD, SJ), B the other side (A with colors 1-2 and
-									;3-4 swapped). Used by DrawMatchupBitmaps and the player cards
+									;3-4 swapped). Used by TeamIcons and the player cards
 	incbin	..\Extracted\NHL94\Graphics\Pals\MatchupPalANHA.pal	;ANH matchup logo palette
 	incbin	..\Extracted\NHL94\Graphics\Pals\MatchupPalANHB.pal	;ANH other side
 	incbin	..\Extracted\NHL94\Graphics\Pals\MatchupPalBOSA.pal	;BOS matchup logo palette
@@ -1266,7 +1266,7 @@ UpdateRecords						;With save RAM (ValidSRAM) and user records on (OptUserRec 0)
 	bsr.w	UpdatePlayerRecords
 	move.w	(VisTeam).w,d1
 	ext.l	d1
-	movea.l	#AwShots,a2
+	movea.l	#awtmstruct,a2
 	move.w	(awaygoalies).w,d5
 	move.w	(HomeTeam).w,d6
 	bsr.w	UpdatePlayerRecords
@@ -1280,7 +1280,7 @@ UpdateRecords						;With save RAM (ValidSRAM) and user records on (OptUserRec 0)
 	ext.l	d1
 	movea.l	#recordbuf,a0
 	bsr.w	UpdateCrowdRecord
-	movea.l	#AwShots,a1
+	movea.l	#awtmstruct,a1
 	move.w	(awayuser).w,d4
 	move.w	(homeuser).w,d5
 	move.w	(VisTeam).w,d1
@@ -1296,7 +1296,7 @@ UpdateRecords						;With save RAM (ValidSRAM) and user records on (OptUserRec 0)
 	move.w	(HomeTeam).w,d3
 	move.w	(VisTeam).w,d4
 	movea.l	#tmstruct,a1
-	movea.l	#AwShots,a2				;opponent team struct
+	movea.l	#awtmstruct,a2			;opponent team struct
 	bsr.w	UpdateTeamRecord
 	movea.l	#recordbuf,a0
 	move.w	(awayuser).w,d1
@@ -1304,7 +1304,7 @@ UpdateRecords						;With save RAM (ValidSRAM) and user records on (OptUserRec 0)
 	move.w	(homeuser).w,d2
 	move.w	(VisTeam).w,d3
 	move.w	(HomeTeam).w,d4
-	movea.l	#AwShots,a1
+	movea.l	#awtmstruct,a1
 	movea.l	#tmstruct,a2
 	bsr.w	UpdateTeamRecord
 	jsr	(MakeSRAMChecksum).l		;new save RAM checksum
@@ -1477,7 +1477,7 @@ CountGoalies						;homegoalies / awaygoalies = goalies of the home / away team
 	movea.l	#tmstruct,a2
 	jsr	(GetGoalieCount).l
 	move.w	d0,(homegoalies).w
-	movea.l	#AwShots,a2
+	movea.l	#awtmstruct,a2
 	jsr	(GetGoalieCount).l
 	move.w	d0,(awaygoalies).w
 	movem.l	(sp)+,d0-d7/a0-a6
@@ -1488,7 +1488,7 @@ CountPlayers						;homeplayers / awayplayers = players of the home / away team
 	movea.l	#tmstruct,a2
 	jsr	(GetPlayerCount).l
 	move.w	d0,(homeplayers).w
-	movea.l	#AwShots,a2
+	movea.l	#awtmstruct,a2
 	jsr	(GetPlayerCount).l
 	move.w	d0,(awayplayers).w
 	movem.l	(sp)+,d0-d7/a0-a6
@@ -1561,7 +1561,7 @@ PlayerCards							;"Player Cards" menu item (menu lists), with save RAM only: th
 	jsr	(DecompressGraphicsWithRemap).l
 	dc.l	$05234167,$89ABCDEF		;remap table
 	jsr	(printz).l					;map 3 at 0,0
-	String	-TXMAP3,0,0
+	String	CC_Font3,0,0
 	movea.l	#PlayerCardsScreenPic,a0	;the Player Cards screen picture
 	movea.l	a0,a1					;a1 = map header
 	movea.l	a0,a2
@@ -1580,15 +1580,15 @@ PlayerCards							;"Player Cards" menu item (menu lists), with save RAM only: th
 	addi.w	#$24,d4
 	move.w	d4,-(sp)
 	jsr	(printz).l					;map 2 at 0,0
-	String	-TXMAP2,0,0
+	String	CC_Font2,0,0
 	moveq	#$40,d0
 	moveq	#$20,d1
 	move.w	#$7FF,d2				;blank char
 	jsr	(eraser).l
 	move.w	(sp)+,d4
 	jsr	(printz).l					;map 2 (priority) at 1,1
-	String	-(TXPRI+TXMAP2),1,1
-	movea.l	#CornerLogoMap,a0
+	String	CC_Font2Pri,1,1
+	movea.l	#NHLLogoMap,a0
 	movea.l	a0,a1					;a1 = map header
 	movea.l	a0,a2
 	adda.l	(a2)+,a0				;a0 = tile data
@@ -1600,8 +1600,8 @@ PlayerCards							;"Player Cards" menu item (menu lists), with save RAM only: th
 	moveq	#8,d5
 	jsr	(dobitmap).l				;draw the corner logo
 	jsr	(printz).l					;map 2 (priority) at column 33, row 1
-	String	-(TXPRI+TXMAP2),'!',1
-	movea.l	#ArenaGfxBank,a0		;arena logo bank
+	String	CC_Font2Pri,'!',1
+	movea.l	#NHLPALogoMap,a0		;arena logo bank
 	movea.l	a0,a1					;a1 = map header
 	movea.l	a0,a2
 	adda.l	(a2)+,a0				;a0 = tile data
@@ -1642,7 +1642,7 @@ PlayerCards							;"Player Cards" menu item (menu lists), with save RAM only: th
 .draw								;draw the first card of that side
 	bsr.w	DrawPlayerCard
 .loop								;each frame: read the pad
-	jsr	(vcountwait).l				;wait for the next frame
+	jsr	(MenuWaitVblank).l				;wait for the next frame
 	jsr	(getpzjoy).l				;read the pads
 	jsr	(ProcessInputWithRepeat).l
 	btst	#7,d3					;start?
@@ -1711,13 +1711,13 @@ DrawPlayerCard						;Draw a player card: picture (DrawPictureBox), name, "Record
 	move.l	$26(a6,d0.w),(palfadenew+$22).w	;the team's card colors into the palette
 	move.w	#$64,(palcount).w		;fade over $64 frames
 	jsr	(printz).l					;map 2 (priority) at 0,7
-	String	-(TXPRI+TXMAP2),0,7
+	String	CC_Font2Pri,0,7
 	move.w	#$28,d0
 	move.w	#$15,d1
 	move.w	#$7FF,d2				;blank char
 	jsr	(eraser).l					;clear the card area
 	jsr	(printz).l					;map 2 (priority) at 0,0
-	String	-(TXPRI+TXMAP2),0,0
+	String	CC_Font2Pri,0,0
 	movea.l	(sp),a0
 	tst.w	(a0)
 	bne.w	.1						;index 0 is the team records card
@@ -1738,7 +1738,7 @@ DrawPlayerCard						;Draw a player card: picture (DrawPictureBox), name, "Record
 	jsr	(ClearCardText).l			;clear the text area
 	move.w	#$64,(palcount).w		;fade over $64 frames
 	jsr	(printz).l					;map 2 (priority) at 0,0
-	String	-(TXPRI+TXMAP2),0,0
+	String	CC_Font2Pri,0,0
 	move.w	(HomeTeam).w,d0
 	tst.w	(cardvis).w				;which side?
 	beq.w	.4
@@ -1780,7 +1780,7 @@ DrawPlayerCard						;Draw a player card: picture (DrawPictureBox), name, "Record
 	movea.l	#tmstruct,a2
 	tst.w	(cardvis).w				;which side?
 	beq.w	.6
-	movea.l	#AwShots,a2				;visitors stats
+	movea.l	#awtmstruct,a2			;visitors stats
 .6									;team side chosen: the stats table
 	jsr	(FormatPlayerNameLast).l
 	move.w	#8,(printx).l
@@ -1871,7 +1871,7 @@ PrintCardRecords					;Player card "Records" column
 	bclr	#0,(sflags6).w			;back off
 	move.w	#$64,(palcount).w		;fade over $64 frames
 	jsr	(printz).l					;map 2 (priority) at 0,0
-	String	-(TXPRI+TXMAP2),0,0
+	String	CC_Font2Pri,0,0
 	move.w	#8,d1
 	jsr	(PrintCardTeam).l
 	move.w	#3,d0
@@ -1928,7 +1928,7 @@ ClearCardText						;Player card: erase the text area and redraw the team bitmap 
 									;(dobitmap)
 	movem.l	d0-d7/a0-a6,-(sp)
 	jsr	(printz).l					;map 2 (priority) at 0,0
-	String	-(TXPRI+TXMAP2),0,0
+	String	CC_Font2Pri,0,0
 	move.w	d0,(printx).w
 	move.w	d1,(printy).w
 	move.w	(cardlogochars1).w,d4
@@ -2159,7 +2159,7 @@ PrintOverallRating					;Player card "Overall Rating" (CalcAttrib, AttribAdjust)
 	movea.l	#tmstruct,a2
 	tst.w	(cardvis).w				;which side?
 	beq.w	.0
-	movea.l	#AwShots,a2				;visitors stats
+	movea.l	#awtmstruct,a2			;visitors stats
 .0									;team side chosen
 	move.l	(PAttribOverallMask).l,d4	;skater mask, or the goalie mask on a goalie card
 	tst.w	(matchup).w				;goalie card?
@@ -2360,7 +2360,7 @@ PrintCardPosition					;Player card position: Goalie, Forward or Defenseman (from
 	movea.l	#tmstruct,a2
 	tst.w	(cardvis).w				;which side?
 	beq.w	.0
-	movea.l	#AwShots,a2				;visitors stats
+	movea.l	#awtmstruct,a2			;visitors stats
 .0									;team side chosen
 	move.w	d0,-(sp)
 	jsr	(GetDefenseStart).l			;index at or past the defense start: not a forward
@@ -2399,7 +2399,7 @@ PrintTeamRating						;Player card "Team Rating" (GetTeamRating, high ROM)
 	movea.l	#tmstruct,a0
 	tst.w	(cardvis).w				;which side?
 	beq.w	.1
-	movea.l	#AwShots,a0
+	movea.l	#awtmstruct,a0
 .1									;team side chosen
 	movea.l	a0,a2
 	bsr.w	GetTeamRating			;d0 = team rating
@@ -2418,7 +2418,7 @@ PrintCardTeam						;Player card: the city and nickname of the card's team (GetCa
 	movea.l	#tmstruct,a0
 	tst.w	(cardvis).w				;which side?
 	beq.w	.0
-	movea.l	#AwShots,a0
+	movea.l	#awtmstruct,a0
 .0									;team side chosen
 	movea.l	tmdata(a0),a0
 	adda.w	Teamname(a0),a0
@@ -2445,7 +2445,7 @@ GetJerseyString						;Player d0 of the card's team: his jersey number as a 2 dig
 	movea.l	#tmstruct,a0
 	tst.w	(cardvis).w				;which side?
 	beq.w	.0
-	movea.l	#AwShots,a0
+	movea.l	#awtmstruct,a0
 .0									;team side chosen
 	movea.l	tmdata(a0),a0
 	move.w	(a0),d1
@@ -2617,7 +2617,7 @@ DrawPictureBox						;Player card picture box (DrawPlayerPicture, UnpackPicture)
 .0									;team side chosen
 	bsr.w	DrawPlayerPicture		;a0 = his picture
 	jsr	(printz).l					;map 2 (priority, palette 3) at 1,8
-	String	-(TXPRI+TXPAL3+TXMAP2),1,8
+	String	CC_Font2Pal3Pri,1,8
 	move.w	(cardlogochars2).w,d4
 	movea.l	a0,a1					;a1 = picture header
 	movea.l	a0,a2
@@ -2651,11 +2651,11 @@ DrawPictureBox						;Player card picture box (DrawPlayerPicture, UnpackPicture)
 	jsr	(dobitmap).l
 	movem.l	(sp)+,d0-d7/a0-a6
 	rts
-GetCardTeam							;a0 = tmstruct, or AwShots when cardvis is set (the card's team)
+GetCardTeam							;a0 = tmstruct, or awtmstruct when cardvis is set (the card's team)
 	movea.l	#tmstruct,a0
 	tst.w	(cardvis).w				;which side?
 	beq.w	.x
-	movea.l	#AwShots,a0
+	movea.l	#awtmstruct,a0
 .x									;exit (also the end of the code above)
 	rts
 TrimSpaces							;Trim the trailing spaces of String a2 and pad it to an even length
@@ -2696,7 +2696,7 @@ BuildCardPlayerLists				;Build the player card order of both teams: home at home
 	movea.l	#tmstruct,a0
 	bsr.w	BuildCardPlayerList
 	movea.l	#awaycardlist,a1
-	movea.l	#AwShots,a0				;away team stats
+	movea.l	#awtmstruct,a0			;away team stats
 	bsr.w	BuildCardPlayerList
 	movem.l	(sp)+,d0-d7/a0-a6
 	rts

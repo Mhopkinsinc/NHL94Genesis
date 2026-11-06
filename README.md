@@ -2,7 +2,7 @@
 
 > **📀 Game data is not included.** This repository has the assembly code only. The graphics, team palettes, sound samples, music, player cards and the NHLPA player names and NHL team nicknames are extracted from your own copy of the original ROM when you build, and are not in the repo. You need the NHL 94 Genesis ROM, with the file name and SHA-1 listed under [Supported ROMs](#supported-roms), or the build stops.
 
-> **🤝 Making a mod, hack, port or other derivative work from this repo? You must credit me (abdulahmad) and everyone credited in this repo, clearly, in your own repo and in every release. See [Credits and derivative works](#credits-and-derivative-works).**
+> **🤝 Making a mod, hack, port or other derivative work from this repo? You must credit me and everyone credited in this repo, clearly, in your own repo and in every release. See [Credits and derivative works](#credits-and-derivative-works).**
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for how changes are made (names, comments, layout, verification).
 
@@ -15,7 +15,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for how changes are made (names, comments
 - All sound effects and music are now playable and we have Dieter Ruehle's list, so sound and music names can be fixed properly.
 - Frame lists and animation names still need proper labels.
 
-Bitwise rebuild of NHL 94 for the Sega Genesis.
+Reverse engineered source of NHL 94 for the Sega Genesis.
 
 The ROM goes in the repository's root folder (it is not in the repo). `nhl94retail.bin` is the usual name, but any name works: the build finds the ROM by its SHA-1 and size (`tools/roms.js`). `.bin` and `.gen` files there are gitignored; a ROM named `.md` is not, so do not commit it. It is the reference for every verify. Do not use a different ROM. The IDA listing the segment work used (`lst/nhl94.bin.lst`) is no longer in the repo either; keep a local copy there if you have one.
 
@@ -37,7 +37,7 @@ Style source for a segment is the matching file in [NHLPA93Genesis](https://gith
 
 94-only files that 93 did not have:
 
-- `attract94.asm` for `EASportsScreen`, `HiScoreScreen`, and `LoadDefMenuOptions`
+- `setup94.asm` holds `EASportsScreen` with the rink setup and menu / playoff data
 - `sram94.asm` starts at `InitSaveRAM`
 
 ## Build
@@ -74,9 +74,13 @@ Full ROM builds assemble `src/nhl94.asm`. The listing is `output/obj/nhl94 .lst`
 
 `build:perf` is that same dev boot with `src/perf94.asm` included after the 1 MB fill. The field names are in `docs/perf.md`.
 
+## Mod branches
+
+The feature and patch branches (season mode, MSU-MD music, performance overlay, team banner VRAM) are described in [docs/BRANCHES.md](docs/BRANCHES.md): what each does, how to build it, and its status. `main` stays byte-identical to retail.
+
 ## Sega CD
 
-`npm run build:segacd` (`node tools/build.js --segacd`) assembles the 41 transcribed CD fragments in `src/segacd/` into `output/segacd/` and compares them to the disc files in `cdbin/` (not in the repo), on Windows or Linux with wine. It does not change the cartridge build. What the disc changed, and how far the disassembly goes, is `docs/segacd.md`.
+`npm run build:segacd` (`node tools/build.js --segacd`) assembles the 41 transcribed CD fragments in `src/segacd/` into `output/segacd/` and compares them to the six disc files in `cdbin/` (copied from your own Sega CD disc; not in the repo, see `docs/segacd.md`), on Windows or Linux with wine. It does not change the cartridge build. What the disc changed, and how far the disassembly goes, is `docs/segacd.md`.
 
 ## Build steps explained
 
@@ -92,12 +96,14 @@ Thanks to chaos, StaticEck, McMarkis and Drezz for their help with the disassemb
 
 Special thanks to smozoma and kingraph, whose past contributions to the NHL modding community made this work easier.
 
+And thank you to the [original developers of the game](https://www.mobygames.com/game/12399/nhl-94/credits/genesis/), and of its [Sega CD version](https://www.mobygames.com/game/12399/nhl-94/credits/sega-cd/).
+
 These disassemblies started with a lot of manual work, especially from chaos, and have since been AI-assisted.
 
-This project is the result of my work (abdulahmad) and the work of the people credited above. If you build anything from it, including mods, ROM or EXE hacks, ports, released forks, tools, or any other derivative work, you must credit us:
+This project is the result of my work and the work of the people credited above. If you build anything from it, including mods, ROM or EXE hacks, ports, released forks, tools, or any other derivative work, you must credit us:
 
 - Put the credit in your repo's README, near the top and not buried in a footer, and in the notes of every release you publish, including any text file shipped inside a release archive.
-- Name me (abdulahmad) and link to this repository.
+- Name me and link to this repository.
 - Name everyone credited here: chaos, StaticEck, McMarkis (Mhopkinsinc) and Drezz, with special thanks to smozoma and kingraph.
 - If you only use part of this repo (docs, a tool, labels, a file format description), the credit still applies.
 - If you are unsure, over-credit.

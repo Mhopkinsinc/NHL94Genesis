@@ -87,7 +87,7 @@ ScoutingReport						;pregame MATCHUPS screen, called from Opening2. Draws the Ro
 	move.l	a0,-(sp)
 	movea.l	#tmstruct,a0
 	jsr	(Create_HotCold_Table).l	;new random hot / cold tables (end of the team structs)
-	movea.l	#AwShots,a0
+	movea.l	#awtmstruct,a0
 	jsr	(Create_HotCold_Table).l
 	movea.l	(sp)+,a0
 	jsr	(BuildHotColdLists).l		;again with the new tables
@@ -115,8 +115,8 @@ ScoutingReport						;pregame MATCHUPS screen, called from Opening2. Draws the Ro
 	jsr	(DecompressGraphicsWithRemap).l
 	dc.l	$05422561,$89ABCDEF		;remap table
 	jsr	(printz).l
-	String	-TXMAP2,0,0
-	movea.l	#ScoutMap,a0			;the jsr, the string and this (ori.b x4)
+	String	CC_Font2,0,0
+	movea.l	#EASportsBGMap,a0		;the jsr, the string and this (ori.b x4)
 	movea.l	a0,a1					;a1 = map header
 	movea.l	a0,a2
 	adda.l	(a2)+,a0
@@ -128,27 +128,27 @@ ScoutingReport						;pregame MATCHUPS screen, called from Opening2. Draws the Ro
 	moveq	#3,d5					;color fam 1-2
 	jsr	(dobitmap).l
 	jsr	(printbigz).l
-	String	-(TXPAL2+TXMAP1),$C,$D,'MATCHUPS'
+	String	CC_Font1Pal2,$C,$D,'MATCHUPS'
 	move.w	#0,(printfontset).w
 	jsr	(printz).l					;map at the header
-	String	-TXMAP1,$10,$11,'ADVANTAGE:'
+	String	CC_Font1,$10,$11,'ADVANTAGE:'
 	jsr	(printz).l					;map at the box
-	String	-(TXPAL2+TXMAP2),6,3
+	String	CC_Font2Pal2,6,3
 	moveq	#$21,d0					;33 x 9 text box frame
 	moveq	#9,d1
 	jsr	(Framer).l
 	jsr	(printz).l					;map at the visitors picture
-	String	-(TXPAL2+TXMAP2),1,$E	;(and dropped a word)
+	String	CC_Font2Pal2,1,$E		;(and dropped a word)
 	move.w	#8,d0					;8 x 8 frame: visitors picture
 	move.w	#8,d1
 	jsr	(Framer).l
 	jsr	(printz).l					;map at the home picture
-	String	-(TXPAL2+TXMAP2),$1F,$E	;(and dropped a word)
+	String	CC_Font2Pal2,$1F,$E		;(and dropped a word)
 	move.w	#8,d0					;8 x 8 frame: home picture
 	move.w	#8,d1
 	jsr	(Framer).l
 	jsr	(printz).l					;map at Ron Barr
-	String	-TXMAP1,1,1
+	String	CC_Font1,1,1
 	movea.l	#RonBarrMap,a0			;Ron Barr picture: palette offset, then map header offset
 	movea.l	a0,a1					;a1 = map header
 	movea.l	a0,a2
@@ -160,10 +160,10 @@ ScoutingReport						;pregame MATCHUPS screen, called from Opening2. Draws the Ro
 	move.w	mapheight(a1),d3
 	moveq	#$C,d5					;color fam 3-4
 	jsr	(dobitmap).l
-	movea.l	#HotIconMap+8,a2
+	movea.l	#HotMap+8,a2
 	move.w	d4,(hoticonchars).w		;tiles: 1st vram char
 	jsr	(DecompressGraphicsPlain).l
-	movea.l	#ColdIconMap+8,a2
+	movea.l	#ColdMap+8,a2
 	move.w	d4,(coldiconchars).w	;tiles: 1st vram char
 	jsr	(DecompressGraphicsPlain).l
 	clr.w	(matchup).w				;matchup 0: the teams
@@ -176,7 +176,7 @@ ScoutingReport						;pregame MATCHUPS screen, called from Opening2. Draws the Ro
 	move.l	#vb2,(VBint).w			;vblank routine
 	move	#$2500,sr				;interrupts on
 	jsr	(InitScoutingDisplay).l		;a0 = the paragraph list
-	move.w	#$1B,(a0)+				;paragraph numbers in ScoutTextScript: 'Hi, I'm Ron Barr ...'
+	move.w	#$1B,(a0)+				;paragraph numbers in ScoutingReportText: 'Hi, I'm Ron Barr ...'
 	move.w	#$1D,(a0)+				;empty paragraph: a blank line
 	move.w	#$1A,(a0)+				;'Welcome to a sold out ^ ...'
 	move.w	#$1D,(a0)+				;blank line
@@ -453,16 +453,16 @@ PrintMatchupRatings					;Print the matchup ratings. Matchup 0: 'Overall' at y $1
 	bpl.s	.loop
 	move.w	#2,(printfontset).w
 	jsr	(printz).l					;map at the home rating
-	String	-TXMAP1,0,$17,'                                        '	;40 spaces
+	String	CC_Font1,0,$17,'                                        '	;40 spaces
 	jsr	(printz).l					;its position
-	String	-TXMAP1,$22,$16
+	String	CC_Font1,$22,$16
 	movea.l	#tmstruct,a0
-	movea.l	#AwShots,a2
+	movea.l	#awtmstruct,a2
 	bsr.w	PrintMatchupRating
 	move.w	d0,(homerating).w
 	move.w	#2,(printfontset).w
 	jsr	(printz).l					;map at the visitors rating
-	String	-TXMAP1,4,$16
+	String	CC_Font1,4,$16
 	exg	a0,a2
 	bsr.w	PrintMatchupRating
 	move.w	d0,(visrating).w
@@ -489,9 +489,9 @@ PrintMatchupRatings					;Print the matchup ratings. Matchup 0: 'Overall' at y $1
 .4									;rating weights chosen
 	move.w	(matchuphome).w,d0
 	jsr	(printz).l
-	String	-TXMAP1,0,$17,'                                        '	;40 spaces
+	String	CC_Font1,0,$17,'                                        '	;40 spaces
 	jsr	(printz).l					;its position
-	String	-TXMAP1,$23,$17
+	String	CC_Font1,$23,$17
 	bsr.w	PrintPlayerNameRight	;print the name, moved left to fit the line
 	bsr.w	CalcAttrib				;d0 = weighted total, d1 = weights
 	mulu.w	#$64,d0
@@ -501,10 +501,10 @@ PrintMatchupRatings					;Print the matchup ratings. Matchup 0: 'Overall' at y $1
 	move.w	d0,(homerating).w
 	jsr	(PushNumberWidth).l
 	jsr	(printz).l					;map at the number
-	String	-TXMAP1,$22,$16
+	String	CC_Font1,$22,$16
 	bsr.w	PrintTwoSpaces			;clear the old number
 	jsr	(printsmall).l				;print it
-	movea.l	#AwShots,a2
+	movea.l	#awtmstruct,a2
 	move.l	(PAttribOverallMask).l,d4	;skater rating weights
 	tst.w	(matchupslot).w			;goalie?
 	bne.w	.5
@@ -512,7 +512,7 @@ PrintMatchupRatings					;Print the matchup ratings. Matchup 0: 'Overall' at y $1
 .5									;rating weights chosen
 	move.w	(matchupvis).w,d0
 	jsr	(printz).l					;map at the name
-	String	-TXMAP1,0,$17
+	String	CC_Font1,0,$17
 	bsr.w	PrintPlayerNameRight
 	bsr.w	CalcAttrib				;d0 = weighted total, d1 = weights
 	mulu.w	#$64,d0
@@ -522,7 +522,7 @@ PrintMatchupRatings					;Print the matchup ratings. Matchup 0: 'Overall' at y $1
 	move.w	#2,d1					;2 digits
 	jsr	(PushNumberWidth).l
 	jsr	(printz).l					;map at the number
-	String	-TXMAP1,4,$16
+	String	CC_Font1,4,$16
 	bsr.w	PrintTwoSpaces			;clear the old number
 	jsr	(printsmall).l				;print it
 .x									;exit (also the end of the code above)
@@ -540,7 +540,7 @@ GetMatchupPlayers					;matchuphome / matchupvis = the home / visitors player of 
 	movea.l	#tmstruct,a0
 	bsr.w	GetMatchupPlayer
 	move.w	d0,(matchuphome).w
-	movea.l	#AwShots,a0
+	movea.l	#awtmstruct,a0
 	bsr.w	GetMatchupPlayer
 	move.w	d0,(matchupvis).w
 	movem.l	(sp)+,d0/a0-a1
@@ -599,7 +599,7 @@ PrintAdvantageMarks					;Called every frame by ScoutingReport. Print the advanta
 .3									;print the marks
 	move.w	#2,(printfontset).w
 	jsr	(printz).l					;map at the marks
-	String	-TXMAP1,$13,$16
+	String	CC_Font1,$13,$16
 	jsr	(printsmall).l				;print them
 	move.w	#0,(printfontset).w
 	movem.l	(sp)+,d0-d7/a0-a6
@@ -617,7 +617,8 @@ VisAdv1Txt	String	'  ['			;visitors advantage: one mark
 VisAdv2Txt	String	' [['			;visitors advantage: two marks
 VisAdv3Txt	String	'[[['			;visitors advantage: three marks
 EvenAdvTxt	String	'   '			;Even teams
-GetTeamNickname						;The text player's '=' (a2 = tmstruct) and '*' (AwShots): return a1 = the
+GetTeamNickname						;The text player's '=' (a2 = tmstruct) and '*' (awtmstruct): return a1 =
+									;the
 									;team nickname String, or 'Home' / 'Visitors' when it is empty (the all
 									;star teams)
 	movem.l	d0/a0/a2,-(sp)
@@ -637,7 +638,8 @@ GetTeamNickname						;The text player's '=' (a2 = tmstruct) and '*' (AwShots): r
 	rts
 HomeTxt	String	'Home'				;name used when the home team has no nickname
 VisitorsTxt	String	'Visitors'		;name used when the visiting team has no nickname
-GetTeamArena						;The text player's '^' (a2 = tmstruct) and ';' (AwShots): return a1 = the
+GetTeamArena						;The text player's '^' (a2 = tmstruct) and ';' (awtmstruct): return a1 =
+									;the
 									;team arena String
 	movem.l	d0/a0/a2,-(sp)
 	movea.l	a2,a1

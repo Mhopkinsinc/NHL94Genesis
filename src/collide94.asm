@@ -2,7 +2,9 @@
 ;	and hooks, and decides when a player falls or is hurt.
 
 
-;Sort struct (SortCords, SCstruct each): the fields are named in stubinc/equals.inc.
+;Sort struct (SortCords, SCstruct each): the fields are named in ram94.asm.
+
+collrad	=	8						;collision radius of an object (objects collide within collrad*2)
 
 checkcoll							;d2 = new x coord, d3 = new y coord, a3 = struct of object. Check wall
 									;collision (around the hot spot and the end of the stick) and player
@@ -268,7 +270,7 @@ newcheck							;start a new check sound: one of 4 sounds $1C-$1F, never the last
 	add.w	(ltack).w,d0
 	andi.w	#3,d0
 	move.w	d0,(ltack).w
-	addi.w	#$1C,d0					;first check sound (92 used 18)
+	addi.w	#SFXcheck,d0			;first check sound (92 used 18)
 	move.w	d0,-(sp)
 	bsr.w	sfx
 	move.l	(sp)+,d0
@@ -999,8 +1001,8 @@ setInjuryType						;determines if injury will be for period or game. a2 = player
 ;	EA's compiler emits cmp #imm,Dn as CMP (Bxxx), SNASM emits CMPI (0Cxx). The source has the real cmp /
 ;	cmpi; fixopcodes.js patches the cmp encoding after assembly.
 
-;Sort struct (SortCords, SCstruct each) and team struct (tmstruct / AwShots, tmsize bytes): the fields are
-;named in stubinc/equals.inc. 94 adds the hot / cold table and goals by period, power play, breakaway,
+;Sort struct (SortCords, SCstruct each) and team struct (tmstruct / awtmstruct, tmsize bytes): the fields are
+;named in ram94.asm. 94 adds the hot / cold table and goals by period, power play, breakaway,
 ;one-timer, penalty shot and shorthanded stats at the end of the team struct.
 
 checkfight							;an rts: there is no fighting (93 looked for the start of a fight between
@@ -1287,7 +1289,7 @@ Goal								;puck in goal. First: in a penalty shot or shootout (BA_PS_flags bit
 	beq.w	.14
 	btst	#sf2pwrtm,(sflags2).w	;sf2pwrtm: 0 home, 1 visitors
 	bne.w	.13
-	cmpa.l	#AwShots,a2
+	cmpa.l	#awtmstruct,a2
 	bne.w	.14
 .loop2								;loop
 	addq.w	#1,tmSHGoals(a2)		;shorthanded goal: a2 is the team without the power play
@@ -1309,7 +1311,7 @@ Goal								;puck in goal. First: in a penalty shot or shootout (BA_PS_flags bit
 	cmpa.w	#(tmstruct-M68K_RAM),a2	;home goal: ChooseSong
 	bne.w	.16
 	move.w	(HomeTeam).w,(HmTeam).w
-	move.w	#3,(SongIndex).w
+	move.w	#SngGoal,(SongIndex).w
 	jsr	(ChooseSong).l
 	move.w	#$78,(songdelay).w
 	move.w	(SongNum).w,-(sp)
@@ -1951,8 +1953,8 @@ checkpuckcoll						;look for puck coll with players. a3 = puck. Clears Yvel past
 ;	EA's compiler emits cmp #imm,Dn as CMP (Bxxx), SNASM emits CMPI (0Cxx). The source has the real cmp /
 ;	cmpi; fixopcodes.js patches the cmp encoding after assembly.
 
-;Sort struct (SortCords, SCstruct each) and team struct (tmstruct / AwShots): the fields are named in
-;stubinc/equals.inc. setplayer writes the player attributes from weight to handed.
+;Sort struct (SortCords, SCstruct each) and team struct (tmstruct / awtmstruct): the fields are named in
+;ram94.asm. setplayer writes the player attributes from weight to handed.
 
 puckstick							;puck collides with stick. a2 = player who collided, a3 = puck, d0 =
 									;distance^2 (from checkpuckcoll .ccx). A stick check on the puck carrier
@@ -2111,11 +2113,11 @@ puckglue							;part of puckstick that puckgoalie also branches to. Player a2 ta
 .snd								;play the song
 	bsr.w	song
 	move.w	SCnum(a2),d0			;move SCnum into d0
-	cmp.w	(passplayer).w,d0
+	cmp.w	(passReceiverPlayerNum).w,d0
 	bne.w	.nrec					;branch if not equal
 	addq.w	#1,tmpasscomp(a1)		;add 1 to pass completed
 .nrec								;pass done
-	st	(passplayer).w
+	st	(passReceiverPlayerNum).w
 	bclr	#sfspdir,(sflags).w		;clear pass dir mode
 	bclr	#sfssdir,(sflags).w		;clear shot dir mode
 	tst.w	position(a2)			;check if a2 is goalie

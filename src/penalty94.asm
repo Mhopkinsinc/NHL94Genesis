@@ -82,7 +82,7 @@ chkprogress							;control progress of ref and game control thru penalty events.
 	bclr	#sf2drec,(sflags2).w	;sf2drec
 	bclr	#7,(gmode2).w
 	bsr.w	printz
-	String	-TXMAP1,3,2
+	String	CC_Font1,3,2
 	moveq	#$1B,d0
 	moveq	#8,d1
 	btst	#0,(gmode2).w
@@ -312,7 +312,7 @@ InProgress							;ref in progress-- update graphics and stats and penalty inform
 	bset	#$C,d2					;keep byte bit 4 (word bit 12) of an old penalty time
 .3									;old penalty bit kept when needed
 	move.w	d2,tmpdst(a2,d0.w)		;store the penalty time (seconds) for this player
-	andi.w	#$EFFF,d2				;drop bit 12 for the comparison below
+.coinsearch	andi.w	#$EFFF,d2		;drop bit 12 for the comparison below
 	moveq	#(maxros-1)*2+2,d1		;(MaxRos-1)*2+2
 .ctop								;loop
 	subq.w	#2,d1					;same time on the other team
@@ -349,9 +349,9 @@ InProgress							;ref in progress-- update graphics and stats and penalty inform
 	bra.w	.ex
 .4									;all entries done: coincidental check for both teams
 	movea.w	#(tmstruct-M68K_RAM),a2	;home team struct
-	bsr.w	coinsearch
+	bsr.w	InProgress_ap
 	adda.w	#tmsize,a2				;tmsize
-	bsr.w	coinsearch
+	bsr.w	InProgress_ap
 	bclr	#gmpen,(gmode).w		;gmpen
 	movea.w	#(puckx-M68K_RAM),a3	;a3 = puck object
 	bclr	#6,(BA_PS_flags).w
@@ -364,7 +364,7 @@ InProgress							;ref in progress-- update graphics and stats and penalty inform
 .ex									;exit: restore the registers
 	movem.l	(sp)+,d0/a0-a3
 	rts
-coinsearch							;a2 = team. Clears tmpdst bit 5, counts players kept off the ice by
+InProgress_ap						;a2 = team. Clears tmpdst bit 5, counts players kept off the ice by
 									;penalties (coincidental and bit 4
 									;times do not count, at most 2) and sets tmap. Called twice from
 									;InProgress
@@ -556,7 +556,7 @@ UpdatePA							;animate ref in ref window. Runs ShowThreeStars for game over, an
 	move.w	#$7FFF,(penmsgtimer).w	;timer ran out (horizontal mode): reprint the line again
 	bsr.w	ClearPenaltyMessage		;with the penalized player's name (TempPlOffset) at x $11, row $B
 	bsr.w	printz
-	String	-(TXPRI+TXMAP1),$11,$B
+	String	CC_Font1Pri,$11,$B
 	bsr.w	GetPlayerName
 	move.w	(a1),d0
 	lsr.w	#1,d0
@@ -674,7 +674,7 @@ prefmes								;print message for penalty d0 (negative clears it). Vertical mode
 	tst.w	d0
 	bpl.w	.noblank
 	bsr.w	printz					;negative d0: erase the 13x3 message area at x 0, y $A
-	String	-(TXPRI+TXMAP1),0,$A
+	String	CC_Font1Pri,0,$A
 	moveq	#$D,d0
 	moveq	#3,d1
 	move.w	#$7FF,d2				;blank tile
@@ -682,7 +682,7 @@ prefmes								;print message for penalty d0 (negative clears it). Vertical mode
 	bra.w	.ex
 .noblank							;d0 >= 0
 	bsr.w	printz
-	String	-(TXPRI+TXMAP1),5,$A
+	String	CC_Font1Pri,5,$A
 	movea.l	#Penaltylist,a1
 	adda.w	0(a1,d0.w),a1
 	addq.w	#2,a1					;a1 = message string (length word first)
@@ -710,7 +710,7 @@ prefmes								;print message for penalty d0 (negative clears it). Vertical mode
 	tst.w	d0
 	bmi.w	.ex
 	bsr.w	printz					;print the message centered on x $11, row $B
-	String	-(TXPRI+TXMAP1),$11,$B
+	String	CC_Font1Pri,$11,$B
 	movea.l	#Penaltylist,a1
 	adda.w	0(a1,d0.w),a1
 	addq.w	#2,a1
@@ -724,7 +724,7 @@ prefmes								;print message for penalty d0 (negative clears it). Vertical mode
 ClearPenaltyMessage					;Blank the horizontal mode penalty message line (22 spaces at x 5, y $B).
 									;Called from UpdatePA and prefmes
 	bsr.w	printz
-	String	-(TXPRI+TXMAP1),5,$B,'                      ',0	;22 spaces
+	String	CC_Font1Pri,5,$B,'                      ',0	;22 spaces
 	rts
 PenGoalStuff						;do this stuff after a goal. a1 = scored on team, a2 = scoring team.
 									;Clears PenBuf only when the scored
@@ -752,7 +752,7 @@ PenGoalStuff						;do this stuff after a goal. a1 = scored on team, a2 = scoring
 	addq.w	#1,tmap(a1)				;tmap
 	addq.w	#1,tmPwrGoals(a2)		;tmPwrGoals
 	bset	#tmflcc,(tmstruct+tmflags).w	;home tmflags: tmflcc
-	bset	#tmflcc,(AwShots+tmflags).w	;visitors tmflags: tmflcc
+	bset	#tmflcc,(awtmstruct+tmflags).w	;visitors tmflags: tmflcc
 .ex									;exit: restore the registers
 	movem.l	(sp)+,d0-d2/a0
 	rts
@@ -765,7 +765,7 @@ ClearPenaltyBuffer					;Clear PenBuf. Called from clockcont and PenGoalStuff
 	rts
 updatepentime						;update the time remaining on all penalized players, once a second. Sets
 									;sflags3 bit 6 on that tick, then updatePPTeamTime. Falls into
-									;ProcessPenaltyList for team 2
+									;updatepentime_ut for team 2
 	bclr	#sf3icetime,(sflags3).w	;clear last second's tick flag
 	btst	#gmclock,(gmode).w		;gmclock
 	bne.w	rtss2
@@ -776,9 +776,9 @@ updatepentime						;update the time remaining on all penalized players, once a s
 	bsr.w	chkatop					;attack time stat
 	jsr	(updatePPTeamTime).l
 	movea.w	#(tmstruct-M68K_RAM),a2	;team 1, then fall through for team 2
-	bsr.w	ProcessPenaltyList
+	bsr.w	updatepentime_ut
 	adda.w	#tmsize,a2				;tmsize
-ProcessPenaltyList					;a2 = team. Walks the penalty box list (tmboxlist): the first two players
+updatepentime_ut					;a2 = team. Walks the penalty box list (tmboxlist): the first two players
 									;without a coincidental penalty count down one second and the rest wait.
 									;Beeps when the first served time gets to 5 or less and releases the
 									;player at 0. Coincidental penalties count down on their own
@@ -836,7 +836,7 @@ ProcessPenaltyList					;a2 = team. Walks the penalty box list (tmboxlist): the f
 	clr.w	tmpdst(a2,d0.w)			;falls into RemovePlayerFromList
 RemovePlayerFromList				;Remove the entry before a0 from a penalty box list by shifting the rest
 									;down (list ends with a negative byte). Return a0 = removed slot. Called
-									;from PenGoalStuff, ProcessPenaltyList
+									;from PenGoalStuff, updatepentime_ut
 	moveq	#-1,d2
 .shift								;loop
 	addq.w	#1,d2
@@ -863,7 +863,7 @@ chkatop								;attack time of possession stat update. Called once a second from
 	addq.w	#1,tmATOP(a2,d1.w)		;attack time
 	rts
 releasepl							;player's penalty time is up so let him out (if appropriate). a2 = team,
-									;d0 = player*2. Called from ProcessPenaltyList
+									;d0 = player*2. Called from updatepentime_ut
 	movem.l	d0-d3/a0-a3,-(sp)
 	movea.w	tmsort(a2),a3			;tmsort
 	suba.w	#SCstruct,a3
@@ -876,7 +876,7 @@ releasepl							;player's penalty time is up so let him out (if appropriate). a2
 	move.w	tmap(a2),d1				;tmap
 	addq.w	#1,tmap(a2)				;one more on the ice
 	bset	#tmflcc,(tmstruct+tmflags).w	;home tmflags: tmflcc
-	bset	#tmflcc,(AwShots+tmflags).w	;visitors tmflags: tmflcc
+	bset	#tmflcc,(awtmstruct+tmflags).w	;visitors tmflags: tmflcc
 	movea.l	#priolist,a0
 	tst.w	tmgoalie(a2)			;tmgoalie
 	bpl.w	.1
@@ -955,7 +955,7 @@ updatepwrplay						;show graphic and time remaining for power plays. Nothing whe
 	bra.s	.home
 .uppt								;print the power play display
 	bsr.w	printz
-	String	-(TXPRI+TXMAP1),1,$19,'   ',$16,$17,$18,$19,-(TXPRI+TXMAP1),1,$1A,'  ',0
+	String	CC_Font1Pri,1,$19,'   ',$16,$17,$18,$19,CC_Font1Pri,1,$1A,'  ',0
 	bsr.w	GetLowestPen			;d0 = time left
 	bsr.w	PushTime				;a1 = m:ss string
 	bsr.w	print
@@ -963,7 +963,7 @@ updatepwrplay						;show graphic and time remaining for power plays. Nothing whe
 	movea.w	#(mesarea-M68K_RAM),a3
 	move.w	#2,(a3)					;empty string in mesarea, then append the position string and name
 	bsr.w	appendz
-	String	$BF,1,$19
+	String	CC_Font1Pri,1,$19
 	adda.w	Teamname(a0),a0			;team name
 	adda.w	(a0),a0
 	movea.l	a0,a1
@@ -987,7 +987,7 @@ ClrHor								;revert the graphics back to vertical ice rink mode. Reloads Rinkt
 	btst	#sfpz,(sflags).w		;sfpz
 	bne.w	.ex
 	bsr.w	printz
-	String	-TXMAP1,0,0
+	String	CC_Font1,0,0
 	moveq	#$20,d0					;32
 	moveq	#$1C,d1					;28
 	move.w	#$7FF,d2				;blank tile
@@ -1006,10 +1006,10 @@ SetHor								;switch graphics to horizontal ice rink graphics mode
 	clr.w	(Vscroll).w
 	bsr.w	SprSort
 	bsr.w	printz
-	String	-TXMAP2,0,0
-	movea.l	#HorRinkMap,a1			;tiles start at HorRinkMap+8
+	String	CC_Font2,0,0
+	movea.l	#IceRinkHorMap,a1		;tiles start at IceRinkHorMap+8
 	adda.l	jimdata(a1),a1
-	movea.l	#HorRinkTiles,a2		;rink tiles
+	movea.l	#IceRinkHorTiles,a2		;rink tiles
 	clr.w	d0
 	move.w	#0,d1
 	moveq	#$20,d2					;32
@@ -1032,8 +1032,8 @@ SetHor								;switch graphics to horizontal ice rink graphics mode
 ;	EA's compiler emits cmp #imm,Dn as CMP (Bxxx), SNASM emits CMPI (0Cxx). The source has the real cmp /
 ;	cmpi; fixopcodes.js patches the cmp encoding after assembly.
 
-;Team struct (tmstruct / AwShots, tmsize bytes) and game struct (gsstruct, gssize each): fields named in
-;stubinc/equals.inc. 94 adds shots by period and power play shots at the end of the team struct.
+;Team struct (tmstruct / awtmstruct, tmsize bytes) and game struct (gstruct, gssize each): fields named in
+;ram94.asm. 94 adds shots by period and power play shots at the end of the team struct.
 
 printscores1						;Draw scoreboard. Vertical rink: period box and the score box (team names
 									;and scores). Horizontal rink .sbscreen: period and both team logos with
@@ -1041,7 +1041,7 @@ printscores1						;Draw scoreboard. Vertical rink: period box and the score box 
 									;when gmode2 bit 1 is set; the horizontal rink uses PerLabels2 (name 4
 									;when bit 0 is set).
 									;sflags5 bit 7 sets crowdnoisedelay = $78. Called from USBoard, Pausemode,
-									;lcfound2 and others
+									;lcfound_close and others
 	movem.l	d0-d2/a0-a3,-(sp)
 	btst	#sfhor,(sflags).w		;sfhor
 	bne.w	.sbscreen
@@ -1050,13 +1050,13 @@ printscores1						;Draw scoreboard. Vertical rink: period box and the score box 
 	move.w	#$78,(crowdnoisedelay).w
 .0									;crowd noise delay set after a noise stop
 	bsr.w	printz
-	String	-(TXPRI+TXMAP1),0,$17
+	String	CC_Font1Pri,0,$17
 	moveq	#9,d0					;period box: 9x5 frame at x 0, y $17
 	moveq	#5,d1
 	bsr.w	Framer
 	bset	#dfclock,(disflags).w	;dfclock
 	bsr.w	printz
-	String	-(TXPRI+TXMAP1),1,$18
+	String	CC_Font1Pri,1,$18
 	move.w	(gsp).w,d0				;period name
 	movea.l	#PerLabels,a1
 	btst	#1,(gmode2).w
@@ -1069,24 +1069,24 @@ printscores1						;Draw scoreboard. Vertical rink: period box and the score box 
 	btst	#sf3llcs,(sflags3).w	;sf3llcs: lower line change box is up
 	bne.w	.ex
 	bsr.w	printz
-	String	-(TXPRI+TXMAP1),$17,$17
+	String	CC_Font1Pri,$17,$17
 	moveq	#8,d0					;score box: 8x5 frame at x $17, y $17
 	moveq	#5,d1
 	bsr.w	Framer
 	bsr.w	printz
-	String	-(TXPRI+TXMAP1),$18,$1A	;home team on the lower row
+	String	CC_Font1Pri,$18,$1A		;home team on the lower row
 	movea.w	#(tmstruct-M68K_RAM),a2
-	bsr.w	PrintTeamNameAndScore
+	bsr.w	printscores1_ps
 	bsr.w	printz
-	String	-(TXPRI+TXMAP1),$18,$18
+	String	CC_Font1Pri,$18,$18
 	adda.w	#tmsize,a2				;tmsize
-	bsr.w	PrintTeamNameAndScore
+	bsr.w	printscores1_ps
 .ex									;exit: restore the registers
 	movem.l	(sp)+,d0-d2/a0-a3
 	rts
 .sbscreen							;sfhor set
 	bsr.w	printz
-	String	-(TXPRI+TXMAP2),$11,2
+	String	CC_Font2Pri,$11,2
 	move.w	(gsp).w,d0
 	btst	#0,(gmode2).w
 	beq.w	.2
@@ -1099,17 +1099,17 @@ printscores1						;Draw scoreboard. Vertical rink: period box and the score box 
 	sub.w	d0,(printx).w
 	bsr.w	print
 	bsr.w	printz
-	String	-(TXPRI+TXMAP2),$17,2
+	String	CC_Font2Pri,$17,2
 	movea.w	#(tmstruct-M68K_RAM),a2
 	clr.w	d0						;home logo data offset
 	bsr.w	PrintTeamLogoAndScore
 	bsr.w	printz
-	String	-(TXPRI+TXMAP2),8,2
+	String	CC_Font2Pri,8,2
 	adda.w	#tmsize,a2				;tmsize
 	move.w	#$2C,d0					;visitor logo data offset
 	bsr.w	PrintTeamLogoAndScore
 	bra.s	.ex
-PrintTeamNameAndScore				;Print the team name of team a2 at printx/printy, then its score as 2
+printscores1_ps						;Print the team name of team a2 at printx/printy, then its score as 2
 									;digits at x $1C. Called twice from printscores1
 	movea.l	tmdata(a2),a1			;tmdata
 	adda.w	Teamname(a1),a1
@@ -1148,8 +1148,8 @@ EASNLogo							;Draw the EASN logo map at x 1, y $19 on the vertical ice rink if
 	btst	#sf2pwrplay,(sflags2).w	;sf2pwrplay
 	bne.w	rtss2
 	bsr.w	printz
-	String	-(TXPRI+TXMAP1),1,$19
-	movea.l	#EASNmap,a1
+	String	CC_Font1Pri,1,$19
+	movea.l	#EASportsMap,a1
 	adda.l	jimdata(a1),a1
 	movea.w	#null,a2
 	clr.w	d0
@@ -1165,12 +1165,12 @@ USBoard								;Update score board, including the players in the penalty box and
 	bset	#dfclock,(disflags).w	;dfclock
 	bsr.w	printscores1
 	bsr.w	printz
-	String	-(TXPRI+TXMAP2),$14,8
+	String	CC_Font2Pri,$14,8
 	movea.w	#(tmstruct-M68K_RAM),a2	;home team
 	bsr.w	.dispen
 	bsr.w	printz
-	String	-(TXPRI+TXMAP2),5,8
-	movea.w	#(AwShots-M68K_RAM),a2	;visitors
+	String	CC_Font2Pri,5,8
+	movea.w	#(awtmstruct-M68K_RAM),a2	;visitors
 	bsr.w	.dispen
 	movem.l	(sp)+,d0-d7/a0-a3
 	rts
@@ -1458,7 +1458,7 @@ Intermission						;end of period junk (zamboni/stats). Opens the pause menu scre
 	adda.w	#SCstruct,a0			;SCstruct
 	dbf	d0,.clr
 	move.w	(ExtraChars).w,d4
-	movea.l	#ZamFrameList+8,a2		;+8
+	movea.l	#ZamSprites+8,a2		;+8
 	bsr.w	DecompressGraphicsPlain
 	move.w	#$140,(Zamx).w			;320
 	move.w	(gsp).w,d0
@@ -1477,8 +1477,8 @@ Intermission						;end of period junk (zamboni/stats). Opens the pause menu scre
 	IF PERF=1
 	jsr	(PerfDeactivate).l
 	ENDIF
-	movea.l	#SetupPauseScreen,a1
-	jsr	(InitMenuState).w
+	movea.l	#Pausemode_pall,a1
+	jsr	(Pausemode_top).w
 	bsr.w	GetShifter				;d1 = highest game index
 	move.w	d1,(TickerNum).w		;ticker starts from the last game
 .top								;loop
@@ -1520,7 +1520,7 @@ InitScores							;initialize other games scores/period in playoffs. Called from 
 	cmpi.w	#1,(gamelevel).w
 	bgt.w	rtss2
 	bsr.w	GetShifter
-	movea.w	#(gsstruct-M68K_RAM),a0
+	movea.w	#(gstruct-M68K_RAM),a0
 	moveq	#gssize,d0				;gssize
 	mulu.w	d1,d0
 	adda.w	d0,a0					;a0 = gstruct of game d1, counting down
@@ -1544,7 +1544,7 @@ InitScores							;initialize other games scores/period in playoffs. Called from 
 UpdateScores						;update ticker score values. Called from PeriodOver
 	bsr.w	GetShifter				;d1 = highest game index
 	move.w	d1,(TickerNum).w		;restart the ticker
-	movea.w	#(gsstruct-M68K_RAM),a0
+	movea.w	#(gstruct-M68K_RAM),a0
 	moveq	#gssize,d0				;gssize
 	mulu.w	d1,d0
 	adda.w	d0,a0					;a0 = gstruct of game d1, counting down
@@ -1641,7 +1641,7 @@ CheckGameTickerStatus				;d3 = game. Return a0 = its gstruct; skip to the next t
 									;highlight is coming up or the series is over. Called from StartHL2
 	moveq	#gssize,d0				;gssize
 	mulu.w	d3,d0
-	movea.w	#(gsstruct-M68K_RAM),a0
+	movea.w	#(gstruct-M68K_RAM),a0
 	adda.w	d0,a0
 	btst	#gsfhl,gsflags(a0)		;gsfhl
 	bne.s	NewTicker2				;don't show if hilite coming up
@@ -1717,16 +1717,16 @@ SetTickerAreaPosition				;Set printx/printy/printm for the ticker box (x 3, y $1
 									;pause mode). Return d0 = $1A wide, d1 = 5 high. Called from NewTicker3pt2
 									;and ClearTickerArea
 	bsr.w	printz
-	String	-(TXPRI+TXMAP3),3,$17
+	String	CC_Font3Pri,3,$17
 	btst	#sfpz,(sflags).w		;sfpz
 	bne.w	.1
 	bsr.w	printz
-	String	-(TXPRI+TXMAP1),3,$17
+	String	CC_Font1Pri,3,$17
 .1									;sfpz set
 	moveq	#$1A,d0					;box size 26x5
 	moveq	#5,d1
 	rts
-Fprintsmall							;92 Fprint, but printing with printsmall (92 used print). Print string d0
+Fprintsmall							;but printing with printsmall (92 used print). Print string d0
 									;of the String list a1 with printsmall
 	bsr.w	AdvanceStringPtr
 	bra.w	printsmall
@@ -1742,7 +1742,7 @@ DoHiLights							;Hilites logic: search for hilite game and show
 	bsr.w	GetShifter				;d1 = highest game index
 	moveq	#gssize,d3				;gssize
 	mulu.w	d1,d3
-	movea.w	#(gsstruct-M68K_RAM),a0
+	movea.w	#(gstruct-M68K_RAM),a0
 	adda.w	d3,a0
 .top								;each game
 	btst	#gsfso,gsflags(a0)		;gsfso
@@ -1787,7 +1787,7 @@ StartHL2							;Play hilite for game a0. Start skips it with a random result. A 
 	move.w	2(a0),(VisTeam).w
 	move.l	a0,-(sp)				;keep the gstruct pointer
 	clr.w	(tmstruct+tmgoalie).w
-	clr.w	(AwShots+tmgoalie).w
+	clr.w	(awtmstruct+tmgoalie).w
 	jsr	(clearTeamStats).l
 	jsr	(restoreteams).w			;load both teams' data
 	st	(c1playernum).w				;no human players
@@ -1896,7 +1896,7 @@ StartHL2							;Play hilite for game a0. Start skips it with a random result. A 
 	bsr.w	setplayercolors
 	bsr.w	SetHor					;back to the intermission screen
 	bsr.w	setvideo
-	jsr	(SetupPauseScreen).w		;pause menu screen
+	jsr	(Pausemode_pall).w			;pause menu screen
 	jsr	(DrawMenuScreen).w
 	move.w	#$18,(palcount).w		;24
 	move.w	#SngEOP,-(sp)			;song $79

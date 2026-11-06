@@ -8,12 +8,12 @@
 - `src/nhl94.asm` fills to 1MB. Includes placed after that fill start at $100000, so new data does not move any retail code.
 - `src/shortcalls.inc` (included last, emits nothing) stops the build if a routine the retail code calls with a short `jsr`/`jmp (x).w` moves past $7FFF. `tools/build.js` then stops at the assemble step and prints the routine, the files that call it, and the fix below.
 - If SNASM reports **Branch (… bytes) is out of range**, `tools/build.js` points here too (PC-relative `bsr.w` / `bra.w` / `bxx.w`, not only the absolute short calls above).
-- `NumTeams` / `NumPlayoffTeams` (`src/stubinc/equals.inc`) drive the option limits, the random team range and the playoff clamp, and every per-team table checks its length while assembling.
+- `NumTeams` / `NumPlayoffTeams` (`src/ram94.asm`) drive the option limits, the random team range and the playoff clamp, and every per-team table checks its length while assembling.
 - `CHECKSUM=0` skips the boot check (`build:dev`). There is a single revision.
 
 ## Short jumps
 
-The retail code reaches eleven routines with absolute short calls, which only reach $0000-$7FFF: `StartGame`, `restoreteams`, `ResetClock`, `GetPeriodTime` (twice), `StartPer`, `DoGameFrame`, `updatecrowdf`, `SetupPauseScreen`, `InitMenuState`, `DrawMenuScreen` and `HandleMenuInput` (callers in setup94, penalty94, collide94, data94 and video94). `menu94` ends just below $8000, so about 375 bytes of growth in the files before it is enough to break them. `bra.w Begin` in `main94.asm` has the same kind of limit.
+The retail code reaches eleven routines with absolute short calls, which only reach $0000-$7FFF: `StartGame`, `restoreteams`, `ResetClock`, `GetPeriodTime` (twice), `StartPer`, `DoGameFrame`, `updatecrowdf`, `Pausemode_pall`, `Pausemode_top`, `DrawMenuScreen` and `HandleMenuInput` (callers in setup94, penalty94, collide94 and middle94). `menu94` ends just below $8000, so about 375 bytes of growth in the files before it is enough to break them. `bra.w Begin` in `main94.asm` has the same kind of limit.
 
 Fix, in order of preference:
 
@@ -22,7 +22,7 @@ Fix, in order of preference:
 
 ### PC-relative branches (branch out of range)
 
-SNASM’s **Branch (n bytes) is out of range** is the same ~±32 KB limit on **PC-relative** branches: **`bsr.w`**, **`bra.w`**, and **`bxx.w`**, not only the absolute short **`jsr`/`jmp (addr).w`** list above.
+SNASM’s **Branch (n bytes) is out of range** is the same ~±32 KB limit on **PC-relative** branches: **`bsr.w`**, **`bra.w`**, and **`bxx.w`**, not only the absolute short **`jsr`/`jmp (addr).w`** list above. A branch to an earlier label that is too far away reports **Illegal value (-n)** on the branch line instead; `tools/build.js` reads that source line and treats it as the same error when it is a `bra`/`bsr`/`Bcc`/`DBcc`.
 
 Two patterns that break mod builds:
 
@@ -41,7 +41,7 @@ The save chip sits at $200001-$203FFF (odd bytes). A ROM up to 2MB ends at $1FFF
 
 ## Save RAM layout
 
-The save layout is plain equates at the retail addresses (`src/stubinc/equals.inc`): crowd records `CrowdRecBase` ($B60, `NumTeams` blocks of 16 bytes), the records block `TeamRecBase` ($D20, eight 16-byte records), the name log `NameLogBase` ($DA0) and line data `LineDataBase` ($1EF6). The 28 retail teams fill the crowd records exactly up to $D20.
+The save layout is plain equates at the retail addresses (`src/ram94.asm`): crowd records `CrowdRecBase` ($B60, `NumTeams` blocks of 16 bytes), the records block `TeamRecBase` ($D20, eight 16-byte records), the name log `NameLogBase` ($DA0) and line data `LineDataBase` ($1EF6). The 28 retail teams fill the crowd records exactly up to $D20.
 
 A 29th team overlaps the records block, and the build stops with "The crowd records run into the records block". On a mod branch, move `TeamRecBase` to `CrowdRecEnd` and `NameLogBase` to `TeamRecBase+RecordsBytes` (there is room below $1EF6), and expect old saves to be invalid.
 
@@ -51,14 +51,14 @@ The stock game has 28 teams in TeamList order. The first 26 (`ANH` through `WPG`
 
 | What | Where | One entry is |
 | --- | --- | --- |
-| Team number | `src/stubinc/equals.inc` | The next number before `ASE`. Renumber `ASE` and `ASW`. |
+| Team number | `src/ram94.asm` | The next number before `ASE`. Renumber `ASE` and `ASW`. |
 | Team record | `TeamList` in `src/teamdata94.asm` | One `dc.l` to a record like `Anaheim`: player list, home and visitor palettes, city and nickname strings, eight lines, scouting bytes and scoring odds. |
 | Logo bitmap | `TeamLogoBitmaps` in `src/optsetup94.asm` | One `dc.l` to a logo in `src/graphics94.asm` (`logoANH` and the rest, each an `incbin` of a `.map.jim`). |
-| Logo palette | `TeamLogoPalettes` in `src/title94.asm` | 16 colors. Most teams reuse their matchup palette; BOS, FLA, HFD and SJ have their own. |
+| Logo palette | `TeamLogoPalettes` in `src/logos94.asm` | 16 colors. Most teams reuse their matchup palette; BOS, FLA, HFD and SJ have their own. |
 | Matchup palettes | `TeamPalettes` in `src/cards94.asm` | Two palettes of 16 colors. A is the matchup logo palette. B is A with colors 1-2 and 3-4 swapped. |
 | Featured pictures | `FeaturedPictures` in `src/cards94.asm` | One pointer, then that team's list of picture and roster index, ending in 0. |
-| Songs | `TeamSongs` in `src/title94.asm` | 6 bytes. 0 picks from `RandomSongs`. |
-| Ice logo | `TeamGfxList` in `src/title94.asm` | One address in `ArenaGfxBank`. |
+| Songs | `TeamSongs` in `src/arena94.asm` | 6 bytes. 0 picks from `RandomSongs`. |
+| Ice logo | `TeamGfxList` in `src/ui94.asm` | One address in `NHLPALogoMap`. |
 | Rating | `TeamRatings` in `src/period94.asm` | One byte. |
 | Team blocks | `Teamblocksmap` (`TeamBlocks.map.jim`) | Two rows, 11 tiles wide, in the shared banner image. |
 | Team block bitmaps | `TeamBitmaps` (`TeamBlocks94.map.jim`) | The same shape, the other shared image. |

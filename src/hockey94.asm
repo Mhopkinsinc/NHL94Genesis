@@ -62,7 +62,7 @@ StartGame							;reset game state for a new game, then start the first period
 	move.l	a0,-(sp)
 	movea.l	#tmstruct,a0
 	jsr	(Create_HotCold_Table).l
-	movea.l	#AwShots,a0
+	movea.l	#awtmstruct,a0
 	jsr	(Create_HotCold_Table).l
 	movea.l	(sp)+,a0
 .noso	clr.w	(ScoreSumbytes).w	;no shootout: clear the summaries
@@ -73,7 +73,7 @@ StartGame							;reset game state for a new game, then start the first period
 	jsr	(InitScores).l
 	jsr	(setupice).l
 	jsr	(LoadCrowdRec).l
-	jmp	IntermissionStart			;on to period start
+	jmp	PeriodOver_sp				;on to period start
 
 ClearShotData						;Clear $E4 words of outputbuffer
 	move.w	#$E3,d0
@@ -158,7 +158,7 @@ StartPer							;start a period: reset stack, rink and clock, face off, run the g
 	move.w	d0,(CwdExciteLvl).w		;starting excitement = gamelevel*16
 	clr.w	(CurCrowdMeter).w
 	move.w	(HomeTeam).w,(HmTeam).w
-	move.w	#0,(SongIndex).w
+	move.w	#SngPeriodStart,(SongIndex).w
 	jsr	(ChooseSong).l
 	move.w	(SongNum).w,-(sp)		;period start tune
 	jsr	(song).l
@@ -255,7 +255,7 @@ CheckLateGameSong					;Called once per second. 3rd period: choose and play a son
 	bgt.w	.x						;not there yet
 	st	(periodendtime).w			;high byte $FF: trigger goes negative, fires once
 	move.w	(HomeTeam).w,(HmTeam).w
-	move.w	#5,(SongIndex).w
+	move.w	#SngLateGame,(SongIndex).w
 	jsr	(ChooseSong).l
 	move.w	(SongNum).w,-(sp)
 	jsr	(song).l
@@ -295,7 +295,7 @@ updatecrowdf						;this is called every game loop with d7 = elapsed frames this 
 	addq.w	#2,(Crowdstep).w
 	andi.w	#$1E,(Crowdstep).w		;%00011110
 	add.w	(Crowdstep).w,d0
-	movea.l	#cd0,a0					;$fftt frame/time table
+	movea.l	#updatecrowdf_cd0,a0	;$fftt frame/time table
 	move.b	0(a0,d0.w),(Crowdframe+1).w
 	clr.w	d1
 	move.b	1(a0,d0.w),d1
@@ -341,7 +341,7 @@ clockcont_0							;End of period. Also entered from puckfaceoff
 	;Stanley Cup if the winning team already has 3 series wins
 	moveq	#gssize,d3				;gssize
 	mulu.w	(gamenum).w,d3
-	movea.w	#(gsstruct-M68K_RAM),a0	;game structs (games stored for playoffs and box scores)
+	movea.w	#(gstruct-M68K_RAM),a0	;game structs (games stored for playoffs and box scores)
 	adda.w	d3,a0
 	clr.w	d3
 	btst	#gsftf,gsflags(a0)		;gsftf, gsflags(a0): teams are flipped
@@ -448,8 +448,8 @@ Pausemode							;Game is in pause mode now
 	jsr	(p_turnoff).l				;shut off sound
 	move.w	(sflags).w,-(sp)
 	bsr.w	seta2					;a2 = team of pausing controller
-	movea.l	#PauseText,a0			;menu item list
-	lea	SetupPauseScreen(pc),a1		;screen draw routine
+	movea.l	#Pausemode_mlist,a0		;menu item list
+	lea	Pausemode_pall(pc),a1		;screen draw routine
 	btst	#0,(gmode2).w
 	beq.w	.chk2
 	movea.l	#PauseMenuItems,a0		;third item list
@@ -457,8 +457,8 @@ Pausemode							;Game is in pause mode now
 .chk2	btst	#tmftimeout,tmflags(a2)	;tmflags
 	beq.w	.0
 	movea.l	#PauseText2,a0			;alternate item list
-.0	bsr.w	InitMenuState			;build menu from list a0, draw routine a1
-.loop	bsr.w	vcountwait			;loop
+.0	bsr.w	Pausemode_top			;build menu from list a0, draw routine a1
+.loop	bsr.w	MenuWaitVblank			;loop
 	bsr.w	getpzjoy
 	jsr	(showclock).l
 	jsr	(ProcessInputWithRepeat).l
@@ -487,7 +487,7 @@ Pausemode							;Game is in pause mode now
 	move.w	(Vcount).w,(OldVcount).w
 	rts
 
-SetupPauseScreen					;Draw routine for the pause menu.
+Pausemode_pall						;Draw routine for the pause menu.
 									;also called
 	movea.l	#Vdata,a0
 	move.w	#VDPR_WINX,Vctrl-Vdata(a0)	;playfield 3 width

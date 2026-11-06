@@ -2,6 +2,10 @@
 ;	only reaches $0000-$7FFF. If added data pushes one past $7FFF the build reports it here with
 ;	the routine, its callers and the fix. Emits no bytes. See docs/EXPANDING_THE_ROM.md.
 
+; shortcall: build check only, emits no bytes.
+;   Reports (inform 2) when routine \1 is past $7FFF, where the retail jsr / jmp (x).w calls can't reach.
+;   \1: the routine. \2: the files that call it with .w (shown in the message).
+;   Example (shortcalls.inc:11): shortcall StartGame,setup94.asm  -> no bytes
 shortcall	macro
 	IF \1>$7FFF
 		inform	2,"SHORTCALL \1 is past $7FFF (called with .w from \2). Fix: put the new data after menu94, or change those calls to .l. See docs/EXPANDING_THE_ROM.md"
@@ -11,11 +15,11 @@ shortcall	macro
 	shortcall	StartGame,setup94.asm
 	shortcall	restoreteams,penalty94.asm
 	shortcall	ResetClock,setup94.asm
-	shortcall	GetPeriodTime,collide94.asm data94.asm
+	shortcall	GetPeriodTime,collide94.asm setup94.asm
 	shortcall	StartPer,setup94.asm
 	shortcall	DoGameFrame,penalty94.asm
-	shortcall	updatecrowdf,video94.asm
-	shortcall	SetupPauseScreen,penalty94.asm
-	shortcall	InitMenuState,penalty94.asm
+	shortcall	updatecrowdf,middle94.asm
+	shortcall	Pausemode_pall,penalty94.asm
+	shortcall	Pausemode_top,penalty94.asm
 	shortcall	DrawMenuScreen,penalty94.asm
-	shortcall	HandleMenuInput,video94.asm
+	shortcall	HandleMenuInput,middle94.asm

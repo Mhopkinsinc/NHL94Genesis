@@ -1,10 +1,21 @@
 ;	Assembler macros used throughout the game: setting the VDP auto increment, writing print
 ;	strings with their length in front, hex digits, roster entries and pictures.
 
+; VmInc: set the VDP auto-increment (register 15).
+;   Emits: move.w #$8F00+(\1&255),Vctrl (one instruction, no data).
+;   \1: bytes to step after each VDP data access (2 for word writes).
+;   Example (video94.asm:721): VmInc 2  -> move.w #$8F02,Vctrl
 VmInc MACRO							;set video auto inc. mode
 	move	#$8f00+(\1&255),Vctrl
 	ENDM
 
+; String: a print string with its length in front (print, printz and the string lists read it).
+;   Emits: dc.w length (counts the word itself and any pad), each argument as dc.b in order, then
+;   one 0 pad byte if the data would end on an odd address.
+;   \1..\31: each a quoted text ('abc') or a byte expression (e.g. a control code -$ab,x,y).
+;   Past 31 arguments use StringStart / StringEnd (same bytes).
+;   Example (stats94.asm:408): String ' Line'
+;     -> 00 08 20 4C 69 6E 65 00
 String	MACRO
 		; Store current position
 @begin1	=	*
@@ -54,6 +65,54 @@ String	MACRO
 	IF NARG>14
 		dc.b	\15					; fifteenth param
 	ENDIF
+	IF NARG>15
+		dc.b	\16
+	ENDIF
+	IF NARG>16
+		dc.b	\17
+	ENDIF
+	IF NARG>17
+		dc.b	\18
+	ENDIF
+	IF NARG>18
+		dc.b	\19
+	ENDIF
+	IF NARG>19
+		dc.b	\20
+	ENDIF
+	IF NARG>20
+		dc.b	\21
+	ENDIF
+	IF NARG>21
+		dc.b	\22
+	ENDIF
+	IF NARG>22
+		dc.b	\23
+	ENDIF
+	IF NARG>23
+		dc.b	\24
+	ENDIF
+	IF NARG>24
+		dc.b    \25
+	ENDIF
+	IF NARG>25
+		dc.b    \26
+	ENDIF
+	IF NARG>26
+		dc.b    \27
+	ENDIF
+	IF NARG>27
+		dc.b    \28
+	ENDIF
+	IF NARG>28
+		dc.b    \29
+	ENDIF
+	IF NARG>29
+		dc.b    \30
+	ENDIF
+	IF NARG>30
+		dc.b    \31
+	ENDIF
 		; Pad with zero if needed for word alignment
 	IF *&1
 		dc.b	0
@@ -65,11 +124,34 @@ String	MACRO
 		org	@end1
 	ENDM
 
-HEX2 MACRO							; macro for hex data
-	dc.w	$\1,$\2,$\3,$\4			; handle 4 words at a time, add $ prefix
+; StringStart / StringEnd: the same bytes as String, for data past the 31 SNASM68k macro parameters.
+;   StringStart: dc.w 0 (the length word), marking its position (StrStartPos). Any dc.b lines follow.
+;   StringEnd: a 0 pad byte if the data ends on an odd address, then backfills the length word (counts
+;   the word and the pad). No parameters. Uses its own reassigned symbols; not nestable.
+;   Example (menu94.asm:108): StringStart, 3 dc.b lines of 12 bytes ($FB,$01,$20,...), StringEnd
+;     -> 00 26 FB 01 20 FB FF FA ... FA FF 20
+StringStart	MACRO
+StrStartPos	=	*
+		dc.w	0
 	ENDM
 
-; Player record: String-style name (dc.b 0, length; name; 0 pad to even), then 4 rating words
+StringEnd	MACRO
+	IF *&1
+		dc.b	0
+	ENDIF
+StrEndPos	=	*
+		org	StrStartPos
+		dc.w	StrEndPos-StrStartPos
+		org	StrEndPos
+	ENDM
+
+; PLAYER (used as Player): one roster record.
+;   Emits: dc.b 0, length (counts these 2 bytes, the name and the pad), the name, a 0 pad to even,
+;   then 4 rating words dc.w $\2,$\3,$\4,$\5.
+;   \1: the quoted name (the build puts the real names in place of the P001_ placeholders).
+;   \2..\5: the ratings, 4 hex digits each, written without $.
+;   Example (teamdata94.asm:132): Player 'P001_______',3366,4446,0100,5566
+;     -> 00 0E 50 30 30 31 5F 5F 5F 5F 5F 5F 5F 00 33 66 44 46 01 00 55 66
 PLAYER MACRO
 @begin = *
 	dc.b $00, $00
@@ -84,13 +166,19 @@ PLAYER MACRO
 	dc.w $\2,$\3,$\4,$\5
 	ENDM
 
-; PIX macro: one goalie save odds byte per argument. Each argument is four digits, one per puck region
-; (the order .list2 is read in: bits 7-6 first), each digit 0-3 being the odds multiplier for that region.
-; PIX 1111,2131,1213 is $55,$9D,$67.
+; PIX1: one goalie save odds byte.
+;   Emits: dc.b (d3<<6)+(d2<<4)+(d1<<2)+d0, where \1 is the four digits d3 d2 d1 d0, each 0-3.
+;   \1: a four digit number, one digit (odds multiplier) per puck region.
+;   Example (through PIX): PIX1 2131  -> 9D
 PIX1	MACRO
 		dc.b	((\1/1000)<<6)+(((\1/100)-(\1/1000)*10)<<4)+(((\1/10)-(\1/100)*10)<<2)+(\1-(\1/10)*10)
 		ENDM
 
+; PIX: goalie save odds bytes, one PIX1 byte per argument.
+;   Emits: PIX1 \1, then PIX1 \2 and PIX1 \3 when given (1 to 3 bytes).
+;   \1..\3: four digit numbers, see PIX1.
+;   Example (collide94.asm:2370): pix 1111,2131,1213
+;     -> 55 9D 67
 PIX	MACRO
 		PIX1	\1
 		IF	NARG>1

@@ -1,6 +1,5 @@
-;	Period and game statistics. This file ends a shootout, clears the game stats, animates the
-;	arena sprites and shows the Period Stats and Game Statistics screens, with the power play
-;	time and team ratings they report.
+;	Period stats, game statistics, the shootout-end celebration, and the
+;	Manual Goalie pause item. New in 94. ROM-contiguous through ManualGoalieMenu.
 
 EndShootout							;Shootout over (CountShootoutGoals): freezewindow, then the 5 skaters of
 									;player slots 1-5 (homeshootgoals > awayshootgoals) or 7-$B are set up
@@ -83,7 +82,7 @@ PositionBoxes						;ClampPositionBox boxes: min / max of $44, then of $46, per p
 PositionBoxesTop					;ClampPositionBox boxes, top net
 	dc.w	$FFB5,0,$FEF8,0,0,$4B,$FEF8,0
 ClearGameStats						;Clear the game stats: shootoutstate (19 words), both team structs
-									;(tmstruct, AwShots), PenBuf, BA_PS_flags, sflags4 / F8 / FA and
+									;(tmstruct, awtmstruct), PenBuf, BA_PS_flags, sflags4 / F8 / FA and
 									;setupcardflags / featuredplayer. Called from GameSetUp
 	movem.l	d0-d7/a0-a6,-(sp)
 	movea.l	#shootoutstate,a0
@@ -253,17 +252,17 @@ PeriodStatsScreen					;"Period Stats" menu item (menu lists): both team logos (T
 	moveq	#$1C,d1
 	jsr	(SetupScreen).l				;set up the screen
 	jsr	(printz).l
-	String	-(TXPRI+TXMAP2),1,$B
+	String	CC_Font2Pri,1,$B
 	move.w	#8,d0
 	move.w	#8,d1
 	jsr	(Framer).l					;visitors logo frame
 	jsr	(printz).l
-	String	-(TXPRI+TXMAP2),1,$13
+	String	CC_Font2Pri,1,$13
 	move.w	#8,d0
 	move.w	#8,d1
 	jsr	(Framer).l					;home logo frame
 	jsr	(printz).l
-	String	-(TXPRI+TXPAL2+TXMAP2),2,$C
+	String	CC_Font2Pal2Pri,2,$C
 	movea.l	#TeamLogoBitmaps,a0
 	move.w	(VisTeam).w,d0
 	asl.w	#2,d0
@@ -289,7 +288,7 @@ PeriodStatsScreen					;"Period Stats" menu item (menu lists): both team logos (T
 	move.l	(a0)+,(a1)+
 	dbf	d0,.loop					;next long
 	jsr	(printz).l
-	String	-(TXPRI+TXPAL3+TXMAP2),2,$14
+	String	CC_Font2Pal3Pri,2,$14
 	movea.l	#TeamLogoBitmaps,a0
 	move.w	(HomeTeam).w,d0
 	asl.w	#2,d0
@@ -309,34 +308,30 @@ PeriodStatsScreen					;"Period Stats" menu item (menu lists): both team logos (T
 	moveq	#4,d5
 	jsr	(dobitmap).l				;draw the home logo
 	jsr	(printz).l
-	String	-(TXPRI+TXMAP3),4,1
+	String	CC_Font3Pri,4,1
 	moveq	#$20,d0
 	moveq	#6,d1
 	jsr	(Framer).l					;draw the box
 	jsr	(printbigz).l
-	String	-(TXPRI+TXMAP3),6,3,'  Period Stats  ',-(TXPRI+TXMAP2),6,1	;Period Stats title
+	String	CC_Font3Pri,6,3,'  Period Stats  ',CC_Font2Pri,6,1	;Period Stats title
 	btst	#1,(sflags7).w			;overtime played?
 	beq.w	.0
 	jsr	(printz).l
-	dc.w	$001C					;String length: too many arguments for the String macro
-	dc.b	$BE,$C,9,'1',$BE,$11,9,'2',$BE,$16,9,'3',$BE,$1A,9,'OT',$BE,' ',9,'Total',0
+	String	CC_Font2Pri,$0C,$09,'1',CC_Font2Pri,$11,$09,'2',CC_Font2Pri,$16,$09,'3',CC_Font2Pri,$1A,$09,'OT',CC_Font2Pri,' ',$09,'Total'
 	jsr	(printz).l
-	dc.w	$001C					;String length: too many arguments for the String macro
-	dc.b	$BE,$C,$A,'<',$BE,$11,$A,'<',$BE,$16,$A,'<',$BE,$1A,$A,'<<',$BE,' ',$A,'<<<<<',0
+	String	CC_Font2Pri,$0C,$0A,'<',CC_Font2Pri,$11,$0A,'<',CC_Font2Pri,$16,$0A,'<',CC_Font2Pri,$1A,$0A,'<<',CC_Font2Pri,' ',$0A,'<<<<<'
 	bra.w	.1
 .0									;bit 1 of sflags7 clear
 	jsr	(printz).l
-	dc.w	$0016					;String length: too many arguments for the String macro
-	dc.b	$BE,$C,9,'1',$BE,$11,9,'2',$BE,$16,9,'3',$BE,' ',9,'Total'
+	String	CC_Font2Pri,$0C,$09,'1',CC_Font2Pri,$11,$09,'2',CC_Font2Pri,$16,$09,'3',CC_Font2Pri,' ',$09,'Total'
 	jsr	(printz).l
-	dc.w	$0016					;String length: too many arguments for the String macro
-	dc.b	$BE,$C,$A,'<',$BE,$11,$A,'<',$BE,$16,$A,'<',$BE,' ',$A,'<<<<<'
+	String	CC_Font2Pri,$0C,$0A,'<',CC_Font2Pri,$11,$0A,'<',CC_Font2Pri,$16,$0A,'<',CC_Font2Pri,' ',$0A,'<<<<<'
 .1									;print the title and lines
 	bsr.w	.title
 	bsr.w	.lines
 	move.w	#$18,(palcount).w		;fade in
 .loop2								;loop
-	jsr	(WaitVSyncAndReadInput).l	;left (bit 2) goals, right (bit 3) shots, start exits
+	jsr	(Pausemode_rjoy).l			;left (bit 2) goals, right (bit 3) shots, start exits
 	btst	#7,d1					;start?
 	bne.w	.exit
 	btst	#2,d1					;left?
@@ -365,17 +360,17 @@ PeriodStatsScreen					;"Period Stats" menu item (menu lists): both team logos (T
 	tst.w	(matchup).w				;shots page?
 	beq.w	.6						;goals page
 	jsr	(printz).l					;shots title
-	String	-(TXPRI+TXMAP2),$12,7,'Shots',-(TXPRI+TXMAP2),$F,$1A,'[ For Goals'
+	String	CC_Font2Pri,$12,7,'Shots',CC_Font2Pri,$F,$1A,'[ For Goals'
 	rts
 .6									;matchup = 0
 	jsr	(printz).l
-	String	-(TXPRI+TXMAP2),$12,7,'Goals',-(TXPRI+TXMAP2),$F,$1A,'For Shots ]'	;goals title
+	String	CC_Font2Pri,$12,7,'Goals',CC_Font2Pri,$F,$1A,'For Shots ]'	;goals title
 	rts
 .lines								;local subroutine
 	movem.l	d0-d7/a0-a6,-(sp)
 	jsr	(printz).l
-	String	-(TXPRI+TXMAP2),0,0
-	movea.l	#AwShots,a2
+	String	CC_Font2Pri,0,0
+	movea.l	#awtmstruct,a2
 	move.w	#$E,(printy).w
 	bsr.w	.team
 	movea.l	#tmstruct,a2
@@ -441,12 +436,12 @@ StatsReport							;"Game Statistics" menu item (menu lists): both
 	moveq	#$1A,d1
 	jsr	(SetupScreen).l				;set up the screen
 	jsr	(printz).l
-	String	-(TXPRI+TXMAP3),4,1
+	String	CC_Font3Pri,4,1
 	moveq	#$20,d0
 	moveq	#6,d1
 	jsr	(Framer).l					;draw the box
 	jsr	(printbigz).l
-	String	-(TXPRI+TXMAP3),6,4,'Game  Statistics',-(TXPRI+TXMAP3),7,1
+	String	CC_Font3Pri,6,4,'Game  Statistics',CC_Font3Pri,7,1
 	move.w	#$2C,d0					;visitors block
 	jsr	(PutTeamBlock).l
 	addq.w	#4,(printx).w
@@ -463,7 +458,7 @@ StatsReport							;"Game Statistics" menu item (menu lists): both
 	bsr.w	DisplayStats
 	bsr.w	PrintStatScrollArrows
 .loop								;loop
-	jsr	(vcountwait).l				;wait for the frame
+	jsr	(MenuWaitVblank).l				;wait for the frame
 	jsr	(getpzjoy).l				;read the pads
 	btst	#7,d3					;start?
 	beq.w	.1
@@ -561,16 +556,16 @@ DisplayStats						;Team logos (PutTeamBlock), then each
 									;centred, with the home value at x $22 and the visitors' at x 9
 									;(PrintStatValue); SetStatScroll first
 	jsr	(printz).l
-	String	-(TXPRI+TXMAP3),2,7		;visitors logo position
+	String	CC_Font3Pri,2,7			;visitors logo position
 	move.w	#$2C,d0
 	jsr	(PutTeamBlock).l
 	jsr	(printz).l
-	String	-(TXPRI+TXMAP3),$1A,7	;home logo position
+	String	CC_Font3Pri,$1A,7		;home logo position
 	moveq	#0,d0
 	jsr	(PutTeamBlock).l
 	bsr.w	SetStatScroll
 	jsr	(printz).l
-	String	-(TXPRI+TXMAP2),0,0
+	String	CC_Font2Pri,0,0
 	moveq	#$E,d6					;15 rows
 	lea	TeamStatTextTbl(pc),a1
 	tst.w	(OptPen).w
@@ -668,85 +663,59 @@ PrintStatValue						;Print TeamStatTextTbl entry a0 for team a2 centred at print
 	jmp	(PushTime).l
 TeamStatTextTbl						;Label, then the team struct stat offset and the second offset ($FFFF
 									;none). 15 rows
-	dc.w	$0008
-	dc.b	'Score',0
+	String	'Score'
 	dc.w	tmscore,$FFFF
-	dc.w	$0008
-	dc.b	'Shots',0
+	String	'Shots'
 	dc.w	tmshots,$FFFF
-	dc.w	$000E
-	dc.b	'Shooting Pct'
+	String	'Shooting Pct'
 	dc.w	$FFFF,$FFFF
-	dc.w	$000C
-	dc.b	'Power Play'
+	String	'Power Play'
 	dc.w	tmPwrGoals,tmPwrPlays
-	dc.w	$000C
-	dc.b	'PP Minutes'
+	String	'PP Minutes'
 	dc.w	tmPwrPlayTime,$FFFF
-	dc.w	$000A
-	dc.b	'PP Shots'
+	String	'PP Shots'
 	dc.w	tmPPShots,$FFFF
-	dc.w	$000A
-	dc.b	'SH Goals'
+	String	'SH Goals'
 	dc.w	tmSHGoals,$FFFF
-	dc.w	$000C
-	dc.b	'Breakaways'
+	String	'Breakaways'
 	dc.w	tmBreakawayGoals,tmBreakaways
-	dc.w	$000C
-	dc.b	'One-Timers'
+	String	'One-Timers'
 	dc.w	tmOneTimerGoals,tmOneTimers
-	dc.w	$0010
-	dc.b	'Penalty Shots',0
+	String	'Penalty Shots'
 	dc.w	tmPenShotGoals,tmPenShots
-	dc.w	$000E
-	dc.b	'Faceoffs Won'
+	String	'Faceoffs Won'
 	dc.w	tmfowon,$FFFF
-	dc.w	$000E
-	dc.b	'Body Checks',0
+	String	'Body Checks'
 	dc.w	tmchecks,$FFFF
-	dc.w	$000C
-	dc.b	'Penalties',0
+	String	'Penalties'
 	dc.w	tmPenalties,tmPenmin
-	dc.w	$000E
-	dc.b	'Attack Zone',0
+	String	'Attack Zone'
 	dc.w	tmATOP,$FFFF
-	dc.w	$000A
-	dc.b	'Passing',0
+	String	'Passing'
 	dc.w	tmpasscomp,tmpasses
 TeamStatTextTblNoPen				;The rows without the power play ones, used when penalties are off. 11
 									;rows
-	dc.w	$0008
-	dc.b	'Score',0
+	String	'Score'
 	dc.w	tmscore,$FFFF
-	dc.w	$0008
-	dc.b	'Shots',0
+	String	'Shots'
 	dc.w	tmshots,$FFFF
-	dc.w	$000E
-	dc.b	'Shooting Pct'
+	String	'Shooting Pct'
 	dc.w	$FFFF,$FFFF
-	dc.w	$000C
-	dc.b	'Breakaways'
+	String	'Breakaways'
 	dc.w	tmBreakawayGoals,tmBreakaways
-	dc.w	$000C
-	dc.b	'One-Timers'
+	String	'One-Timers'
 	dc.w	tmOneTimerGoals,tmOneTimers
-	dc.w	$0010
-	dc.b	'Penalty Shots',0
+	String	'Penalty Shots'
 	dc.w	tmPenShotGoals,tmPenShots
-	dc.w	$000E
-	dc.b	'Faceoffs Won'
+	String	'Faceoffs Won'
 	dc.w	tmfowon,$FFFF
-	dc.w	$000E
-	dc.b	'Body Checks',0
+	String	'Body Checks'
 	dc.w	tmchecks,$FFFF
-	dc.w	$000C
-	dc.b	'Penalties',0
+	String	'Penalties'
 	dc.w	tmPenalties,tmPenmin
-	dc.w	$000E
-	dc.b	'Attack Zone',0
+	String	'Attack Zone'
 	dc.w	tmATOP,$FFFF
-	dc.w	$000A
-	dc.b	'Passing',0
+	String	'Passing'
 	dc.w	tmpasscomp,tmpasses
 rtsStatTables						;rts after the stat tables (StatsReport scroll step)
 	rts
@@ -758,7 +727,7 @@ updatePPTeamTime					;One more second of power play time (tmPwrPlayTime) for the
 	movea.l	#tmstruct,a2			;move home team struct into a2
 	btst	#sf2pwrtm,(sflags2).w	;check who's on PP
 	beq.w	.0						;branch if home (team 1)
-	movea.l	#AwShots,a2				;move away team struct into a2
+	movea.l	#awtmstruct,a2			;move away team struct into a2
 .0									;team on the power play chosen
 	addq.w	#1,tmPwrPlayTime(a2)	;one more second of power play time
 .x									;exit (also the end of the code above)
@@ -795,4 +764,76 @@ ShortenMsgTimer						;Cap msgtimer at 2, unless a second pad is on (cont2team) a
 	move.w	#2,(msgtimer).w
 .x									;exit: restore the registers
 	movem.l	(sp)+,d0
+	rts
+ManualGoalieMenu					;"x Manual Goalie" menu item (menu lists; PrintMenuItem prints Manual /
+									;Auto Goalie from the same words): with OptNOP set, toggle the goalie mode
+									;of the pause pad (goaliemode2 for pad 2, sflags bit 1, else goaliemode1;
+									;both when the pads are on one team). In a penalty shot or shootout
+									;(gmode2 bit 0, BA_PS_flags bit 2) the pad then takes player 0 / 6 or 5 /
+									;$B by its mode, when BA_Sktr_SCnum is on its side (setc1player /
+									;setc2player)
+	movem.l	d0-d7/a0-a6,-(sp)
+	tst.w	(OptNOP).w				;goalie option set?
+	beq.w	.chkso					;no goalie option: switch only
+	move.w	(cont1team).w,d0
+	cmp.w	(cont2team).w,d0		;same team?
+	bne.w	.0						;pads on different teams
+	eori.w	#1,(goaliemode2).w		;toggle pad 2's goalie mode
+	bra.w	.g1						;same team: pad 1 too
+.0									;d0 <> cont2team
+	btst	#sfpj,(sflags).w		;which pad paused?
+	beq.w	.g1						;pad 1 paused
+	eori.w	#1,(goaliemode2).w		;toggle pad 2's goalie mode
+	bra.w	.chkso
+.g1									;pad 1's goalie mode
+	eori.w	#1,(goaliemode1).w		;toggle pad 1's goalie mode
+.chkso								;shootout or penalty shot?
+	btst	#0,(gmode2).w			;shootout?
+	bne.w	.so
+	btst	#2,(BA_PS_flags).w		;penalty shot?
+	beq.w	.x
+.so									;shootout or penalty shot: switch the pad's player
+	btst	#sfpj,(sflags).w		;which pad paused?
+	bne.w	.p2						;pad 2 paused
+	cmpi.w	#2,(OptNOP).w			;OptNOP 2?
+	bne.w	.4
+	cmpi.w	#5,(BA_Sktr_SCnum).w	;visiting shooter?
+	bgt.w	.x						;skater on the other side
+	bra.w	.5
+.4									;OptNOP <> 2
+	cmpi.w	#5,(BA_Sktr_SCnum).w	;home shooter?
+	ble.w	.x						;skater on the other side
+.5									;pad 1: goalie or skater
+	move.w	#0,d0					;goalie slot 0
+	cmpi.w	#2,(OptNOP).w
+	bne.w	.6						;not OptNOP 2
+	move.w	#6,d0					;OptNOP 2: slot 6
+.6									;goalie slot chosen
+	tst.w	(goaliemode1).w			;goalie mode of pad 1
+	bne.w	.set1					;manual: the goalie
+	move.w	#5,d0					;skater slot 5
+	cmpi.w	#2,(OptNOP).w
+	bne.w	.set1
+	move.w	#$B,d0					;OptNOP 2: skater slot $B
+.set1								;set pad 1's player
+	jsr	(setc1player).l
+	bra.w	.x
+.p2									;sfpj set
+	cmpi.w	#2,(OptNOP).w			;OptNOP 2?
+	bne.w	.9
+	cmpi.w	#5,(BA_Sktr_SCnum).w	;home shooter?
+	ble.w	.x						;skater on the other side
+	bra.w	.10
+.9									;OptNOP <> 2
+	cmpi.w	#5,(BA_Sktr_SCnum).w	;visiting shooter?
+	bgt.w	.x						;skater on the other side
+.10									;pad 2: goalie or skater
+	move.w	#6,d0					;goalie slot 6
+	tst.w	(goaliemode2).w			;goalie mode of pad 2
+	bne.w	.set2					;manual: the goalie
+	move.w	#$B,d0					;skater slot
+.set2								;set pad 2's player
+	jsr	(setc2player).l
+.x									;exit: restore the registers
+	movem.l	(sp)+,d0-d7/a0-a6
 	rts
