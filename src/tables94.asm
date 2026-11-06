@@ -23,6 +23,7 @@ updatecrowdf_cd0					;$fftt = frame/time for various levels of crowd
 asstab								;jump table of all the player logic assignments. There is no "do nothing"
 									;entry, so assignment numbers from assscore on are one lower than in 92.
 									;Entries $1D-$23 are new in 94. Used by updateplayers
+anull	=	(*-asstab)/4			;entry 0: empty assignment (rtss2)
 	dc.l	rtss2
 
 adefo	=	(*-asstab)/4			;entry 1: defensive player on offense (assdefo)
