@@ -4,34 +4,35 @@
 ;
 ;	The sub CPU owns the game. This CPU drives the VDP and trades commands through
 ;	the gate array ($A1200E flags, $A12010 command words, $A12020 status words).
+;
 ;	$FF0000-$FF34B7 is transcribed and verified. This file is $FF0000-$FF0271.
 ;	maindma.asm through maintext.asm continue it.
 
 	org	$FF0000
 
-MainEntry	jmp	$FF45A8			;slot at $FF45A8 is zero in MAIN.BIN (filled at load, or unused)
+MainEntry	jmp	$FF45A8				;slot at $FF45A8 is zero in MAIN.BIN (filled at load, or unused)
 
 ; Run one sub command. Stack is saved in work RAM because the handler borrows a7.
 RunSubCommand	move.l	a7,$FF2840
 	move	sr,-(sp)
-	move.w	#0,$FF2844		;command not finished
+	move.w	#0,$FF2844				;command not finished
 	bsr.w	ClearMainComm
 	bsr.w	SyncFlag7
 	bsr.w	WaitModeBit2
 	bsr.w	GiveWordRAM
 	move	sr,-(sp)
-	move	#$2700,sr		;interrupts off
+	move	#$2700,sr				;interrupts off
 	bsr.w	SwapVBlank
-	move.w	#$8164,$C00004		;VDP register 1: display on, DMA, VBlank
+	move.w	#$8164,$C00004			;VDP register 1: display on, DMA, VBlank
 	move	(sp)+,sr
 .watch	bsr.w	ReadSubCommand
-	cmpi.w	#$FFFF,d0		;no command waiting
+	cmpi.w	#$FFFF,d0				;no command waiting
 	beq.s	.watch
 	bsr.w	DispatchSubCommand
-	tst.w	$FF2844			;handler sets this when the command is done
+	tst.w	$FF2844					;handler sets this when the command is done
 	beq.s	.watch
 	move	#$2700,sr
-	move.l	$FF2846,$FFFFFD08.w	;restore the VBlank vector the handler replaced
+	move.l	$FF2846,$FFFFFD08.w		;restore the VBlank vector the handler replaced
 	jsr	$FF1130.l
 	move	(sp)+,sr
 	movea.l	$FF2840,a7
@@ -40,7 +41,7 @@ RunSubCommand	move.l	a7,$FF2840
 SetCmdPending	move.w	#$FFFF,$FF2844
 	rts
 
-; Point the VBlank vector ($FD08, cart vbint) at CD code, keeping the old one.
+; Point the VBlank vector ($FD08, cart VBint) at CD code, keeping the old one.
 SwapVBlank	bsr.w	SyncFlag7
 	move.l	$FFFFFD08.w,$FF2846
 	move.l	#$FF24E4,$FFFFFD08.w
@@ -60,7 +61,7 @@ ReadSubCommand	moveq	#-1,d0
 
 ; d0 = command number. Longs at CmdJumpTable are distances from the table.
 DispatchSubCommand
-	bclr.b	#0,$A12014		;drop the main CPU's busy bit while it runs
+	bclr.b	#0,$A12014				;drop the main CPU's busy bit while it runs
 	move	sr,-(sp)
 	move	#$2700,sr
 	bsr.w	DispatchPrep
@@ -74,7 +75,7 @@ DispatchSubCommand
 	move	sr,-(sp)
 	move	#$2700,sr
 	bset.b	#0,$A12014
-.wait	btst.b	#1,$A12024		;wait until the sub CPU sees it
+.wait	btst.b	#1,$A12024			;wait until the sub CPU sees it
 	beq.s	.wait
 	bsr.w	DispatchAfter
 	bsr.w	GiveWordRAM

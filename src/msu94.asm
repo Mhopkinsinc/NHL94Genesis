@@ -126,13 +126,13 @@ MsuPlay	;d0 = track 1-99, d1 = $11 play once or $12 loop. Volume $FF (255, the t
 	rts
 
 MsuMap	;song id d0 -> track d0, command d1. $30-$77 become id-$29
-	cmpi.w	#SngScout,d0
+	cmpi.w	#SngScouting,d0
 	bne.s	.eog
 	moveq	#3,d0
 	moveq	#$12,d1
 	rts
 .eog
-	cmpi.w	#SngEOG,d0
+	cmpi.w	#SngEOP,d0
 	bne.s	.title
 	moveq	#5,d0
 	moveq	#$12,d1

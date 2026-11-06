@@ -16,7 +16,7 @@ SetTeamPrintPos,setoptions_printpos2,93G
 shotdirmath,CalcAngleOffset,93G
 DrawTeamBlockBitmap,dotb,92G/93G
 .loop/.add/.next/.bad/.fill/.halt (checksum94),ValidationLoop/SkipIncrement/ContinueValidation/VDPErrorSetup/VRAMWriteLoop/Halt,92G promoted
-(new label),Opening3,92G
+Opening3,Opening3,92G and 93G (same name; Opening3 bsr PlayoffScreen in hockey.asm / hockey93.asm)
 TXS_MAP,CC_SetMap,93G ControlCode_SetMap
 TXS_ATTR,CC_SetAttribute,93G
 TXS_X,CC_SetX,93G
@@ -52,8 +52,8 @@ DisplayPlayerAttributeMenu,ShowGoalBox,behavior (inaccurate 93 name)
 attrText,GoalBoxText,behavior (inaccurate 93 name)
 PrintPenaltyMessagesString,ClearPenaltyMessage,behavior (inaccurate 93 name)
 PlayoffScreenDataTable,VBlank_Playoff,behavior (inaccurate 93 name)
-DrawPlayoffBracket,DrawTreeArrow,behavior (inaccurate 93 name)
-FormatScore,PrintSeriesScore,behavior (inaccurate 93 name)
+DrawPlayoffBracket,PlayoffScreen_doarrow,behavior (inaccurate 93 name)
+FormatScore,PlayoffScreen_doscores,behavior (inaccurate 93 name)
 BackupRAM_WriteBlock,BackupRAM_ReadBlock,behavior (inaccurate 93 name)
 BackupRAM_ReadBlock,BackupRAM_WriteBlock,behavior (inaccurate 93 name)
 BackupRAM_WriteControl,BackupRAM_Start,behavior (inaccurate 93 name)
@@ -118,7 +118,7 @@ UpdateGameStatScroll,UpdateScoringScroll,behavior (body reread)
 DisplayGameStatLineUp,DrawScoringRowUp,behavior (body reread)
 DisplayGameStatLineDown,DrawScoringRowDown,behavior (body reread)
 DisplayGameStatEntry,DrawScoringRow,behavior (body reread)
-DisplayPlayerSelectMenu,DrawGoalieSelectList,behavior (body reread)
+DisplayPlayerSelectMenu,Pausemode_gnum,behavior (body reread)
 FormatStatValue,PrintStatValue,behavior (body reread)
 FormatControllerDisplay,QueuePadLabel,behavior (body read)
 UpdateLineChange,RestoreBenchEnergy,behavior (body read)
@@ -149,3 +149,83 @@ StartText,CopyString,behavior: copies a string
 (new equate),SPFslamtop,frame 708 slam hold top
 (new equate),SPFslambot,frame 712 slam hold bottom
 (new equate),SPFghighr,frame 658 goalie high right
+SPAboardtop,SPAboardfront,behavior
+SPAboardbot,SPAboardback,behavior
+SPAboardmidl,SPAbenchcheckl,behavior
+SPAboardmidr,SPAbenchcheckr,behavior
+SPAboardchk,SPAcrosscheck,behavior
+GameStatisticsScreen,StatsReport,92G
+DisplayTeamStatsScreen,DisplayStats,92G
+PlayoffScreen_waitvsync,waitxc1,92G
+SngScout,SngScouting,92G/93G
+ReplayStarStruct,CameraPosStruct,93G
+.goal,Goal,92G/93G (checkgoal branches to it)
+assgoaliecpu,assgoalie,92G/93G (asstab entry; assgoaliecpu and assgoaliectrl kept as sub-labels)
+(new equate),tmHotCold,new in 94 (at 93G tmsize $1A2; 94S HotColdTable is a separate array)
+(new equate),tmPerGoals,new in 94 (past 93G tmsize $1A2); 94S has it as tmPerGoals
+(new equate),tmPerShots,new in 94 (past 93G tmsize $1A2); 94S has it as tmPerShots
+(new equate),tmPwrPlayTime,new in 94 (past 93G tmsize $1A2); 94S has it as tmPwrPlayTime
+(new equate),tmPPShots,new in 94 (past 93G tmsize $1A2); 94S has it as tmPPShots
+(new equate),tmSHGoals,new in 94 (past 93G tmsize $1A2); 94S has it as tmSHGoals
+(new equate),tmBreakaways,new in 94 (past 93G tmsize $1A2); 94S has it as tmBreakaways
+(new equate),tmBreakawayGoals,new in 94 (past 93G tmsize $1A2); 94S has it as tmBreakawayGoals
+(new equate),tmOneTimers,new in 94 (past 93G tmsize $1A2); 94S has it as tmOneTimers
+(new equate),tmOneTimerGoals,new in 94 (past 93G tmsize $1A2); 94S has it as tmOneTimerGoals
+(new equate),tmPenShots,new in 94 (past 93G tmsize $1A2); 94S has it as tmPenShots
+(new equate),tmPenShotGoals,new in 94 (past 93G tmsize $1A2); 94S has it as tmPenShotGoals
+Map1col1,Map1col,92G
+Map2col1,Map2col,92G
+Map3col1,Map3col,92G
+animchars,crowdvrcset,92G
+pldnum,pldnum,93G (same name; .pld rating byte; 92G setplayer used raw offsets)
+pldweight,pldweight,93G (same name; .pld rating byte; 92G setplayer used raw offsets)
+pldlegspd,pldlegspd,93G (same name; .pld rating byte; 92G setplayer used raw offsets)
+pldaidef,pldaidef,93G (same name; .pld rating byte; 92G setplayer used raw offsets)
+pldcheck,pldcheck,93G (same name; .pld rating byte; 92G setplayer used raw offsets)
+pldstick,pldstick,93G (same name; .pld rating byte; 92G setplayer used raw offsets)
+pldendur,pldendur,93G (same name; .pld rating byte; 92G setplayer used raw offsets)
+pldpass,pldpass,93G (same name; .pld rating byte; 92G setplayer used raw offsets)
+pldsize,pldsize,93G (same name; .pld rating byte; 92G setplayer used raw offsets)
+pcsize,pcsize,93G (same name; puckcross entry size)
+sfxarg,sfxarg,93G (same name; middle93.asm sfx / song stack argument after movem)
+prevtileptr,prevtileptr,93G (same name; video93.asm addframe2 saved d2 on the stack)
+prevtilecnt,prevtilecnt,93G (same name; video93.asm addframe2 saved d4 on the stack)
+GGSleft,GGSleft,92G and 93G (same name; = stickhand in 92 and aggress in 93/94)
+tmfslide,tmfslide,93G (same name; = tmftimeout)
+NoTiles,null,92G
+InitialSP,Stack,92G/93G
+Opcode_Fillbytes,Opcode_FillBytes,93G
+DecompressGraphicsWithCallback,DecompressGraphicsWithRemap,93G
+callbackPtr,remapTablePtr,93G
+jump_table,DecompressOpcodeTable,93G
+HandlePlayoffInput,PlayoffScreen_jin,92G parent_local
+UpdatePlayoffScroll,PlayoffScreen_scrup,92G parent_local
+PlayoffScreenExit,PlayoffScreen_exit,92G parent_local
+PrintSeriesScore,PlayoffScreen_doscores,92G parent_local
+DrawTreeArrow,PlayoffScreen_doarrow,92G parent_local
+DrawTeamBlocks,PlayoffScreen_doteam,92G parent_local
+PlayoffTreeSetup,PlayoffScreen_setup,92G parent_local
+SetupPauseScreen,Pausemode_pall,92G parent_local
+InitMenuState,Pausemode_top,92G parent_local
+UpdateMenuSelection,Pausemode_Pmenu,92G parent_local
+SelectGoalieMenu,Pausemode_go,92G parent_local
+DrawGoalieSelectList,Pausemode_gnum,92G parent_local
+PauseText,Pausemode_mlist,92G parent_local
+WaitVSyncAndReadInput,Pausemode_rjoy,92G parent_local
+IntermissionStart,PeriodOver_sp,92G parent_local
+defaultsprites2,defaultsprites_0,92G parent_local
+lcfound2,lcfound_close,92G parent_local
+ProcessPenaltyList,updatepentime_ut,92G parent_local
+PrintTeamNameAndScore,printscores1_ps,92G parent_local
+RenderSmallFontChar,uppads_pd,92G parent_local
+cd0,updatecrowdf_cd0,92G parent_local
+DrawMatchupBitmaps,TeamIcons,92G/93G
+vcountwait,MenuWaitVblank,93G
+Crowdframelist,CrowdSprites,92G/93G
+ZamFrameList,ZamSprites,92G/93G
+TeamBlocksmap,Teamblocksmap,92G
+ArrowsMap,Arrowsmap,92G
+newTitleScreen,TitleScreen,92G/93G
+GoalBigTxt,GoalBoxText,93G
+ScoutTextScript,ScoutingReportText,93G
+CreditsList,CreditsPages,93G
