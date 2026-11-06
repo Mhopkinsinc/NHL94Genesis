@@ -6,8 +6,7 @@
 //   node tools/build.js --segacd [--verbose]           Sega CD fragments, compared with cdbin/
 // --no-color (or NO_COLOR) turns the colors off; they are also off when the output is not a terminal.
 // retail: CHECKSUM=1 and verified against nhl94retail.bin. dev: CHECKSUM=0, not verified.
-// The rev / checksum environment variables (set rev=1 / set checksum=0 on Windows, rev=1 node ... on Linux) override the defaults.
-// rev=1 builds REV A (output/nhl94-revA.bin), not verified: there is no REV A reference ROM.
+// The checksum environment variable (set checksum=0 on Windows, checksum=0 node ... on Linux) overrides the default.
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
@@ -37,15 +36,9 @@ const segIdx = args.indexOf('--seg');
 const seg = segIdx >= 0 ? args[segIdx + 1] : null;
 const mode = args.find((a) => a === 'retail' || a === 'dev') || 'retail';
 const env = (k) => process.env[k] ?? process.env[k.toUpperCase()] ?? process.env[k.toLowerCase()];
-const rev = env('rev') === '1' ? 1 : 0;
 const checksum = env('checksum') !== undefined ? (env('checksum') === '0' ? 0 : 1) : (mode === 'dev' && !seg ? 0 : 1);
 
-// The z80 and names steps run when the source has what they build: src/sound/z80_snd_drv93.asm (the Z80 driver
-// assembled from source) and an include of ..\output\obj\teamdata94.asm in src/nhl94.asm (the names copy). This
-// branch's source may predate them; without them the build is prebuild, assemble, fixopcodes, fixrom, verify.
-const hasZ80 = fs.existsSync(path.join(ROOT, 'src', 'sound', 'z80_snd_drv93.asm'));
-const hasNames = /^[ \t]*include[ \t]+\.\.\\output\\obj\\teamdata94\.asm/im.test(fs.readFileSync(path.join(ROOT, 'src', 'nhl94.asm'), 'latin1'));
-let steps = 5 + (hasZ80 ? 1 : 0) + (hasNames ? 1 : 0);
+let steps = 7;
 let n = 0;
 // Each step is two lines: "[n/6] <step>  <description>", then the result under the description.
 // In a colour terminal the step line shows a spinner and a yellow step name while it runs, and is
@@ -245,13 +238,13 @@ if (segIdx >= 0 && !seg) {
 // A segment build is the full build; the verify step then compares the segment's address range only.
 const name = 'nhl94';
 // Intermediate files go in output/obj/: the raw assembler image, its listing and the log.
-// The one result is output/<final>: nhl94.bin (retail or a segment check), nhl94-revA.bin or nhl94-dev.bin.
+// The one result is output/<final>: nhl94.bin (retail or a segment check) or nhl94-dev.bin.
 const BUILD = OBJ;
 const bin = path.join(BUILD, `${name}.raw.bin`);
 const lst = path.join(BUILD, `${name} .lst`);
 const fixed = path.join(BUILD, `modified_${name}.raw.bin`);
 const logPath = path.join(BUILD, `Build_${name}.log`);
-const final = seg ? 'nhl94.bin' : `nhl94${rev ? '-revA' : ''}${mode === 'dev' ? '-dev' : ''}.bin`;
+const final = `nhl94${mode === 'dev' && !seg ? '-dev' : ''}.bin`;
 const mod = path.join(OUT, final);
 
 // output/obj/ is shared by all builds: empty it so this build cannot pick up another build's intermediates.
@@ -272,7 +265,7 @@ fs.mkdirSync(OBJ, { recursive: true });
 // 2. z80: asm80 (npm devDependency) assembles src/sound/z80_snd_drv93.asm into output/obj/z80_snd_drv93.bin, which
 // sound94.asm includes. It must equal the bytes extracted from the ROM (Extracted/NHL94/Sound/z80_snd_drv93.bin)
 // except Z80 $278-$27C, the FM patch address operands that sound94.asm writes from fm_instrument_patches.
-if (hasZ80) {
+{
     begin('z80');
     fs.mkdirSync(BUILD, { recursive: true });
     const src = path.join(ROOT, 'src', 'sound', 'z80_snd_drv93.asm');
@@ -300,7 +293,7 @@ if (hasZ80) {
 // placeholder replaced, and nhl94.asm includes the copy. A name must have the length of its placeholder (the Player macro
 // writes the row length). Player rows are replaced in order; a nickname placeholder is 'N' + its two-digit number in
 // TeamNicknames.txt, padded with '_'.
-if (hasNames) {
+{
     begin('names');
     const read = (f) => { const l = fs.readFileSync(path.join(ROOT, 'Extracted', f), 'latin1').split('\n'); if (l[l.length - 1] === '') l.pop(); return l; };
     const players = read('PlayerNames.txt'), nicks = read('TeamNicknames.txt');
@@ -343,7 +336,7 @@ if (hasNames) {
     const o = `..\\output\\obj\\${name}`;
     const asmArgs = ['/p', '/m', '/g', '/o', 'd-', '/o', 's-', '/o', 'r+', '/o', 'l+', '/o', 'l.', '/o', 'ow+', '/o', 'op-',
         '/o', 'os+', '/o', 'oz+', '/o', 'omq-', '/o', 'oaq+', '/o', 'osq+',
-        '/e', `REV=${rev}`, '/e', `CHECKSUM=${checksum}`, `${src},${o}.raw.bin,${o},${o}`];
+        '/e', `CHECKSUM=${checksum}`, `${src},${o}.raw.bin,${o},${o}`];
     const exe = path.join(ROOT, 'assembler', 'Assembler.exe');
     const r = await (WIN ? run(exe, asmArgs, { cwd: path.join(ROOT, 'src') })
         : run('wine', [exe, ...asmArgs], { cwd: path.join(ROOT, 'src'), env: { ...process.env, WINEDEBUG: '-all' } }));
@@ -365,7 +358,7 @@ if (hasNames) {
             : `${errors} error(s), see ${rel(logPath)}`;
         fail('assemble', headline, detail);
     }
-    step('assemble', `${errors} errors, ${warnings} warnings, ${sum[2]} lines in ${sum[3]}s (REV=${rev} CHECKSUM=${checksum}) -> ${rel(bin)}`);
+    step('assemble', `${errors} errors, ${warnings} warnings, ${sum[2]} lines in ${sum[3]}s (CHECKSUM=${checksum}) -> ${rel(bin)}`);
     detail(r.out);
 }
 
@@ -394,8 +387,6 @@ if (hasNames) {
 // 7. verify against the retail ROM.
 if (!seg && mode === 'dev') {
     step('verify', `${rel(mod)} not verified (dev build)`);
-} else if (!seg && rev) {
-    step('verify', `${rel(mod)} not verified (no REV A reference ROM)`);
 } else {
     begin('verify');
     const REF = findRom(ROMS.retail).path;

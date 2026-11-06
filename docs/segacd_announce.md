@@ -11,14 +11,14 @@ move.w  #$7A,-(sp)
 jsr     $371D2.l
 ```
 
-`$7A` is the cartridge `SngScout`. On the cartridge that id is the FM stream `fmtune_scouting` in `sound94.asm`, the last entry of `SoundStreamTable`. `$371D2` is `song`. The cartridge `song` saves every register, reads the word at `64(sp)`, and calls `play_sfx_or_music_track`.
+`$7A` is the cartridge `SngScouting`. On the cartridge that id is the FM stream `fmtune_scouting` in `sound94.asm`, the last entry of `SoundStreamTable`. `$371D2` is `song`. The cartridge `song` saves every register, reads the word at `64(sp)`, and calls `play_sfx_or_music_track`.
 
 `HOCKEY.BIN` is entered at `$1B000`, so `$371D2` is file `$1C1D2`, `cdrequest.asm`. It is the disc's `song`. `$79` and `$7A` are above its `$30`–`$77` window, so those two calls do not store a CD track. The same address is called from five sites:
 
 | Call | Argument |
 | --- | --- |
 | `$D312` | immediate `$7A` (scouting) |
-| `$245D2` | immediate `$79` (cartridge song `$79` is `fmtune_eog`) |
+| `$245D2` | immediate `$79` (cartridge song `$79` is `fmtune_eop`) |
 | `$10B24`, `$10CE6` | the word at `$1A56A` |
 | `$10BD6` | the word at `$1AD70` |
 
@@ -66,7 +66,7 @@ A `!` (`$21`) skips three bytes. In the GRAPH2 script those three bytes are the 
 | `<` `>` `\|` `\` | `$23132`, `$23168`, `$2328E`, `$232C4` | hot and cold players |
 | `$` `[` `]` `{` `}` `_` `+` | walks a team or player record | the name that follows |
 
-The typer then calls `printz` (`$1DF6E`) with the inline string whose length word is `$0006`: flag `$FF` (`-TXMAP1`), x `9`, y `4`. It adds the attribute counter `$1A44E` to print x and the line scroll to print y, calls `print` (`$1DF80`), and adds the word length to the attribute counter.
+The typer then calls `printz` (`$1DF6E`) with the inline string whose length word is `$0006`: flag `$FF` (`CC_Font1`), x `9`, y `4`. It adds the attribute counter `$1A44E` to print x and the line scroll to print y, calls `print` (`$1DF80`), and adds the word length to the attribute counter.
 
 `ScrollDisplayUp` is the tail of `scouttok.asm`. At seven lines it calls `$379D6` eight times to scroll the text window. Nothing in the typer, the token handlers, or the scroll calls `_CDBIOS` or the PCM stream.
 
