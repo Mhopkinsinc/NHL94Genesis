@@ -37,7 +37,7 @@
   3. Formats: STARTER's data is five `.map.jim` pictures (the Credits title, its font, High Score Productions,
      the EA SPORTS logo sprites, sparkles; packed tiles in the cartridge's DecompressBytecode format, which
      MAIN.BIN's copy of the cartridge decompressor unpacks) and a PCM record directory (`startergfx.asm`). MAIN's
-     Z80 program is asm80 source (`src/segacd/main/mainz80.z80`); left: how it ends up at Z80 `$0600`.
+     Z80 sound image is asm80 source (`src/segacd/main/mainz80.z80`, MAIN.BIN `$5E0C`-`$765B`, copied to Z80 `$0000`).
 - Open questions:
   - The team struct is one word longer from `tmap` on; probably `tmsort` became a long. Confirm when a fragment uses
     `tmsort` (logic94 has `movea.w tmsort(a2),a0` among its CD lines).

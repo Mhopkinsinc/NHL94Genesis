@@ -1,78 +1,21 @@
 ; =============================================================================
 ; NHL Hockey 94 Sega CD - MAIN.BIN Z80 sound program
 ; =============================================================================
-; MAIN.BIN file $640C-$7153 (3,400 bytes). It is not the cartridge Z80 driver.
-; Its absolute jumps and calls put it at Z80 $0600 (file offset - $640C + $0600):
-; file +$0061 is the command handler that the jump table calls at $0661. So the
-; source is org 0 (the bytes) with .phase $0600 (the addresses). How the 68000
-; side places it at $0600 is not traced (z80load.asm copies a block to Z80 $0000).
-; The 68000 writes commands into the queue at $0030. CommandJumpOffset is the
-; operand of a JR that the code rewrites to pick an entry of CommandJumps.
-; No caller of $10CD was found. There is no JP (HL) / JP (IX) dispatch.
-; Written by tools/segacd_z80dis.py from cdbin/MAIN.BIN; tables are db/dw.
+; MAIN.BIN file $5E0C-$765B ($1850 bytes): the block InitSoundCommand (game shell
+; commands $29 and $40) passes to z80load.asm, which copies it to Z80 RAM $0000.
+; It is not the cartridge Z80 driver. $0000 jumps to Z80_Start at $0600; the
+; restart vectors jump to InterruptReturn (reti); the RAM below $0600 and after
+; the program is zero on the disc. The 68000 writes commands into the queue at
+; $0030. CommandJumpOffset is the operand of a JR that the code rewrites to pick
+; an entry of CommandJumps. No caller of $10CD was found. There is no JP (HL) /
+; JP (IX) dispatch. Written by tools/segacd_z80dis.py from cdbin/MAIN.BIN;
+; tables are db/dw, zero runs ds.
 ; =============================================================================
 
         .binfrom 0
-        .binto $0D47
+        .binto $184F
 
-L0000                    EQU $0000
-CommandQueueLock         EQU $0030
-CommandQueueCount        EQU $0031
-CommandByte0             EQU $0032
-CommandByte1             EQU $0033
-CommandByte2             EQU $0034
-CommandByte3             EQU $0035
-PendingCommands          EQU $0036
-L0092                    EQU $0092
-L0093                    EQU $0093
-L0094                    EQU $0094
-L0095                    EQU $0095
-L0096                    EQU $0096
-L0098                    EQU $0098
-L0099                    EQU $0099
-L009A                    EQU $009A
-L009B                    EQU $009B
-L009C                    EQU $009C
-L009D                    EQU $009D
-L009E                    EQU $009E
-L009F                    EQU $009F
-L00A0                    EQU $00A0
-L00A1                    EQU $00A1
-L00A2                    EQU $00A2
-L00B3                    EQU $00B3
-L00B4                    EQU $00B4
-L00B5                    EQU $00B5
-L00B6                    EQU $00B6
-L00BB                    EQU $00BB
-L00BC                    EQU $00BC
-L00C2                    EQU $00C2
-L00C8                    EQU $00C8
-L00CD                    EQU $00CD
-L00CE                    EQU $00CE
-L00D3                    EQU $00D3
-L00D4                    EQU $00D4
-L00E0                    EQU $00E0
-L00E5                    EQU $00E5
-L00E6                    EQU $00E6
-L0100                    EQU $0100
-L0101                    EQU $0101
-L0102                    EQU $0102
-L0103                    EQU $0103
-L0104                    EQU $0104
-L010F                    EQU $010F
-L0200                    EQU $0200
-L0280                    EQU $0280
-L0300                    EQU $0300
-L0380                    EQU $0380
-L0400                    EQU $0400
-L0480                    EQU $0480
-L0500                    EQU $0500
-L0580                    EQU $0580
 CommandJumpOffset        EQU $0640
-L13C8                    EQU $13C8
-L1448                    EQU $1448
-L1649                    EQU $1649
-L184A                    EQU $184A
 Z80_STACK_TOP            EQU $1FFE
 YM2612_ADDR1             EQU $4000
 YM2612_DATA1             EQU $4001
@@ -83,8 +26,160 @@ PSG_DATA                 EQU $7F11
 BANK_WINDOW              EQU $8000
 
         org 0
-        .phase $0600
 
+
+Z80_Reset:
+        jp Z80_Start
+
+L0003:
+        nop
+
+L0004:
+        jp InterruptReturn
+
+L0007:
+        nop
+
+L0008:
+        jp InterruptReturn
+
+L000B:
+        nop
+
+L000C:
+        jp InterruptReturn
+
+L000F:
+        nop
+
+L0010:
+        jp InterruptReturn
+
+L0013:
+        nop
+
+L0014:
+        jp InterruptReturn
+
+L0017:
+        nop
+
+L0018:
+        jp InterruptReturn
+
+L001B:
+        nop
+
+L001C:
+        jp InterruptReturn
+
+L001F:
+        nop
+        db $18,$4F,$18,$4F,$14,$48,$16,$49,$18,$4B,$00,$00,$00,$00,$00,$00
+CommandQueueLock:
+        db $00
+CommandQueueCount:
+        db $00
+CommandByte0:
+        db $00
+CommandByte1:
+        db $00
+CommandByte2:
+        db $00
+CommandByte3:
+        db $00
+PendingCommands:
+        ds 92
+L0092:
+        db $00
+L0093:
+        db $00
+L0094:
+        db $00
+L0095:
+        db $00
+L0096:
+        db $00,$00
+L0098:
+        db $00
+L0099:
+        db $00
+L009A:
+        db $00
+L009B:
+        db $00
+L009C:
+        db $00
+L009D:
+        db $00
+L009E:
+        db $00
+L009F:
+        db $00
+L00A0:
+        db $00
+L00A1:
+        db $00
+L00A2:
+        ds 17
+L00B3:
+        db $00
+L00B4:
+        db $00
+L00B5:
+        db $00
+L00B6:
+        db $00,$00,$00,$00,$00
+L00BB:
+        db $00
+L00BC:
+        db $00,$00,$00,$00,$00,$00
+L00C2:
+        db $00,$00,$00,$00,$00,$00
+L00C8:
+        db $00,$00,$00,$00,$00
+L00CD:
+        db $00
+L00CE:
+        db $00,$00,$00,$00,$00
+L00D3:
+        db $00
+L00D4:
+        db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+L00E0:
+        db $00,$00,$00,$00,$00
+L00E5:
+        db $00
+L00E6:
+        ds 26
+L0100:
+        db $00
+L0101:
+        db $00
+L0102:
+        db $00
+L0103:
+        db $00
+L0104:
+        db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+L010F:
+        ds 241
+L0200:
+        ds 128
+L0280:
+        ds 128
+L0300:
+        ds 128
+L0380:
+        ds 128
+L0400:
+        ds 128
+L0480:
+        ds 128
+L0500:
+        ds 128
+L0580:
+        ds 128
 
 ; Disable interrupts and initialize the driver.
 
@@ -611,7 +706,7 @@ L0936:
         inc hl
         dec c
         jr nz,L0929
-        ld ix,L0000
+        ld ix,Z80_Reset
 
 L0944:
         pop hl
@@ -1631,7 +1726,7 @@ L1045:
         jr nz,L1002
         ret
 
-L1051:
+InterruptReturn:
         reti
 
 ; Poll YM timer A and write DAC sample bytes.
@@ -1818,8 +1913,8 @@ L1154:
 L115A:
         push bc
         pop hl
-        ld bc,L0000
-        ld iy,L0000
+        ld bc,Z80_Reset
+        ld iy,Z80_Reset
         ld a,$10
 
 L1165:
@@ -1874,5 +1969,14 @@ L12C8:
         db $0F,$0E,$0E,$0D,$0D,$0C,$0C,$0C,$0B,$0B,$0A,$0A,$0A,$0A,$09,$09
         db $08,$08,$08,$07,$07,$07,$06,$06,$06,$06,$05,$05,$05,$05,$05,$04
         db $04,$04,$04,$04,$04,$03,$03,$03,$03,$02,$02,$02,$01,$01,$01,$00
-
-        .dephase
+        ds 128
+L13C8:
+        ds 128
+L1448:
+        ds 512
+        db $FF
+L1649:
+        ds 512
+        db $FF
+L184A:
+        db $FE,$03,$00,$C0,$00,$00

@@ -115,6 +115,7 @@ MMOD_LABELS=(
 # (names only in maintable.asm) and the table itself too.
 ALLNAMES=(
   --cdname ShellCommandTable=0xFF471C
+  --cdname Z80SoundImage=0xFF6E0C
   --cdname WriteVdpControlByteCommand=0xFF4B3C
   --cdname WriteVdpControlWordCommand=0xFF4B48
   --cdname WriteVdpControlLongCommand=0xFF4B54
@@ -153,10 +154,11 @@ port mainstart 0x35A8 0x371C "${MSTART_LABELS[@]}" --note 'The game shell: MainS
 # maintable ($371C-$381B, the 64 command handler pointers) is written by hand.
 port mainstart_2 0x381C 0x3B3C "${MSTART_2_LABELS[@]}" --note 'After ShellCommandTable (maintable.asm): the H and V interrupt handlers (MainShellVBlank serves the\nsecond command channel), the start-up handshake, word RAM handover and the first command handlers.\nhwread.asm follows (commands $09-$1C).'
 port mainwram 0x3C3E 0x40D0 "${MWRAM_LABELS[@]}" --note 'After hwread.asm: command handlers $1D-$26, $2C and $3E (palette fade, VRAM copy and fill by DMA,\nthe sound commands), the pad poll, the way into the shell C program. The second copy of maindisp.asm\n(main/maindisp_2.asm) follows.'
-port mainvdpinit 0x57E8 0x640C "${MVDPINIT_LABELS[@]}" --note 'After the second copy of the C handlers and of the run-time (maincrt_2.asm): command handlers\n$27-$40 (interrupt set-up, the sound driver, the four-way probe, the V interrupt channel, the screen\nfades, the overlay at $FF1006), then zeros.'
-# mainz80 ($640C-$7153, the Z80 sound program) is Z80 source now: src/segacd/main/mainz80.z80, written by
-# tools/segacd_z80dis.py and assembled by tools/build.js --segacd; mainz80.asm (by hand) includes it.
-port maincmd 0x7154 0x76C8 "${MCMD_LABELS[@]}" --note 'Zeros, then DispatchSoundOperation: d0 = 0 (z80load.asm, next) or 1-9 (mainmod.asm).'
+port mainvdpinit 0x57E8 0x5E0C "${MVDPINIT_LABELS[@]}" --note 'After the second copy of the C handlers and of the run-time (maincrt_2.asm): command handlers\n$27-$40 (interrupt set-up, the sound driver, the four-way probe, the V interrupt channel, the screen\nfades, the overlay at $FF1006). mainz80.asm (the Z80 sound image) follows.'
+# mainz80 ($5E0C-$765B, the Z80 sound image z80load.asm copies to Z80 $0000) is Z80 source:
+# src/segacd/main/mainz80.z80, written by tools/segacd_z80dis.py and assembled by tools/build.js --segacd;
+# mainz80.asm (by hand) includes it.
+port maincmd 0x765C 0x76C8 "${MCMD_LABELS[@]}" --note 'DispatchSoundOperation (after the Z80 sound image): d0 = 0 (z80load.asm, next) or 1-9 (mainmod.asm).'
 port mainmod 0x77B8 0xEC00 "${MMOD_LABELS[@]}" --note 'After z80load.asm: the sound sequence engine (eight streams of MIDI-style events, timed note-offs,\nthe Z80 event queue, resource directories, bus access), its state and tables, then zeros to the end.\ndocs/segacd_main_shell.md.'
 
 exit $fail

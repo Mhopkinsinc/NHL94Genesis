@@ -1,6 +1,6 @@
-;	MAIN.BIN $7154-$76C7 (runtime $FF8154-$FF86C7).
+;	MAIN.BIN $765C-$76C7 (runtime $FF865C-$FF86C7).
 ;
-;	Zeros, then DispatchSoundOperation: d0 = 0 (z80load.asm, next) or 1-9 (mainmod.asm).
+;	DispatchSoundOperation (after the Z80 sound image): d0 = 0 (z80load.asm, next) or 1-9 (mainmod.asm).
 
 
 TickSoundSequences	equ	$FF87B8
@@ -14,15 +14,8 @@ ClearZ80SoundResourceDirectory	equ	$FF92F8
 X_FF86C8	equ	$FF86C8
 X_FF8B36	equ	$FF8B36
 
-	org	$FF8154
+	org	$FF865C
 
-	dcb.b	768,0
-	dc.w	$FF00
-	dcb.b	511,0
-	dc.b	$FF
-	dc.w	$FE03
-	dc.w	$00C0
-	dc.w	$0000
 DispatchSoundOperation
 	tst.w	d0
 	bne.s	.LFF8664

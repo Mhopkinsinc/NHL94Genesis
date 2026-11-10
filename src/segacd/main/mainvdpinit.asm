@@ -1,8 +1,8 @@
-;	MAIN.BIN $57E8-$640B (runtime $FF67E8-$FF740B).
+;	MAIN.BIN $57E8-$5E0B (runtime $FF67E8-$FF6E0B).
 ;
 ;	After the second copy of the C handlers and of the run-time (maincrt_2.asm): command handlers
 ;	$27-$40 (interrupt set-up, the sound driver, the four-way probe, the V interrupt channel, the screen
-;	fades, the overlay at $FF1006), then zeros.
+;	fades, the overlay at $FF1006). mainz80.asm (the Z80 sound image) follows.
 
 
 MainShellCommandLoop	equ	$FF4622
@@ -13,12 +13,12 @@ SyncMainShellStartup	equ	$FF4918
 WaitMainWordRam	equ	$FF4996
 GiveSubWordRamAndWait	equ	$FF49A2
 ClearAllVramCommand	equ	$FF4DE4
+Z80SoundImage	equ	$FF6E0C
 DispatchSoundOperation	equ	$FF865C
 X_FF1006	equ	$FF1006
 X_FF6AD4	equ	$FF6AD4
 X_FF6D04	equ	$FF6D04
 X_FF6D8C	equ	$FF6D8C
-X_FF6E0C	equ	$FF6E0C
 
 	org	$FF67E8
 
@@ -44,7 +44,7 @@ RestartMainShellCommandLoop
 	bra.w	MainShellCommandLoop
 InitSoundCommand
 	move.w	#$0,d0
-	lea	(X_FF6E0C).l,a0
+	lea	(Z80SoundImage).l,a0
 	move.w	#$184F,d1
 	movea.l	$A12022.l,a1
 	bsr.w	DispatchSoundOperation
@@ -59,7 +59,7 @@ InitSoundCommand
 	rts
 InitSoundDriverCommand
 	move.w	#$0,d0
-	lea	(X_FF6E0C).l,a0
+	lea	(Z80SoundImage).l,a0
 	move.w	#$184F,d1
 	movea.l	$A12022.l,a1
 	bsr.w	DispatchSoundOperation
@@ -386,24 +386,3 @@ InstallMainShellOverlayCommand
 	ori.b	#$0,d0
 	dcb.b	136,0
 	dcb.b	128,0
-	abcd.b	d0,d1
-	dc.w	$0600,$C351
-	move.b	d0,d0
-	and.w	d1,(a1)
-	move.b	d0,d0
-	and.w	d1,(a1)
-	move.b	d0,d0
-	and.w	d1,(a1)
-	move.b	d0,d0
-	and.w	d1,(a1)
-	move.b	d0,d0
-	and.w	d1,(a1)
-	move.b	d0,d0
-	and.w	d1,(a1)
-	move.b	d0,d0
-	dc.w	$184F
-	dc.w	$184F
-	dc.w	$1448
-	dc.w	$1649
-	dc.w	$184B
-	dcb.b	1494,0

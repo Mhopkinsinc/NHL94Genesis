@@ -1,16 +1,17 @@
 """Reproduce the MAIN.BIN Z80 source with a recursive, standard-library decoder.
 
 Run from any directory. No assembler or build artifacts are written here.
-The image runs at Z80 $0600, although its first byte is file offset $640C (image offset 0).
+The image is MAIN.BIN file $5E0C-$765B, the $1850-byte block InitSoundCommand hands to z80load.asm, which
+copies it to Z80 $0000: the vectors, the program from $0600, and the RAM the driver and the 68000 share.
 """
 from pathlib import Path
 from collections import deque
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = 0x600
-IMAGE = (ROOT / 'cdbin/MAIN.BIN').read_bytes()[0x640c:0x7154]
+BASE = 0
+IMAGE = (ROOT / 'cdbin/MAIN.BIN').read_bytes()[0x5e0c:0x765c]
 END = BASE + len(IMAGE)
-NAMES = {0x600: 'Z80_Start', 0x62c: 'CommandLoop',
+NAMES = {0x0: 'Z80_Reset', 0x1051: 'InterruptReturn', 0x600: 'Z80_Start', 0x62c: 'CommandLoop',
          0x62f: 'WaitCommand', 0x640: 'CommandJumpOffset',
          0x641: 'CommandJumps',
          0x87a: 'ClearCommandQueue', 0x88d: 'PopCommand',
@@ -174,11 +175,13 @@ def generate():
     occupied = {}
     # Include padding NOPs in the command vectors. The isolated RET/RETI and
     # two uncalled routines have unambiguous instruction boundaries as well.
-    queue = deque([BASE, 0x97d, 0xf93, 0x1051, 0x10cd] +
-                  list(range(0x641, 0x661)) )
+    # The reset and restart vectors ($0000-$001F: jp Z80_Start, then jp InterruptReturn, a NOP after each)
+    # and the command vectors are four-byte JP / NOP entries.
+    queue = deque([0x0, 0x600, 0x97d, 0xf93, 0x1051, 0x10cd] +
+                  list(range(0x0, 0x20)) + list(range(0x641, 0x661)))
     # Only vector starts and their NOPs are entries, not JP operand bytes.
-    queue = deque(a for a in queue if not 0x641 <= a < 0x661 or
-                  (a - 0x641) % 4 in (0, 3))
+    queue = deque(a for a in queue if not (0x641 <= a < 0x661 or a < 0x20) or
+                  (a - (0x641 if a >= 0x641 else 0)) % 4 in (0, 3))
     for entry in queue:
         label(entry)
     while queue:
@@ -192,7 +195,7 @@ def generate():
             code[pc] = (n, s)
             for a in range(pc, pc+n): occupied[a] = pc
             queue.extend(targets)
-            if stop: break
+            if stop or pc == 0x1f: break      # $001F: the last vector's NOP; data follows
             pc += n
     # Recognize address construction: add low / ld l / ld h, or add low /
     # ld l(c) / ld a,high / adc carry / ld h(b). Keep the actual instructions.
@@ -229,22 +232,22 @@ def generate():
         '; =============================================================================',
         "; NHL Hockey 94 Sega CD - MAIN.BIN Z80 sound program",
         '; =============================================================================',
-        '; MAIN.BIN file $640C-$7153 (3,400 bytes). It is not the cartridge Z80 driver.',
-        '; Its absolute jumps and calls put it at Z80 $0600 (file offset - $640C + $0600):',
-        '; file +$0061 is the command handler that the jump table calls at $0661. So the',
-        '; source is org 0 (the bytes) with .phase $0600 (the addresses). How the 68000',
-        '; side places it at $0600 is not traced (z80load.asm copies a block to Z80 $0000).',
-        '; The 68000 writes commands into the queue at $0030. CommandJumpOffset is the',
-        '; operand of a JR that the code rewrites to pick an entry of CommandJumps.',
-        '; No caller of $10CD was found. There is no JP (HL) / JP (IX) dispatch.',
-        '; Written by tools/segacd_z80dis.py from cdbin/MAIN.BIN; tables are db/dw.',
+        '; MAIN.BIN file $5E0C-$765B ($1850 bytes): the block InitSoundCommand (game shell',
+        '; commands $29 and $40) passes to z80load.asm, which copies it to Z80 RAM $0000.',
+        '; It is not the cartridge Z80 driver. $0000 jumps to Z80_Start at $0600; the',
+        '; restart vectors jump to InterruptReturn (reti); the RAM below $0600 and after',
+        '; the program is zero on the disc. The 68000 writes commands into the queue at',
+        '; $0030. CommandJumpOffset is the operand of a JR that the code rewrites to pick',
+        '; an entry of CommandJumps. No caller of $10CD was found. There is no JP (HL) /',
+        '; JP (IX) dispatch. Written by tools/segacd_z80dis.py from cdbin/MAIN.BIN;',
+        '; tables are db/dw, zero runs ds.',
         '; =============================================================================', '',
-        '        .binfrom 0', '        .binto $0D47', '']
+        '        .binfrom 0', f'        .binto ${END - 1:04X}', '']
     # Every address operand gets a symbol, including constants loaded into pairs.
     for a in sorted(REFS):
         if not BASE <= a < END or (a in occupied and occupied[a] != a):
             lines.append(f'{NAMES.get(a, f"L{a:04X}"):<24} EQU ${a:04X}')
-    lines += ['', '        org 0', '        .phase $0600', '']
+    lines += ['', '        org 0', '']
     comments = {
         0x600: 'Disable interrupts and initialize the driver.',
         0x62c: 'Poll the command queue while servicing YM timers.',
@@ -273,6 +276,14 @@ def generate():
             pc += n
         else:
             words = 0x1178 <= pc < 0x1238
+            zero = pc
+            while zero < END and IMAGE[zero - BASE] == 0 and zero not in code and \
+                    (zero == pc or zero not in REFS):
+                zero += 1
+            if zero - pc >= 16 and not words:
+                lines.append(f'        ds {zero - pc}')
+                pc = zero
+                continue
             step = 2 if words else 1
             end = pc + step
             while end < min(pc + 16, END) and end not in code and end not in REFS:
@@ -283,7 +294,7 @@ def generate():
             else:
                 lines.append('        db ' + ','.join(f'${v:02X}' for v in IMAGE[pc-BASE:end-BASE]))
             pc = end
-    lines += ['', '        .dephase', '']
+    lines += ['']
     (ROOT / 'src/segacd/main/mainz80.z80').write_text('\n'.join(lines), encoding='ascii')
     count = sum(n for n, s in code.values())
     print(f'{len(code)} instructions, {count} code bytes, {len(IMAGE)-count} data bytes')
