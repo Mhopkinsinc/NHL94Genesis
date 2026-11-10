@@ -281,6 +281,8 @@ def decode(blob, pc, end, base):
             got = None                       # capstone reads 0000 as a two-byte ori
         elif "*" in got.op_str or "[" in got.op_str or "{" in got.op_str or "invalid" in got.op_str:
             got = None                       # a 68020 form (scaled index, memory indirect): data here
+        elif len(split_ops(got.op_str)) > 2:
+            got = None                       # three operands (pack / unpk read as sbcd): not a 68000 form
         elif got.mnemonic.split(".")[0] in BRANCHES | DBCC and re.search(r"\$([0-9a-f]+)$", got.op_str) \
                 and int(re.search(r"\$([0-9a-f]+)$", got.op_str).group(1), 16) & 1:
             got = None                       # a branch to an odd address: data here
@@ -496,6 +498,7 @@ def main():
     ap.add_argument("--base", type=lambda x: int(x, 0), default=0x1B000,
                     help="runtime address of file offset 0 ($1B000 HOCKEY.BIN, $21300 STARTER.BIN)")
     ap.add_argument("--plain", action="store_true", help="not a HOCKEY.BIN fragment: no hockey.inc / macros include")
+    ap.add_argument("--raw", action="store_true", help="CD-only bytes as dc.b rows (a Z80 program, tables), not decoded")
     ap.add_argument("--tags", action="store_true",
                     help="Sierra C: each function ends with rts, a tag byte ($80 + length) and its name")
     ap.add_argument("--no-text", action="store_true",
@@ -1494,6 +1497,21 @@ class Fragment:
         if not self.a.plain:
             body.append(("text", ";CD: no cartridge twin"))
         self.stats["cd_bytes"] += q - p
+        if self.a.raw:                  # not 68000 code (a Z80 program, tables): bytes, 16 to a line
+            pc = p
+            while pc < q:
+                k = pc
+                while k < q and self.disc[k] == 0:
+                    k += 1
+                if k - pc >= 16:
+                    body.append(("data", None, f"\tdcb.b\t{k - pc},0", pc, k - pc))
+                    pc = k
+                    continue
+                n = min(16, q - pc)
+                row = self.disc[pc:pc + n]
+                body.append(("data", None, "\tdc.b\t" + ",".join(f"${b:02X}" for b in row), pc, n))
+                pc += n
+            return
         if NO_TEXT:                     # team data: may hold disc-only names, never decode it to text
             body.append(("src", f"\tincbin\t..\\cdbin\\HOCKEY.BIN,${p:X},{q - p}\t;read from the disc file", p, q - p))
             return

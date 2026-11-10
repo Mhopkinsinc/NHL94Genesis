@@ -165,3 +165,11 @@ compareAt('output/segacd/starter/subdrv_2.bin', 'cdbin/STARTER.BIN', 0x3A8A, 0x3
 compareAt('output/segacd/main/maindisp_2.bin', 'cdbin/MAIN.BIN', 0x40D0, 0xE9A);
 compareAt('output/segacd/main/mainfont_2.bin', 'cdbin/MAIN.BIN', 0x4F6A, 0x300);
 compareAt('output/segacd/main/maintext_2.bin', 'cdbin/MAIN.BIN', 0x526A, 0x48E);
+compareAt('output/segacd/main/maincrt.bin', 'cdbin/MAIN.BIN', 0x34B8, 0xF0);
+compareAt('output/segacd/main/mainstart.bin', 'cdbin/MAIN.BIN', 0x35A8, 0x594);
+compareAt('output/segacd/main/mainwram.bin', 'cdbin/MAIN.BIN', 0x3C3E, 0x492);
+compareAt('output/segacd/main/mainmod.bin', 'cdbin/MAIN.BIN', 0x77B8, 0x7448);
+compareAt('output/segacd/main/maincrt_2.bin', 'cdbin/MAIN.BIN', 0x56F8, 0xF0);
+compareAt('output/segacd/main/mainvdpinit.bin', 'cdbin/MAIN.BIN', 0x57E8, 0xC24);
+compareAt('output/segacd/main/mainz80.bin', 'cdbin/MAIN.BIN', 0x640C, 0xD48);
+compareAt('output/segacd/main/maincmd.bin', 'cdbin/MAIN.BIN', 0x7154, 0x574);
