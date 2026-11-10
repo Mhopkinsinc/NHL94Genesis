@@ -6,6 +6,7 @@
 ;	ends with jmp $B00E, back to the boot, which loads HOCKEY.BIN at $1B000 over this part of the file.
 
 
+StarterDriverEntry	equ	$C4B6
 X_281CF	equ	$281CF
 
 	org	$25F0E
@@ -643,7 +644,7 @@ SubMain
 	move.l	#$80000,d4
 	sub.l	d3,d4
 	bset.b	#$5,$FF800F.l
-	jsr	$C4B6.l
+	jsr	(StarterDriverEntry).l
 	movea.l	#$C41C,sp
 	jsr	(.L2802E).l
 .L26C76

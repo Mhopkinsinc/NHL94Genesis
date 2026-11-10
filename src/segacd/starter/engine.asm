@@ -4,7 +4,7 @@
 ;	EngineIdle and GetData in subheap.asm).
 
 
-X_ECB4	equ	$ECB4
+StarterFilmEntry	equ	$ECB4
 ffree	equ	$F9FA
 X_10356	equ	$10356
 
@@ -27,7 +27,7 @@ DisposeEngine
 GetSectDst
 	link	a6,#$0
 	movem.l	d7/a4,-(sp)
-	lea	X_ECB4(pc),a0
+	lea	StarterFilmEntry(pc),a0
 	movea.l	$1C(a0),a4
 	moveq	#$0,d7
 	move.l	$8(a4),d0
@@ -51,7 +51,7 @@ GetSectDst
 PeekSectDst
 	link	a6,#$0
 	movem.l	d7/a4,-(sp)
-	lea	X_ECB4(pc),a0
+	lea	StarterFilmEntry(pc),a0
 	movea.l	$1C(a0),a4
 	moveq	#$0,d7
 	move.l	$8(a4),d0

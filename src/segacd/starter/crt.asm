@@ -4,6 +4,9 @@
 ;	modulo entries with their jump table. No name tags here; cdfade.asm follows.
 
 
+DispatchPcmCommandEntry	equ	$C4BC
+StarterRandomRange	equ	$E488
+
 	org	$10304
 
 	move.l	$4(sp),d0
@@ -164,7 +167,7 @@
 	move.w	$4(a0),d0
 	sub.w	$2(a0),d0
 	beq.w	.L10488
-	jsr	$E488.l
+	jsr	(StarterRandomRange).l
 .L10488
 	add.w	$2(a0),d0
 	move.w	d0,d2
@@ -173,13 +176,13 @@
 	move.w	$8(a0),d0
 	sub.w	$6(a0),d0
 	beq.w	.L104A6
-	jsr	$E488.l
+	jsr	(StarterRandomRange).l
 .L104A6
 	add.w	$6(a0),d0
 	move.w	d0,d3
 	move.w	#$3,d0
 	move.w	#$FFFF,d4
-	jsr	$C4BC.l
+	jsr	(DispatchPcmCommandEntry).l
 	bra.s	.L1045E
 .L104BC
 	move.w	d1,d3
@@ -187,14 +190,14 @@
 	move.w	$4(a0),d0
 	sub.w	$2(a0),d0
 	beq.w	.L104D2
-	jsr	$E488.l
+	jsr	(StarterRandomRange).l
 .L104D2
 	add.w	$2(a0),d0
 	move.w	d0,d2
 	moveq	#$0,d1
 	move.b	$1(a0),d1
 	move.w	#$3,d0
-	jsr	$C4BC.l
+	jsr	(DispatchPcmCommandEntry).l
 	bra.w	.L1045E
 .L104EC
 	dc.w	$0200,$05A9

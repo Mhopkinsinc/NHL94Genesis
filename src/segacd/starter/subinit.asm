@@ -3,7 +3,7 @@
 ;	InitWorld (prints SUBCPU is alive), GetTicks, WaitIODone.
 
 
-X_ECB4	equ	$ECB4
+StarterFilmEntry	equ	$ECB4
 aprint	equ	$F8C4
 InitHeap	equ	$FC10
 
@@ -15,7 +15,7 @@ InitWorld
 	clr.w	$FF8020.l
 	pea	.LFD52(pc)
 	jsr	aprint(pc)
-	lea	X_ECB4(pc),a0
+	lea	StarterFilmEntry(pc),a0
 	moveq	#$F,d7
 	and.l	$8(a0),d7
 	tst.l	d7
@@ -25,30 +25,30 @@ InitWorld
 	jsr	aprint(pc)
 	addq.w	#$4,sp
 .LFCB2
-	lea	X_ECB4(pc),a0
+	lea	StarterFilmEntry(pc),a0
 	move.l	$8(a0),d0
 	moveq	#$F,d1
 	add.l	d1,d0
 	moveq	#-16,d2
 	and.l	d0,d2
-	lea	X_ECB4(pc),a0
+	lea	StarterFilmEntry(pc),a0
 	move.l	d2,$8(a0)
-	lea	X_ECB4(pc),a0
+	lea	StarterFilmEntry(pc),a0
 	move.l	$C(a0),d0
 	sub.l	d7,d0
 	moveq	#-16,d2
 	and.l	d0,d2
-	lea	X_ECB4(pc),a0
+	lea	StarterFilmEntry(pc),a0
 	move.l	d2,$C(a0)
-	lea	X_ECB4(pc),a0
+	lea	StarterFilmEntry(pc),a0
 	move.l	$8(a0),-(sp)
 	pea	.LFD36(pc)
 	jsr	aprint(pc)
-	lea	X_ECB4(pc),a0
+	lea	StarterFilmEntry(pc),a0
 	move.l	$C(a0),-(sp)
 	pea	.LFD26(pc)
 	jsr	aprint(pc)
-	lea	X_ECB4(pc),a0
+	lea	StarterFilmEntry(pc),a0
 	tst.l	$C(a0)
 	lea	$10(sp),sp
 	beq.s	.LFD12
@@ -73,7 +73,7 @@ InitWorld
 	dc.b	$00
 GetTicks
 	link	a6,#$0
-	lea	X_ECB4(pc),a0
+	lea	StarterFilmEntry(pc),a0
 	move.l	$4(a0),d0
 	unlk	a6
 	rts
@@ -81,7 +81,7 @@ GetTicks
 WaitIODone
 	link	a6,#$0
 .LFD82
-	lea	X_ECB4(pc),a0
+	lea	StarterFilmEntry(pc),a0
 	tst.l	$10(a0)
 	bne.s	.LFD82
 	unlk	a6

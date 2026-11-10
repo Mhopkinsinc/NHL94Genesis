@@ -1306,8 +1306,8 @@ class Fragment:
         if rt in self.starts and self.scope_of(rt) == scope:
             self.auto.add(rt)
             return f".L{rt:X}"
-        for n, v in self.dsym.items():
-            if v == rt and self.ckind.get(n) == "label":
+        for n, v in self.dsym.items():          # a cartridge label, or (plain mode) another fragment's --cdname
+            if v == rt and (self.ckind.get(n) == "label" or (self.a.plain and n in self.cdnames)):
                 return n
         if rt in self.known_funcs and not (BASE + self.start <= rt < BASE + self.end):
             n = self.known_funcs[rt]
@@ -1352,7 +1352,8 @@ class Fragment:
         texts, fallback = [], []
         for k, o in enumerate(dops):
             t = None
-            if it is None and o["mode"] == "abs" and o["value"] >= 0x10000:
+            if it is None and o["mode"] == "abs" and (o["value"] >= 0x10000 or
+                                                      (self.a.plain and base in ("jsr", "jmp", "lea", "pea"))):
                 n = self.rev_name(o["value"])
                 if n:
                     t = f"({n}).{o['size']}"
@@ -1736,8 +1737,8 @@ class Fragment:
         for n, v in self.dsym.items():
             if n in self.label_at or n in self.inc_old:
                 continue
-            if self.ckind.get(n) == "label":
-                names[n] = v
+            if self.ckind.get(n) == "label" or (self.a.plain and n in self.cdnames):
+                names[n] = v                # an equate at the top of this fragment, when it is used
             else:
                 self.inc_new[n] = v
         used_text = "\n".join(out)

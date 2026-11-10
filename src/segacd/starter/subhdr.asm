@@ -1,10 +1,12 @@
 ;	STARTER.BIN $90-$1541 (runtime $B090-$C541).
 ;
-;	Zeros after subboot.asm, then the start of the sub CPU driver module: a
-;	file record (HOCKEY.BIN, $01FF), and an entry table (jmp $D85A, bra.w $C542).
+;	Zeros after subboot.asm (the stack top is $C41C), a file record (HOCKEY.BIN, $01FF), the words
+;	startertail shares at $C42E-$C452, then the driver's two entries: StarterDriverEntry (the start-up) and
+;	DispatchPcmCommandEntry (PCM commands). Names given here; docs/segacd_starter_driver.md.
 
 
-X_C542	equ	$C542
+DispatchPcmCommand	equ	$C542
+RunStarterDriver	equ	$D85A
 
 	org	$B090
 
@@ -14,6 +16,8 @@ X_C542	equ	$C542
 	dcb.b	20,0
 	dc.w	$FFFF
 	dcb.b	114,0
-	jmp	$D85A.l
-	bra.w	X_C542
+StarterDriverEntry
+	jmp	(RunStarterDriver).l
+DispatchPcmCommandEntry
+	bra.w	DispatchPcmCommand
 	dcb.b	130,0

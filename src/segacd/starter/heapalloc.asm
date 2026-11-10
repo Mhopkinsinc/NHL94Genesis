@@ -3,7 +3,7 @@
 ;	The heap: ffree, findSmallestBlock, MaxFree, mmalloc, InitHeap.
 
 
-X_ECB4	equ	$ECB4
+StarterFilmEntry	equ	$ECB4
 aprint	equ	$F8C4
 
 	org	$F9FA
@@ -71,7 +71,7 @@ findSmallestBlock
 	link	a6,#$0
 	movem.l	d5-d7/a3-a4,-(sp)
 	move.l	$8(a6),d5
-	lea	X_ECB4(pc),a0
+	lea	StarterFilmEntry(pc),a0
 	movea.l	$8(a0),a4
 	moveq	#$0,d0
 	movea.l	d0,a3
@@ -104,7 +104,7 @@ findSmallestBlock
 MaxFree
 	link	a6,#$0
 	movem.l	d6-d7/a4,-(sp)
-	lea	X_ECB4(pc),a0
+	lea	StarterFilmEntry(pc),a0
 	movea.l	$8(a0),a4
 	moveq	#-1,d6
 	bra.s	.LFB64
@@ -185,10 +185,10 @@ mmalloc
 InitHeap
 	link	a6,#$0
 	movem.l	a3-a4,-(sp)
-	lea	X_ECB4(pc),a0
+	lea	StarterFilmEntry(pc),a0
 	movea.l	$8(a0),a3
-	lea	X_ECB4(pc),a0
-	lea	X_ECB4(pc),a1
+	lea	StarterFilmEntry(pc),a0
+	lea	StarterFilmEntry(pc),a1
 	move.l	$C(a1),d0
 	add.l	$8(a0),d0
 	movea.l	d0,a4

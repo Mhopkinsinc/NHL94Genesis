@@ -26,8 +26,8 @@
      GTABLE.BIN", `tools/segacd_graph2.py`). The two packs (resources 0 and 1) are named piece by piece, and the
      loader of every other resource is noted (HOCKEY, STARTER or PLAYER; 6-33 and 68-95 are per team). Left: the
      formats of 5, 34, 64, 68-95 and 97, and the sub CPU code that reads GTABLE.
-  2. Names: STARTER's driver module (runtime `$C000`, dispatch at `$C542`), MAIN's start-up and the module at
-     `$77B8`, PLAYER's `playerinit` / `playercode`. HOCKEY's header and TeamList are source now; the graphics
+  2. Names: STARTER's driver module is named (`docs/segacd_starter_driver.md`). Left: MAIN's start-up and the module
+     at `$77B8`, PLAYER's `playerinit` / `playercode`. HOCKEY's header and TeamList are source now; the graphics
      pointer table has 34 of 44 entries named (`--cdname` in `tools/segacd_hockey.sh`), the rest have no cartridge
      label (their comments say what they hold).
   3. Formats: STARTER's data is five `.map.jim` screens and a block for driver function 5 (`startergfx.asm`);
