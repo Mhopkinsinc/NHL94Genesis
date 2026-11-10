@@ -499,6 +499,7 @@ def main():
                     help="runtime address of file offset 0 ($1B000 HOCKEY.BIN, $21300 STARTER.BIN)")
     ap.add_argument("--plain", action="store_true", help="not a HOCKEY.BIN fragment: no hockey.inc / macros include")
     ap.add_argument("--raw", action="store_true", help="CD-only bytes as dc.b rows (a Z80 program, tables), not decoded")
+    ap.add_argument("--raw-text", action="store_true", help="with --raw: printable runs of 4 or more as text")
     ap.add_argument("--tags", action="store_true",
                     help="Sierra C: each function ends with rts, a tag byte ($80 + length) and its name")
     ap.add_argument("--no-text", action="store_true",
@@ -1508,7 +1509,23 @@ class Fragment:
                     body.append(("data", None, f"\tdcb.b\t{k - pc},0", pc, k - pc))
                     pc = k
                     continue
+
+                def printable_run(x):
+                    y = x
+                    while y < q and 0x20 <= self.disc[y] < 0x7F and self.disc[y] != 0x27:
+                        y += 1
+                    return y - x
+                if self.a.raw_text and printable_run(pc) >= 4:
+                    n = printable_run(pc)
+                    body.append(("data", None, "\tdc.b\t'" + self.disc[pc:pc + n].decode("ascii") + "'", pc, n))
+                    pc += n
+                    continue
                 n = min(16, q - pc)
+                if self.a.raw_text:             # end the row where a string starts
+                    for x in range(pc + 1, pc + n):
+                        if printable_run(x) >= 4:
+                            n = x - pc
+                            break
                 row = self.disc[pc:pc + n]
                 body.append(("data", None, "\tdc.b\t" + ",".join(f"${b:02X}" for b in row), pc, n))
                 pc += n

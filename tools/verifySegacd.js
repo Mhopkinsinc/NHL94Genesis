@@ -173,3 +173,7 @@ compareAt('output/segacd/main/maincrt_2.bin', 'cdbin/MAIN.BIN', 0x56F8, 0xF0);
 compareAt('output/segacd/main/mainvdpinit.bin', 'cdbin/MAIN.BIN', 0x57E8, 0xC24);
 compareAt('output/segacd/main/mainz80.bin', 'cdbin/MAIN.BIN', 0x640C, 0xD48);
 compareAt('output/segacd/main/maincmd.bin', 'cdbin/MAIN.BIN', 0x7154, 0x574);
+compareAt('output/segacd/player/playerinit.bin', 'cdbin/PLAYER.BIN', 0x0, 0x1D54);
+compareAt('output/segacd/player/playercode.bin', 'cdbin/PLAYER.BIN', 0x281C, 0x1768);
+compareAt('output/segacd/player/playertext.bin', 'cdbin/PLAYER.BIN', 0x3F84, 0x142);
+compareAt('output/segacd/player/playerphotos.bin', 'cdbin/PLAYER.BIN', 0x40C6, 0x6DAA);
