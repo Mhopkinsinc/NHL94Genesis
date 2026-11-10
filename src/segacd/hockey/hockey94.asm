@@ -110,7 +110,7 @@ LoadGameGfx						;CD-only routine (a name given here, not a cartridge name)
 	move.w	#$1,d7
 	move.w	a2,d0
 	jsr	$6044.w
-	move.l	a0,$47D90.l
+	move.l	a0,(HomeTeamGfxPtr).l
 	movem.l	(sp)+,d0-d2/d7/a0-a1
 	movem.l	d0-d2/d7/a0-a1,-(sp)
 	move.w	#$1,d7

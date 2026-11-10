@@ -151,7 +151,7 @@ NameEntryScreen						;"NAME ENTRY" screen for the user records (own vblank VBlan
 .1									;team chosen: draw its logo
 	asl.w	#2,d3
 ;CD: no cartridge twin
-	movea.l	$47D8C.l,a0
+	movea.l	(TeamLogoBitmapsPtr).l,a0
 	movea.l	(a0,d3.w),a0			;this team's logo
 	movea.l	a0,a1					;a1 = map header
 	movea.l	a0,a2

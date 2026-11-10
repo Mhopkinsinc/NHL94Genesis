@@ -487,6 +487,7 @@ EnergyBarMapPtr	equ	$47D40
 facedir	equ	$54
 FaceOffMapPtr	equ	$47D14
 FaceOffSpritesPtr	equ	$47D30
+FeaturedPicturesPtr	equ	$47D88
 ffonum	equ	$7		;not checked on the disc yet
 ffosize	equ	$1C
 fighting	equ	$74
@@ -524,6 +525,7 @@ gst1	equ	$0		;not checked on the disc yet
 gst2	equ	$2
 handed	equ	$76
 HFD	equ	$9
+HomeTeamGfxPtr	equ	$47D90
 HotListPtr	equ	$47D28
 HotMapPtr	equ	$47D98
 IceRinkHorMapPtr	equ	$47D6C
@@ -733,6 +735,7 @@ strtext	equ	$2
 TB	equ	$15
 TeamBitmapsPtr	equ	$47D48
 TeamblocksmapPtr	equ	$47D44
+TeamLogoBitmapsPtr	equ	$47D8C
 Teamname	equ	$4
 TeamRecBase	equ	$D20
 temp1	equ	$40

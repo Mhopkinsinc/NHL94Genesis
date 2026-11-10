@@ -17,8 +17,8 @@ MARK = bytes.fromhex("12345678")        # every resource ends with it
 # the cartridge file it equals, or a note.
 PACK0 = [
     ("ScoutingReportText", "$47CFC", None, "the scouting script (the disc has its own, longer than the cartridge text)"),
-    ("TeamLogos", "$47D8C", None, "the team logos: a table of offsets, then the pictures (resource 4 holds the same)"),
-    ("PlayerCards", "$47D88", None, "the player cards: a table of offsets, then the pictures (resource 3 holds the same)"),
+    ("TeamLogoBitmaps", "TeamLogoBitmapsPtr", None, "the team logos: a table of offsets, then the pictures (resource 4 holds the same)"),
+    ("FeaturedPictures", "FeaturedPicturesPtr", None, "the player pictures: a table of offsets, then the pictures (resource 3 holds the same)"),
     (None, "$47DA4", None, "not known (resource 98 holds the same)"),
     ("SmallFontMap", "SmallFontMapPtr", "SmallFont.map.jim", None),
     ("HotMap", "HotMapPtr", "Hot.map.jim", None),
@@ -66,7 +66,7 @@ PACK1 = [
     ("NHLPALogoMap", "NHLPALogoMapPtr", None, "the first 1,046 bytes of the cartridge NHLPALogo.map.jim"),
     ("HotMap", "HotMapPtr", "Hot.map.jim", None),
     ("ColdMap", "ColdMapPtr", "Cold.map.jim", None),
-    (None, "$47DA8", None, "the same form as the per-team resources 35-62"),
+    (None, "$47DA8", None, "a TeamGfxList entry, as the per-team resources 35-62 (LoadHomeTeamGfx's other choice)"),
 ]
 TEAMS = "ANH BOS BUF CGY CHI DAL DET EDM FLA HFD LA MTL NJ NYI NYR OTW PHI PIT QUE SJ STL TB TOR VAN WSH WPG ASE ASW".split()
 TEAMRES = 0x2A9FA - 0x1B000             # HOCKEY.BIN: the resource number of each team's 782-byte item
@@ -97,10 +97,11 @@ def main():
     res = {
         2: "the sprite pack: two offsets, then Spritetiles.bin (from +$A) and frameSprData.bin (at +$408AA).\n"
            "hockey94 LoadGameGfx and period94 load it into $47D24",
-        3: "the player cards: a table of offsets, then the pictures (NoPic*.map.jim, PicturePalette.bin,\n"
-           "Card*.map.jim). Resource 0 piece 2 is the same without the end mark; no load of this one found",
-        4: "the team logos: a table of offsets, then logoANA.map.jim ... (period94 loads it into $47D8C).\n"
-           "Resource 0 piece 1 is the same without the end mark",
+        3: "the player pictures (FeaturedPictures): a table of offsets, then the pictures (NoPic*.map.jim,\n"
+           "PicturePalette.bin, Card*.map.jim). Resource 0 piece 2 is the same without the end mark; no load of\n"
+           "this one found",
+        4: "the team logos (TeamLogoBitmaps): a table of offsets, then logoANA.map.jim ... (period94 loads it\n"
+           "into TeamLogoBitmapsPtr). Resource 0 piece 1 is the same without the end mark",
         5: "STARTER.BIN loads it (d0 = 5)",
         34: "a table of 28 long offsets, one per team, then the data they point at. PLAYER.BIN keeps it at\n"
             "$86(a6) and its team pages read it",
@@ -114,8 +115,9 @@ def main():
         98: "resource 0 piece 3 without the end mark; no load of this one found",
     }
     for r in range(35, 64):
-        res[r] = (f"per team: {byres[r]} (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's\n"
-                  "into $47D90)") if r in byres else "the per-team form; no team in the HOCKEY.BIN $2A9FA list uses it"
+        res[r] = (f"per team: {byres[r]}'s TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx\n"
+                  "loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)") if r in byres else \
+            "the per-team form; no team in the HOCKEY.BIN $2A9FA list uses it"
     for r in range(6, 34):
         res[r] = (f"per team: {TEAMS[r - 6]}'s player photos, a table of offsets then the pictures. PLAYER.BIN\n"
                   "loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)")
@@ -190,8 +192,8 @@ def main():
     out.append(f"\tdcb.b\t${len(g):X}-*,0\t\t\t\t;zero fill to the end of the last sector")
     open(os.path.join(ROOT, "src", "segacd", "data", "graph2.asm"), "w", newline="\n").write("\n".join(out) + "\n")
 
-    what = {0: "the start-up pack", 1: "the game graphics pack", 2: "the sprite pack", 3: "the player cards",
-            4: "the team logos", 65: "the Stanley Cup sprite", 66: "Hot.map.jim", 67: "Cold.map.jim"}
+    what = {0: "the start-up pack", 1: "the game graphics pack", 2: "the sprite pack", 3: "FeaturedPictures",
+            4: "TeamLogoBitmaps", 65: "the Stanley Cup sprite", 66: "Hot.map.jim", 67: "Cold.map.jim"}
     gt = [
         ";\tGTABLE.BIN (2,048 bytes): the index of GRAPH2.BIN (graph2.asm). Written by tools/segacd_graph2.py.",
         ";\t99 entries of 6 bytes, the start sector (word) and the byte size (long) of each resource, then a zero",

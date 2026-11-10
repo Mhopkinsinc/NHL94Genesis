@@ -46,12 +46,12 @@ SetupFramerMapPtr	dc.l	0			;$47D78 R0_SetupFramerMap; optsetup94: SetupFramerMap
 LogoBoxMapPtr	dc.l	0			;$47D7C R0_LogoBoxMap; LogoBoxMap 4 of 5
 NHLLogoMapPtr	dc.l	0			;$47D80 R1_NHLLogoMap; records94: NHLLogoMap
 NHLPALogoMapPtr	dc.l	0			;$47D84 R1_NHLPALogoMap; records94: NHLPALogoMap
-	dc.l	0				;$47D88 R0_PlayerCards: the player cards, a list per team (cards94, middle94)
-	dc.l	0				;$47D8C R0_TeamLogos: the team logos, a list per team (optsetup94, period94, records94 ...); period94 loads resource 4 here
-	dc.l	0				;$47D90 the home team's item of the per-team resources 35-62 (LoadGameGfx); ui94 / hockey94 PlayedByText
+FeaturedPicturesPtr	dc.l	0			;$47D88 R0_FeaturedPictures; cards94, middle94: the replaced lines loaded FeaturedPictures (the player pictures)
+TeamLogoBitmapsPtr	dc.l	0			;$47D8C R0_TeamLogoBitmaps; optsetup94, period94, records94, scout94, middle94: TeamLogoBitmaps every time
+HomeTeamGfxPtr	dc.l	0			;$47D90 CD name: the HomeTeam entry of the cartridge TeamGfxList (LoadHomeTeamGfx in ui94)
 StanleyCupSpritePtr	dc.l	0			;$47D94 R0_StanleyCupSprite; StanleyCupSprite 2
 HotMapPtr	dc.l	0			;$47D98 R0_HotMap, R1_HotMap; logos94 loads it for a hot player
 ColdMapPtr	dc.l	0			;$47D9C R0_ColdMap, R1_ColdMap; logos94: the cold player icon
 	dc.l	0				;$47DA0 GRAPH2 resource 96 (LoadGameGfx), passed to the BIOS call with d7 = 8
 	dc.l	0				;$47DA4 R0_03: not known
-	dc.l	0				;$47DA8 R1_24: the same form as $47D90; ui94 / hockey94 PlayedByText
+	dc.l	0				;$47DA8 R1_24: the same form as HomeTeamGfxPtr; LoadHomeTeamGfx (ui94) takes it instead when $17468 is set

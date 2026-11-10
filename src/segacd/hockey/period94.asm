@@ -313,7 +313,7 @@ PeriodStatsScreen					;"Period Stats" menu item (menu lists): both team logos (T
 	move.w	#$1,d7
 	move.w	#$4,d0
 	jsr	$6044.w
-	move.l	a0,$47D8C.l
+	move.l	a0,(TeamLogoBitmapsPtr).l
 	movem.l	(sp)+,d0-d2/d7/a0-a1
 	move.l	a6,-(sp)
 	movea.l	$19360.l,a6
@@ -363,7 +363,7 @@ PeriodStatsScreen					;"Period Stats" menu item (menu lists): both team logos (T
 	jsr	(printz).l
 	String	CC_Font2Pal2Pri,2,$C
 ;CD: no cartridge twin
-	movea.l	$47D8C.l,a0
+	movea.l	(TeamLogoBitmapsPtr).l,a0
 	move.w	(VisTeam).l,d0
 	asl.w	#2,d0
 	movea.l	(a0,d0.w),a0			;visitors logo
@@ -391,7 +391,7 @@ PeriodStatsScreen					;"Period Stats" menu item (menu lists): both team logos (T
 	jsr	(printz).l
 	String	CC_Font2Pal3Pri,2,$14
 ;CD: no cartridge twin
-	movea.l	$47D8C.l,a0
+	movea.l	(TeamLogoBitmapsPtr).l,a0
 	move.w	(HomeTeam).l,d0
 	asl.w	#2,d0
 	movea.l	(a0,d0.w),a0			;home logo
@@ -459,7 +459,7 @@ PeriodStatsScreen					;"Period Stats" menu item (menu lists): both team logos (T
 	movem.l	(sp)+,d0-d7/a0-a6
 ;CD: no cartridge twin
 	movem.l	d7/a0,-(sp)
-	movea.l	$47D8C.l,a0
+	movea.l	(TeamLogoBitmapsPtr).l,a0
 	move.w	#$2,d7
 	jsr	$6044.w
 	movem.l	(sp)+,d7/a0

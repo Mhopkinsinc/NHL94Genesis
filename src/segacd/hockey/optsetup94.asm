@@ -1254,7 +1254,7 @@ DrawTeamLogo						;Draw the logo of team logoteam at printx, y 6, 6 x 6, palette
 	move.w	(logoteam).l,d3
 	asl.w	#2,d3
 ;CD: no cartridge twin
-	movea.l	$47D8C.l,a0
+	movea.l	(TeamLogoBitmapsPtr).l,a0
 	movea.l	(a0,d3.w),a0			;its logo
 	movea.l	a0,a1
 	movea.l	a0,a2

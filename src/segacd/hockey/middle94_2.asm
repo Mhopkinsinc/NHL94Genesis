@@ -282,7 +282,7 @@ jdtab	dc.b	8					;convert buttons l,r,d,u into directions 0-7,8
 	swap	d7
 	rts
 	movem.l	d0-d1/a0,-(sp)
-	movea.l	$47D88.l,a0
+	movea.l	(FeaturedPicturesPtr).l,a0
 	move.l	a0,d1
 	moveq	#$1B,d0
 .L37602
@@ -301,7 +301,7 @@ jdtab	dc.b	8					;convert buttons l,r,d,u into directions 0-7,8
 	movem.l	d0-d1/a0,-(sp)
 	movea.l	#$80000,a0
 	move.l	a0,d1
-	sub.l	$47D88.l,d1
+	sub.l	(FeaturedPicturesPtr).l,d1
 	moveq	#$1B,d0
 .L37634
 	add.l	d1,(a0)+
@@ -317,13 +317,13 @@ jdtab	dc.b	8					;convert buttons l,r,d,u into directions 0-7,8
 	movem.l	(sp)+,d0-d1/a0
 	rts
 	movem.l	d0-d3/a0-a4,-(sp)
-	movea.l	$47D88.l,a0
+	movea.l	(FeaturedPicturesPtr).l,a0
 	movea.l	#$80000,a1
 	move.w	#$88B8,d0
 .L37666
 	move.l	(a0)+,(a1)+
 	dbf	d0,.L37666
-	movea.l	$47D88.l,a0
+	movea.l	(FeaturedPicturesPtr).l,a0
 	jsr	$37620.l
 	movea.l	a0,a1
 	adda.l	#$7D0,a1
@@ -355,7 +355,7 @@ jdtab	dc.b	8					;convert buttons l,r,d,u into directions 0-7,8
 	bne.w	.L376B4
 	rts
 	movem.l	d0-d1/a0,-(sp)
-	movea.l	$47D8C.l,a0
+	movea.l	(TeamLogoBitmapsPtr).l,a0
 	move.l	a0,d1
 	move.l	#$1B,d0
 .L376E6

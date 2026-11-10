@@ -31,7 +31,7 @@
      (`docs/segacd_main_shell.md`; MAIN.BIN runs at `$FF1000`, not `$FF0000`). Left: the older interface's
      handlers in Abdul's MAIN fragments, the two STARTER start-up stages, and what `$6044` does (its code is
      not in the six files). HOCKEY's header and TeamList are source now; the graphics
-     pointer table has 34 of 44 entries named (`--cdname` in `tools/segacd_hockey.sh`), the rest have no cartridge
+     pointer table has 37 of 44 entries named (`--cdname` in `tools/segacd_hockey.sh`), the rest have no cartridge
      label (their comments say what they hold).
   3. Formats: STARTER's data is five `.map.jim` screens and a block for driver function 5 (`startergfx.asm`);
      left: the packed tile format (bit 15 of the tile count) and what function 5 does with the block. MAIN's

@@ -17,8 +17,8 @@ GTable
 	GRes	$4F6D8				; 0  sector $000  the start-up pack
 	GRes	$1FC42				; 1  sector $09F  the game graphics pack
 	GRes	$46654				; 2  sector $0DF  the sprite pack
-	GRes	$2043E				; 3  sector $16C  the player cards
-	GRes	$6C7C				; 4  sector $1AD  the team logos
+	GRes	$2043E				; 3  sector $16C  FeaturedPictures
+	GRes	$6C7C				; 4  sector $1AD  TeamLogoBitmaps
 	GRes	$8D34				; 5  sector $1BB  STARTER.BIN
 	GRes	$61F4				; 6  sector $1CD  player photos: ANH
 	GRes	$9B8E				; 7  sector $1DA  player photos: BOS

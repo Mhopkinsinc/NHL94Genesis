@@ -5,7 +5,7 @@
 ;	The record bookkeeping (GetRecordValue, UpdateRecords ...) and CalcAttrib are the cartridge code.
 ;	CD: the save RAM readers (ReadPlayerRecord ... NameLogIO) moved next to sram94 (file $7534);
 ;	FeaturedPictures and the player card screen (PlayerCards ... BuildCardPlayerList) are gone;
-;	TeamPalettes stay (read from the disc file); pictures come through a list at $47D88;
+;	TeamPalettes stay (read from the disc file); pictures come through FeaturedPicturesPtr ($47D88);
 ;	MenuWaitVblank became the BIOS call at $6044.
 
 	include	macros\genesis.mac
@@ -149,7 +149,7 @@ PlayerCardScreen					;Draw a player card on one side. setupcardflags bit 1 set: 
 	mulu.w	#6,d3					;6 bytes per entry: picture.l + roster index.w
 	asl.w	#2,d0					;team number * 4 to index the list of team lists
 ;CD: no cartridge twin
-	movea.l	$47D88.l,a0
+	movea.l	(FeaturedPicturesPtr).l,a0
 	movea.l	(a0,d0.w),a0			;this team's list
 	move.w	$4(a0,d3.w),(cardroster).l
 	movea.l	(a0,d3.w),a0			;the picture
@@ -1219,7 +1219,7 @@ AttribWgtList	dc.b	2			;CalcAttrib attribute weights
 DrawPlayerPicture					;Draw the player picture (NoPicSkater1 ... NoPicGoalie2, Card<player>)
 	movem.l	d0-d7/a1-a6,-(sp)
 ;CD: no cartridge twin
-	movea.l	$47D88.l,a0
+	movea.l	(FeaturedPicturesPtr).l,a0
 	move.w	d1,d2
 	asl.w	#2,d2
 	movea.l	(a0,d2.w),a0			;this team's list

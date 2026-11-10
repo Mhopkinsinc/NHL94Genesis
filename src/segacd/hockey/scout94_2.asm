@@ -648,7 +648,7 @@ DrawMatchupBitmap					;6 x 6 dobitmap, then erase the 8 x 3 name area at y $19 o
 GetTeamLogo							;Return a0 = the logo bitmap of team d3 (TeamLogoBitmaps table)
 	asl.w	#2,d3
 ;CD: no cartridge twin
-	movea.l	$47D8C.l,a0
+	movea.l	(TeamLogoBitmapsPtr).l,a0
 	movea.l	(a0,d3.w),a0			;its logo
 	rts
 PrintMatchupRatings					;Print the matchup ratings. Matchup 0: 'Overall' at y $13, the team

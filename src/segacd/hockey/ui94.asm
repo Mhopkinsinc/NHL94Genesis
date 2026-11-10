@@ -106,7 +106,7 @@ LoadHomeTeamGfx						;Load the HomeTeam graphics of TeamGfxList to VRAM d4 - $18
 	movea.l	$47DA8.l,a2
 	bra.s	.L2A9EC
 .L2A9E6
-	movea.l	$47D90.l,a2
+	movea.l	(HomeTeamGfxPtr).l,a2
 .L2A9EC
 	adda.w	#$8,a2
 	jsr	(DecompressGraphicsPlain).l

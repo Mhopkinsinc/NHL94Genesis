@@ -18,8 +18,8 @@ Graph2
 ;	resource 0 (sector $000, 325,336 bytes): the start-up pack. scoutload.asm loads it (d0 = 0)
 Res00
 	dc.l	R0_ScoutingReportText-Res00			; 0 -> $47CFC
-	dc.l	R0_TeamLogos-Res00			; 1 -> $47D8C
-	dc.l	R0_PlayerCards-Res00			; 2 -> $47D88
+	dc.l	R0_TeamLogoBitmaps-Res00			; 1 -> TeamLogoBitmapsPtr
+	dc.l	R0_FeaturedPictures-Res00			; 2 -> FeaturedPicturesPtr
 	dc.l	R0_03-Res00			; 3 -> $47DA4
 	dc.l	R0_SmallFontMap-Res00			; 4 -> SmallFontMapPtr
 	dc.l	R0_HotMap-Res00			; 5 -> HotMapPtr
@@ -41,8 +41,8 @@ Res00
 	dc.l	R0_SetupMenuMap-Res00			;21 -> SetupMenuMapPtr
 	dc.l	R0_GameSetUpMap2-Res00			;22 -> GameSetUpMap2Ptr
 R0_ScoutingReportText	incbin	..\cdbin\GRAPH2.BIN,$5C,61370	;the scouting script (the disc has its own, longer than the cartridge text)
-R0_TeamLogos	incbin	..\cdbin\GRAPH2.BIN,$F016,27768	;the team logos: a table of offsets, then the pictures (resource 4 holds the same)
-R0_PlayerCards	incbin	..\cdbin\GRAPH2.BIN,$15C8E,132154	;the player cards: a table of offsets, then the pictures (resource 3 holds the same)
+R0_TeamLogoBitmaps	incbin	..\cdbin\GRAPH2.BIN,$F016,27768	;the team logos: a table of offsets, then the pictures (resource 4 holds the same)
+R0_FeaturedPictures	incbin	..\cdbin\GRAPH2.BIN,$15C8E,132154	;the player pictures: a table of offsets, then the pictures (resource 3 holds the same)
 R0_03	incbin	..\cdbin\GRAPH2.BIN,$360C8,8960	;not known (resource 98 holds the same)
 R0_SmallFontMap	incbin	..\cdbin\GRAPH2.BIN,$383C8,3278	;= SmallFont.map.jim
 R0_HotMap	incbin	..\cdbin\GRAPH2.BIN,$39096,550	;= Hot.map.jim
@@ -118,7 +118,7 @@ R1_NHLLogoMap	incbin	..\cdbin\GRAPH2.BIN,$6E3B0,1110	;= NHLLogo.map.jim
 R1_NHLPALogoMap	incbin	..\cdbin\GRAPH2.BIN,$6E806,1046	;the first 1,046 bytes of the cartridge NHLPALogo.map.jim
 R1_HotMap	incbin	..\cdbin\GRAPH2.BIN,$6EC1C,550	;= Hot.map.jim
 R1_ColdMap	incbin	..\cdbin\GRAPH2.BIN,$6EE42,754	;= Cold.map.jim
-R1_24	incbin	..\cdbin\GRAPH2.BIN,$6F134,778	;the same form as the per-team resources 35-62
+R1_24	incbin	..\cdbin\GRAPH2.BIN,$6F134,778	;a TeamGfxList entry, as the per-team resources 35-62 (LoadHomeTeamGfx's other choice)
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$6F800-*,0				;zero fill to sector $0DF
 
@@ -130,15 +130,16 @@ Res02	incbin	..\cdbin\GRAPH2.BIN,$6F800,288336
 	dcb.b	$B6000-*,0				;zero fill to sector $16C
 
 ;	resource 3 (sector $16C, 132,158 bytes):
-;	the player cards: a table of offsets, then the pictures (NoPic*.map.jim, PicturePalette.bin,
-;	Card*.map.jim). Resource 0 piece 2 is the same without the end mark; no load of this one found
+;	the player pictures (FeaturedPictures): a table of offsets, then the pictures (NoPic*.map.jim,
+;	PicturePalette.bin, Card*.map.jim). Resource 0 piece 2 is the same without the end mark; no load of
+;	this one found
 Res03	incbin	..\cdbin\GRAPH2.BIN,$B6000,132154
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$D6800-*,0				;zero fill to sector $1AD
 
 ;	resource 4 (sector $1AD, 27,772 bytes):
-;	the team logos: a table of offsets, then logoANA.map.jim ... (period94 loads it into $47D8C).
-;	Resource 0 piece 1 is the same without the end mark
+;	the team logos (TeamLogoBitmaps): a table of offsets, then logoANA.map.jim ... (period94 loads it
+;	into TeamLogoBitmapsPtr). Resource 0 piece 1 is the same without the end mark
 Res04	incbin	..\cdbin\GRAPH2.BIN,$D6800,27768
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$DD800-*,0				;zero fill to sector $1BB
@@ -352,197 +353,197 @@ Res34	incbin	..\cdbin\GRAPH2.BIN,$1E4000,18656
 	dcb.b	$1E9000-*,0				;zero fill to sector $3D2
 
 ;	resource 35 (sector $3D2, 782 bytes):
-;	per team: ANH (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: ANH's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res35	incbin	..\cdbin\GRAPH2.BIN,$1E9000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1E9800-*,0				;zero fill to sector $3D3
 
 ;	resource 36 (sector $3D3, 782 bytes):
-;	per team: BUF (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: BUF's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res36	incbin	..\cdbin\GRAPH2.BIN,$1E9800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EA000-*,0				;zero fill to sector $3D4
 
 ;	resource 37 (sector $3D4, 782 bytes):
-;	per team: CGY (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: CGY's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res37	incbin	..\cdbin\GRAPH2.BIN,$1EA000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EA800-*,0				;zero fill to sector $3D5
 
 ;	resource 38 (sector $3D5, 782 bytes):
-;	per team: CHI (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: CHI's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res38	incbin	..\cdbin\GRAPH2.BIN,$1EA800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EB000-*,0				;zero fill to sector $3D6
 
 ;	resource 39 (sector $3D6, 782 bytes):
-;	per team: DAL (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: DAL's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res39	incbin	..\cdbin\GRAPH2.BIN,$1EB000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EB800-*,0				;zero fill to sector $3D7
 
 ;	resource 40 (sector $3D7, 782 bytes):
-;	per team: DET (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: DET's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res40	incbin	..\cdbin\GRAPH2.BIN,$1EB800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EC000-*,0				;zero fill to sector $3D8
 
 ;	resource 41 (sector $3D8, 782 bytes):
-;	per team: EDM (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: EDM's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res41	incbin	..\cdbin\GRAPH2.BIN,$1EC000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EC800-*,0				;zero fill to sector $3D9
 
 ;	resource 42 (sector $3D9, 782 bytes):
-;	per team: FLA (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: FLA's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res42	incbin	..\cdbin\GRAPH2.BIN,$1EC800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1ED000-*,0				;zero fill to sector $3DA
 
 ;	resource 43 (sector $3DA, 782 bytes):
-;	per team: HFD (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: HFD's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res43	incbin	..\cdbin\GRAPH2.BIN,$1ED000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1ED800-*,0				;zero fill to sector $3DB
 
 ;	resource 44 (sector $3DB, 782 bytes):
-;	per team: LA (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: LA's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res44	incbin	..\cdbin\GRAPH2.BIN,$1ED800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EE000-*,0				;zero fill to sector $3DC
 
 ;	resource 45 (sector $3DC, 782 bytes):
-;	per team: MTL (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: MTL's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res45	incbin	..\cdbin\GRAPH2.BIN,$1EE000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EE800-*,0				;zero fill to sector $3DD
 
 ;	resource 46 (sector $3DD, 782 bytes):
-;	per team: NJ (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: NJ's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res46	incbin	..\cdbin\GRAPH2.BIN,$1EE800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EF000-*,0				;zero fill to sector $3DE
 
 ;	resource 47 (sector $3DE, 782 bytes):
-;	per team: NYI (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: NYI's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res47	incbin	..\cdbin\GRAPH2.BIN,$1EF000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EF800-*,0				;zero fill to sector $3DF
 
 ;	resource 48 (sector $3DF, 782 bytes):
-;	per team: NYR (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: NYR's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res48	incbin	..\cdbin\GRAPH2.BIN,$1EF800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F0000-*,0				;zero fill to sector $3E0
 
 ;	resource 49 (sector $3E0, 782 bytes):
-;	per team: OTW (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: OTW's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res49	incbin	..\cdbin\GRAPH2.BIN,$1F0000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F0800-*,0				;zero fill to sector $3E1
 
 ;	resource 50 (sector $3E1, 782 bytes):
-;	per team: PHI (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: PHI's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res50	incbin	..\cdbin\GRAPH2.BIN,$1F0800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F1000-*,0				;zero fill to sector $3E2
 
 ;	resource 51 (sector $3E2, 782 bytes):
-;	per team: PIT (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: PIT's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res51	incbin	..\cdbin\GRAPH2.BIN,$1F1000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F1800-*,0				;zero fill to sector $3E3
 
 ;	resource 52 (sector $3E3, 782 bytes):
-;	per team: QUE (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: QUE's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res52	incbin	..\cdbin\GRAPH2.BIN,$1F1800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F2000-*,0				;zero fill to sector $3E4
 
 ;	resource 53 (sector $3E4, 782 bytes):
-;	per team: SJ (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: SJ's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res53	incbin	..\cdbin\GRAPH2.BIN,$1F2000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F2800-*,0				;zero fill to sector $3E5
 
 ;	resource 54 (sector $3E5, 782 bytes):
-;	per team: STL (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: STL's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res54	incbin	..\cdbin\GRAPH2.BIN,$1F2800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F3000-*,0				;zero fill to sector $3E6
 
 ;	resource 55 (sector $3E6, 782 bytes):
-;	per team: TB (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: TB's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res55	incbin	..\cdbin\GRAPH2.BIN,$1F3000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F3800-*,0				;zero fill to sector $3E7
 
 ;	resource 56 (sector $3E7, 782 bytes):
-;	per team: TOR (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: TOR's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res56	incbin	..\cdbin\GRAPH2.BIN,$1F3800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F4000-*,0				;zero fill to sector $3E8
 
 ;	resource 57 (sector $3E8, 782 bytes):
-;	per team: VAN (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: VAN's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res57	incbin	..\cdbin\GRAPH2.BIN,$1F4000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F4800-*,0				;zero fill to sector $3E9
 
 ;	resource 58 (sector $3E9, 782 bytes):
-;	per team: WSH (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: WSH's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res58	incbin	..\cdbin\GRAPH2.BIN,$1F4800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F5000-*,0				;zero fill to sector $3EA
 
 ;	resource 59 (sector $3EA, 782 bytes):
-;	per team: WPG (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: WPG's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res59	incbin	..\cdbin\GRAPH2.BIN,$1F5000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F5800-*,0				;zero fill to sector $3EB
 
 ;	resource 60 (sector $3EB, 782 bytes):
-;	per team: BOS (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: BOS's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res60	incbin	..\cdbin\GRAPH2.BIN,$1F5800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F6000-*,0				;zero fill to sector $3EC
 
 ;	resource 61 (sector $3EC, 782 bytes):
-;	per team: ASE (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: ASE's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res61	incbin	..\cdbin\GRAPH2.BIN,$1F6000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F6800-*,0				;zero fill to sector $3ED
 
 ;	resource 62 (sector $3ED, 782 bytes):
-;	per team: ASW (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
-;	into $47D90)
+;	per team: ASW's TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx
+;	loads the home team's into HomeTeamGfxPtr, LoadHomeTeamGfx draws it)
 Res62	incbin	..\cdbin\GRAPH2.BIN,$1F6800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F7000-*,0				;zero fill to sector $3EE
