@@ -32,7 +32,7 @@
      label (their comments say what they hold).
   3. Formats: STARTER's data is five `.map.jim` screens and a block for driver function 5 (`startergfx.asm`);
      left: the packed tile format (bit 15 of the tile count) and what function 5 does with the block. MAIN's
-     Z80 program (a Z80 disassembly with asm80 like the cartridge driver: in progress).
+     Z80 program is asm80 source (`src/segacd/main/mainz80.z80`); left: how it ends up at Z80 `$0600`.
 - Open questions:
   - The team struct is one word longer from `tmap` on; probably `tmsort` became a long. Confirm when a fragment uses
     `tmsort` (logic94 has `movea.w tmsort(a2),a0` among its CD lines).
@@ -46,7 +46,7 @@
 ## Coverage (`tools/segacd_check.sh`, 2026-11-10)
 | File | Size | Matched | Notes |
 |---|---|---|---|
-| MAIN.BIN | 60,416 | 60,416 (100%) | the older fragments, the second copies, the rest in `src/segacd/main/` (Z80 program as bytes) |
+| MAIN.BIN | 60,416 | 60,416 (100%) | the older fragments, the second copies, the rest in `src/segacd/main/` (Z80 program as asm80 source) |
 | STARTER.BIN | 120,248 | 120,248 (100%) | the older fragments and `src/segacd/starter/` (five screens, the function 5 block, credits text incbin) |
 | HOCKEY.BIN | 184,842 | 184,842 (100%) | 94G twins (some in parts), team data, CD-only pads and pointer table, the older fragments; 43,120 bytes incbin |
 | PLAYER.BIN | 44,656 | 44,656 (100%) | the older fragments and `src/segacd/player/` (pictures incbin) |

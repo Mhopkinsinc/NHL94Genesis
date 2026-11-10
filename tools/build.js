@@ -204,6 +204,21 @@ if (args.includes('--segacd')) {
             + 'They are not build products and are not in the repo. See docs/segacd.md.', 'MISSING INPUT');
     }
     const t0 = Date.now();
+    // MAIN.BIN's Z80 sound program is Z80 source (src/segacd/main/mainz80.z80): asm80 (npm devDependency)
+    // assembles it into output/obj/z80/mainz80.bin first, and the fragment main/mainz80.asm includes that.
+    {
+        const zsrc = path.join(ROOT, 'src', 'segacd', 'main', 'mainz80.z80');
+        const zout = path.join(OBJ, 'z80', 'mainz80.bin');
+        let asm80;
+        try { asm80 = require.resolve('asm80/asm80.js'); } catch (e) { fail('assemble', 'asm80 is not installed, run npm i'); }
+        fs.mkdirSync(path.dirname(zout), { recursive: true });
+        // asm80 writes the output (and its .lst) relative to the source folder.
+        const r = await run(process.execPath, [asm80, '-m', 'Z80', '-t', 'bin', '-o', path.relative(path.dirname(zsrc), zout), path.relative(ROOT, zsrc)]);
+        const zlog = path.join(OBJ, 'Build_mainz80_z80.log');
+        fs.writeFileSync(zlog, r.out, 'latin1');
+        if (r.status !== 0 || !fs.existsSync(zout) || /ERROR/.test(r.out)) fail('assemble', `asm80 failed on src/segacd/main/mainz80.z80, see ${rel(zlog)}`, r.out.split(/\r?\n/).slice(-12).join('\n'));
+        detail(`main/mainz80.z80: asm80 -> ${rel(zout)}`);
+    }
     for (const f of frags) {
         // A name may carry a folder: hockey/onetimer94 is src/segacd/hockey/onetimer94.asm.
         const out = path.join(CD, `${f.name}.bin`);
