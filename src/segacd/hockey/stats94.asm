@@ -2268,7 +2268,7 @@ SetupScreen							;Common start of the stats screens: blank, 40 cell mode, the f
 	moveq	#$D,d5					;copy palette lines 0, 2 and 3
 ;CD: no cartridge twin
 	jsr	(dobitmap).l
-	move.w	d4,$18D44.l
+	move.w	d4,(smallfont2chars).l
 	movea.l	$47D3C.l,a2
 	addq.l	#$8,a2
 	jsr	$38946.l

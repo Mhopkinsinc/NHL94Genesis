@@ -125,3 +125,16 @@ compareAt('output/segacd/hockey/menu94.bin', 'cdbin/HOCKEY.BIN', 0x112F8, 0x368)
 compareAt('output/segacd/hockey/stats94.bin', 'cdbin/HOCKEY.BIN', 0x11660, 0x27A4);
 compareAt('output/segacd/hockey/replay94.bin', 'cdbin/HOCKEY.BIN', 0x13E04, 0xB86);
 compareAt('output/segacd/hockey/logic94.bin', 'cdbin/HOCKEY.BIN', 0x1498A, 0x7228);
+compareAt('output/segacd/hockey/scout94.bin', 'cdbin/HOCKEY.BIN', 0xD1D4, 0xE2);
+compareAt('output/segacd/hockey/scout94_2.bin', 'cdbin/HOCKEY.BIN', 0xD398, 0xE36);
+compareAt('output/segacd/hockey/hockey94.bin', 'cdbin/HOCKEY.BIN', 0x10614, 0x50A);
+compareAt('output/segacd/hockey/hockey94_2.bin', 'cdbin/HOCKEY.BIN', 0x10B58, 0x1D0);
+compareAt('output/segacd/hockey/hockey94_3.bin', 'cdbin/HOCKEY.BIN', 0x10E66, 0x492);
+compareAt('output/segacd/hockey/middle94.bin', 'cdbin/HOCKEY.BIN', 0x1BBB2, 0x55A);
+compareAt('output/segacd/hockey/middle94_2.bin', 'cdbin/HOCKEY.BIN', 0x1C2D0, 0x1676);
+compareAt('output/segacd/hockey/decompress94.bin', 'cdbin/HOCKEY.BIN', 0x1D946, 0x28E);
+compareAt('output/segacd/hockey/print94.bin', 'cdbin/HOCKEY.BIN', 0x1DBD4, 0x846);
+compareAt('output/segacd/hockey/penalty94.bin', 'cdbin/HOCKEY.BIN', 0x1E41A, 0xCE0);
+compareAt('output/segacd/hockey/collide94.bin', 'cdbin/HOCKEY.BIN', 0x1F0FA, 0x21D6);
+compareAt('output/segacd/hockey/penalty94_2.bin', 'cdbin/HOCKEY.BIN', 0x212D0, 0x1156);
+compareAt('output/segacd/hockey/collide94_2.bin', 'cdbin/HOCKEY.BIN', 0x22426, 0x692);

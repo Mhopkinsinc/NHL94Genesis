@@ -521,6 +521,17 @@ def main():
         items += more
     walk = align(items, disc, a.disc_start, a.disc_end, nmain)
     frag = Fragment(a, items, walk, disc, rom, cart_glob, cart_kind, cart_local, lines, lo, hi, tail)
+    # Constants defined in a 94G code file (not the RAM map / team data / macros): they stay that file's own.
+    shared = set()
+    for f in ("ram94.asm", "teamdata94.asm", os.path.join("macros", "genesis.mac")):
+        p = os.path.join(ROOT, "src", f)
+        if os.path.exists(p):
+            for line in open(p, encoding="latin1"):
+                m = re.match(r"\s*(" + ID + r")\s*(:?\s+(equ|set|rs(\.[bwl])?)\b|\s*=)", line, re.I)
+                if m:
+                    shared.add(m.group(1))
+    frag.local_consts = {n for n, k in cart_kind.items() if k in ("equ", "rs") and n not in shared
+                         and cart_glob[n] < 0xFF0000}
     for nv in a.name:
         n, v = nv.split("=")
         if n not in cart_glob:
@@ -818,6 +829,7 @@ class Fragment:
         self.restored = set()
         self.targets = set()
         self.cd_pcs = set()
+        self.local_consts = set()
 
     # -- labels from aligned items
     def place_labels(self):
@@ -1418,6 +1430,14 @@ class Fragment:
                 ext.append(f"{n}\tequ\t${v:X}")
         for n, v in sorted(self.externs.items(), key=lambda kv: kv[1]):
             ext.append(f"{n}\tequ\t${v:X}")
+        # constants of another 94G code file (collrad = 8 in collide94): an equate here, never in hockey.inc
+        for n in sorted(set(self.used_constants(""))):
+            if n in self.local_consts:
+                try:
+                    v = self.lookup_disc(n, None)
+                except Unknown:
+                    v = self.cglob[n]
+                ext.append(f"{n}\tequ\t${v:X}")
         if ext:
             out[ext_at:ext_at] = ext + [""]
         # tail comments of the file
@@ -1436,6 +1456,8 @@ class Fragment:
                     self.inc_new[n] = self.lookup_disc(n, None)     # the value it was confirmed at
                 except Unknown:
                     self.inc_new[n] = self.cglob[n]
+        for n in self.local_consts:
+            self.inc_new.pop(n, None)
         for n, v in self.inc_new.items():
             if n in merged and merged[n] != v and n not in assumed:
                 print(f"warning: {n} is ${merged[n]:X} in the include, this fragment wants ${v:X}")
@@ -1444,7 +1466,7 @@ class Fragment:
             assumed.discard(n)
         # constants used by the fragment and not defined in it
         for n in used:
-            if n not in merged:
+            if n not in merged and n not in self.local_consts:
                 merged[n] = self.cglob[n]
                 assumed.add(n)
         write_inc(self.a.inc, merged, self.cglob, self.ckind, assumed)
@@ -1453,9 +1475,9 @@ class Fragment:
         out = []
         defined = set()
         for e in self.body:
-            if e[0] == "src":
+            if e[0] in ("src", "text"):        # an equate line carried over before an item is "text"
                 code = split_comment(e[1])[0]
-                m = re.match(r"(" + ID + r")\s+(equ|set|=|rs)", code)
+                m = re.match(r"(" + ID + r")\s*(\s(equ|set|rs)\b|=)", code, re.I)
                 if m:
                     defined.add(m.group(1))
         for e in self.body:

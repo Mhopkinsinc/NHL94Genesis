@@ -197,7 +197,7 @@ HotColdIcon							;The icon by the name of player iconplayer of team a2 at x ico
 	movea.l	$47D98.l,a0
 	bra.w	.draw
 .cold						;CD: placed where the disc branches to it
-	move.w	$1AD88.l,d4
+	move.w	(coldiconchars).l,d4
 	movea.l	$47D9C.l,a0
 .draw								;draw the icon
 	move.w	(iconx).l,(printx).l

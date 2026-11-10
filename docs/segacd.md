@@ -79,7 +79,7 @@ The team block at the front of `HOCKEY.BIN` matches the cartridge from Montreal'
 
 `npm run build:segacd` (`node tools/build.js --segacd`) assembles the fragments below into `output/segacd/` and compares them to `cdbin/` with `tools/verifySegacd.js`. Each fragment's assembler options are in `tools/segacd.json`; a new fragment is one line there plus its compare in `verifySegacd.js`. The cartridge ROM is not involved. The Sega CD assemble uses `/o oz-` so a written `$0(an)` stays a 16-bit displacement. The cartridge build still uses `/o oz+`.
 
-Verified bytes are 98,510 of the 410,162 bytes in the four code files (24.0%; `tools/segacd_check.sh` prints the current numbers). Before the HOCKEY.BIN segments they were 22,690 (5.5%). `MAIN.BIN` is contiguous from the first byte through `$FF34B7` (13,496 of 60,416) plus the hardware readers and the Z80 loader (498 bytes more, 13,994 total, 23.2%). `STARTER.BIN` is 3,280 bytes. `HOCKEY.BIN` is 78,476 bytes (42.5%), most of it the 94G twins in `src/segacd/hockey/`. `PLAYER.BIN` is 2,760 bytes. `GRAPH2.BIN` and `GTABLE.BIN` are still untouched. CD audio is `docs/segacd_audio.md`. `song` and `sfx` are `docs/segacd_song.md`. The scouting-report script is `docs/segacd_announce.md`. Career stats and photos are `docs/segacd_stats.md`. Crowd frames are `docs/segacd_crowd.md`. The film player, Z80 loader, and hardware readers are `docs/segacd_film.md`.
+Verified bytes are 133,268 of the 410,162 bytes in the four code files (32.5%; `tools/segacd_check.sh` prints the current numbers). Before the HOCKEY.BIN segments they were 22,690 (5.5%). `MAIN.BIN` is contiguous from the first byte through `$FF34B7` (13,496 of 60,416) plus the hardware readers and the Z80 loader (498 bytes more, 13,994 total, 23.2%). `STARTER.BIN` is 3,280 bytes. `HOCKEY.BIN` is 113,234 bytes (61.3%), most of it the 94G twins in `src/segacd/hockey/`. `PLAYER.BIN` is 2,760 bytes. `GRAPH2.BIN` and `GTABLE.BIN` are still untouched. CD audio is `docs/segacd_audio.md`. `song` and `sfx` are `docs/segacd_song.md`. The scouting-report script is `docs/segacd_announce.md`. Career stats and photos are `docs/segacd_stats.md`. Crowd frames are `docs/segacd_crowd.md`. The film player, Z80 loader, and hardware readers are `docs/segacd_film.md`.
 
 | Source | Compared to | Bytes |
 | --- | --- | --- |
@@ -131,6 +131,8 @@ Verified bytes are 98,510 of the 410,162 bytes in the four code files (24.0%; `t
 | `src/segacd/hockey/cards94.asm` | `cdbin/HOCKEY.BIN` `$9B5E` | `cards94.asm`: user records bookkeeping, ratings; no player card screen (6,122) |
 | `src/segacd/hockey/records94.asm` | `cdbin/HOCKEY.BIN` `$B348` | `records94.asm`: name entry and Record Holders (5,400) |
 | `src/segacd/hockey/shootout94.asm` | `cdbin/HOCKEY.BIN` `$C860` | `shootout94.asm`: shootout (2,420) |
+| `src/segacd/hockey/scout94.asm` | `cdbin/HOCKEY.BIN` `$D1D4` | `scout94.asm` part 1: matchups (226) |
+| `src/segacd/hockey/scout94_2.asm` | `cdbin/HOCKEY.BIN` `$D398` | `scout94.asm` part 2, after `scoutopen.asm`: scouting report screen (3,638) |
 | `src/segacd/hockey/period94.asm` | `cdbin/HOCKEY.BIN` `$E1CE` | `period94.asm`: period stats, game statistics, Manual Goalie (4,060) |
 | `src/segacd/hockey/arena94.asm` | `cdbin/HOCKEY.BIN` `$F1AA` | `arena94.asm`: arena / faceoff animations (994) |
 | `src/segacd/hockey/shootoutpath94.asm` | `cdbin/HOCKEY.BIN` `$F58C` | `shootoutpath94.asm`: saved lines, shootout skate paths (886) |
@@ -138,10 +140,21 @@ Verified bytes are 98,510 of the 410,162 bytes in the four code files (24.0%; `t
 | `src/segacd/hockey/helpers94.asm` | `cdbin/HOCKEY.BIN` `$FE68` | `helpers94.asm` (238) |
 | `src/segacd/hockey/logos94.asm` | `cdbin/HOCKEY.BIN` `$FF56` | `logos94.asm`: logo palettes, lead song, hot / cold icon (1,420) |
 | `src/segacd/hockey/chgplayer94.asm` | `cdbin/HOCKEY.BIN` `$104E2` | `chgplayer94.asm`: chgplayer and far thunks (306) |
+| `src/segacd/hockey/hockey94.asm` | `cdbin/HOCKEY.BIN` `$10614` | `hockey94.asm` part 1: game and period start, clock (1,290) |
+| `src/segacd/hockey/hockey94_2.asm` | `cdbin/HOCKEY.BIN` `$10B58` | `hockey94.asm` part 2, after `songplay.asm` (464) |
+| `src/segacd/hockey/hockey94_3.asm` | `cdbin/HOCKEY.BIN` `$10E66` | `hockey94.asm` part 3, after `crowdanim.asm` (1,170) |
 | `src/segacd/hockey/menu94.asm` | `cdbin/HOCKEY.BIN` `$112F8` | `menu94.asm`: menu core (872) |
 | `src/segacd/hockey/stats94.asm` | `cdbin/HOCKEY.BIN` `$11660` | `stats94.asm`: scores, line editor, roster, stat screens (10,148) |
 | `src/segacd/hockey/replay94.asm` | `cdbin/HOCKEY.BIN` `$13E04` | `replay94.asm`: replay (2,950) |
 | `src/segacd/hockey/logic94.asm` | `cdbin/HOCKEY.BIN` `$1498A` | `logic94.asm`: player update, input, assignments (29,224) |
+| `src/segacd/hockey/middle94.asm` | `cdbin/HOCKEY.BIN` `$1BBB2` | `middle94.asm` part 1: shared helpers (1,370) |
+| `src/segacd/hockey/middle94_2.asm` | `cdbin/HOCKEY.BIN` `$1C2D0` | `middle94.asm` part 2, after `sfxcd` ... `cdtrack` (5,750) |
+| `src/segacd/hockey/decompress94.asm` | `cdbin/HOCKEY.BIN` `$1D946` | `decompress94.asm`: graphics decompressor (654) |
+| `src/segacd/hockey/print94.asm` | `cdbin/HOCKEY.BIN` `$1DBD4` | `print94.asm`: print routines (2,118) |
+| `src/segacd/hockey/penalty94.asm` | `cdbin/HOCKEY.BIN` `$1E41A` | `penalty94.asm` part 1, up to `updatepwrplay` (3,296) |
+| `src/segacd/hockey/collide94.asm` | `cdbin/HOCKEY.BIN` `$1F0FA` | `collide94.asm` part 1, up to `setpersonel` (8,662) |
+| `src/segacd/hockey/penalty94_2.asm` | `cdbin/HOCKEY.BIN` `$212D0` | `penalty94.asm` part 2 (4,438) |
+| `src/segacd/hockey/collide94_2.asm` | `cdbin/HOCKEY.BIN` `$22426` | `collide94.asm` part 2 (1,682) |
 
 `maincd.asm` is the main CPU command loop: read `$A12020` when sub flag bit 6 is set, dispatch through the long table at `$FF01BE`, and put the VBlank vector at `$FD08` back when the command finishes. Past the handshake it clears the eight command words, waits on memory-mode bit 2, and hands word RAM back and forth (DMNA / RET in `$A12003`). Two commands add `$180000` to a sub CPU pointer so the main CPU sees the same word RAM (`$080000` there, `$200000` here).
 
@@ -171,7 +184,7 @@ The audio slices are the sub CPU's CD-DA calls and the PCM stream. `docs/segacd_
 
 ## HOCKEY.BIN from the cartridge source
 
-HOCKEY.BIN runs at `$1B000` (`docs/segacd_memory_map.md`) and is linked in the cartridge's file order, with the files that are new in 94 moved in front of `hockey94.asm`: team data, then `onetimer94`, `fourway94`, `crowd94`, `optsetup94`, `cards94`, `records94`, `shootout94`, `scout94`, `period94`, `arena94`, `shootoutpath94`, `ui94`, `helpers94`, (`title94`, not yet matched), `logos94`, `chgplayer94`, then `hockey94`, `menu94`, `stats94`, `replay94`, `logic94`, `middle94` and the rest. Each disc segment is the twin of one 94G file and sits in `src/segacd/hockey/` under that file's name, with the 94G names.
+HOCKEY.BIN runs at `$1B000` (`docs/segacd_memory_map.md`) and is linked in the cartridge's file order, with the files that are new in 94 moved in front of `hockey94.asm`: team data, then `onetimer94`, `fourway94`, `crowd94`, `optsetup94`, `cards94`, `records94`, `shootout94`, `scout94`, `period94`, `arena94`, `shootoutpath94`, `ui94`, `helpers94`, (`title94`, not yet matched), `logos94`, `chgplayer94`, then `hockey94`, `menu94`, `stats94`, `replay94`, `logic94`, `middle94` and the rest. Each disc segment is the twin of one 94G file and sits in `src/segacd/hockey/` under that file's name, with the 94G names. The older hand-made fragments in `src/segacd/` stay as they are: a 94G file whose disc range holds one is written in parts around it (`hockey94.asm`, `hockey94_2.asm`, `hockey94_3.asm` around `songplay.asm` and `crowdanim.asm`), and each part's header names its neighbours. On the disc `penalty94` and `collide94` are interleaved (half of each, twice), so each has two parts as well.
 
 The disc assembler did not optimise: an unsized branch is `.w`, `add`/`sub` of a small immediate is `addi`/`subi` (never `addq`/`subq`), `cmp.l #n,dn` is `cmpi.l` (the cartridge ROM has `cmp.l`, one of its fixopcodes patches), a zero displacement stays `0(an)`. Absolute addresses are long because the variables and the code are above `$7FFF` on the sub CPU.
 

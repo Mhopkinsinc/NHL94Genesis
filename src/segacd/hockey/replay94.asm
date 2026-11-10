@@ -29,6 +29,10 @@ ReloadFaceOffTiles	equ	$3ECDC
 ReloadFaceOffMap	equ	$3ECEE
 SprSort	equ	$3F03E
 revframetbl	equ	$4761C
+SPFPen	equ	$179
+SPFbglass	equ	$28D
+SPFfight	equ	$162
+SPFpuck	equ	$18A
 
 	org	$2EE04
 

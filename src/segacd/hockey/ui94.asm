@@ -20,6 +20,12 @@ appendz	equ	$39200
 appstring	equ	$39208
 SetSframe	equ	$3E028
 X_2A9EC	equ	$2A9EC
+SPAbenchcheckl	equ	$193E
+SPAbenchcheckr	equ	$1A00
+SPAboardback	equ	$185A
+SPAboardfront	equ	$1776
+SPAboardleft	equ	$18CC
+SPAboardright	equ	$17E8
 
 	org	$2A902
 

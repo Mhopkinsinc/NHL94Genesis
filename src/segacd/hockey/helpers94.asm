@@ -11,6 +11,7 @@
 assexit	equ	$362C4
 SetSPA	equ	$363C0
 Setplass	equ	$3D754
+SPAglide	equ	$50C
 
 	org	$2AE68
 

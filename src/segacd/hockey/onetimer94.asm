@@ -17,6 +17,8 @@ vtoa	equ	$362F8
 SetSPA	equ	$363C0
 randomd0	equ	$37050
 Sroot	equ	$3708E
+SPAshotb	equ	$92E
+SPAshotf	equ	$7FC
 
 	org	$226A8
 

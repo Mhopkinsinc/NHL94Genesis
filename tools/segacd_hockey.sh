@@ -22,13 +22,17 @@ KNOWN=(
   --name tmpshots=0xEA         # cards94 UpdatePlayerRecords: addi.w #$EA,d0 for addi.w #tmpshots,d0
   --name LineDataBase=0xE20    # shootoutpath94 ReadLineData / WriteLineData: move.l #$E20,d0 for #LineDataBase
 )
-port() {  # name start end [options...]
-  local n=$1 s=$2 e=$3; shift 3
+port() {  # name[:part] start end [options...]   name:2 writes src/segacd/hockey/name_2.asm
+  # A 94G file whose disc range holds one of the older hand fragments (src/segacd/*.asm, left as they are)
+  # is written in parts around it: name, name_2, name_3 ... each its own fragment.
+  local n=${1%%:*} part= s=$2 e=$3
+  [ "$n" != "$1" ] && part="_${1##*:}"
+  shift 3
   python tools/segacd_port.py --lst "$LST" --file "$n.asm" --disc-start "$s" --disc-end "$e" \
-    --out "src/segacd/hockey/$n.asm" --register "${KNOWN[@]}" "$@" > "output/port_$n.log" 2>&1
-  grep -q "^MATCH" "output/port_$n.log" || fail=1
-  grep -E "^(MATCH|MISMATCH)|^src" "output/port_$n.log" | tr '\n' ' '; echo
-  if [ "$n" = "$STOP" ]; then exit $fail; fi
+    --out "src/segacd/hockey/$n$part.asm" --register "${KNOWN[@]}" "$@" > "output/port_$n$part.log" 2>&1
+  grep -q "^MATCH" "output/port_$n$part.log" || fail=1
+  grep -E "^(MATCH|MISMATCH)|^src" "output/port_$n$part.log" | tr '\n' ' '; echo
+  if [ "$n$part" = "$STOP" ]; then exit $fail; fi
 }
 mkdir -p output
 
@@ -39,7 +43,8 @@ port optsetup94 0x83CC 0x9B5E --note 'The option logic and strings are the cartr
 port cards94 0x9B5E 0xB348 --note 'The record bookkeeping (GetRecordValue, UpdateRecords ...) and CalcAttrib are the cartridge code.\nCD: the save RAM readers (ReadPlayerRecord ... NameLogIO) moved next to sram94 (file $7534);\nFeaturedPictures and the player card screen (PlayerCards ... BuildCardPlayerList) are gone;\nTeamPalettes stay (read from the disc file); pictures come through a list at $47D88;\nMenuWaitVblank became the BIOS call at $6044.'
 port records94 0xB348 0xC860 --note 'Name entry and the Record Holders screen are the cartridge code. CD: the graphics come through\nthe pointer table ($47D0C ...), the screen setup sets / clears bit 5 of $FF800F (the sub CPU flag)\nwhere the cartridge masks interrupts, and the goal and save record titles differ slightly.'
 port shootout94 0xC860 0xD1D4 --note 'The shootout logic is the cartridge code. CD: the shooter list is kept in word RAM at $BBD30,\nand the logo comes through the graphics pointer table ($47D0C).'
-# scout94 0xD1D4 0xE1CE: not yet (src/segacd/scoutopen.asm covers $D2B6-$D397)
+port scout94 0xD1D4 0xD2B6 --note 'Part 1 of scout94 (part 2 is scout94_2.asm; $D2B6-$D397 between them is src/segacd/scoutopen.asm).\nThe matchup screen is the cartridge code.'
+port scout94:2 0xD398 0xE1CE --note 'Part 2 of scout94 ($D2B6-$D397 before it is src/segacd/scoutopen.asm, the scouting screen open).\nCD: the scouting report screen is largely new (the CD reads the report aloud; docs/segacd_announce.md);\nwaitx became the BIOS call at $6044.'
 port period94 0xE1CE 0xF1AA --note 'Period stats, game statistics and Manual Goalie are the cartridge code. CD: the team logos come\nthrough the graphics pointer table ($47D8C) and BIOS calls ($6044 with d7 = 2), and a stat line\nis sent to the main CPU with command $B; the first lines of PrintStatValue have no twin.'
 port arena94 0xF1AA 0xF58C --note 'The arena / faceoff animations are the cartridge code; NHLPALogoMap is in HOCKEY.BIN.'
 port shootoutpath94 0xF58C 0xF902 --note 'Saved lines and the shootout skate paths are the cartridge code. The saved lines sit at $E20\nin the backup RAM image (LineDataBase; the cartridge save RAM has them at $1EF6).'
@@ -47,10 +52,20 @@ port ui94 0xF902 0xFE68 --note 'Most of it is the cartridge code. CD: PlayedByTe
 port helpers94 0xFE68 0xFF56 --note 'Same code as the cartridge. (title94, the title screen and credits, is not on the disc: the\nCD has its own title, and logos94 follows straight on.)'
 port logos94 0xFF56 0x104E2 --note 'TeamLogoPalettes, the lead song and ClearPenalties are the cartridge'"'"'s. CD: a few palette\nwords differ, and the hot / cold icons come through the graphics pointer table ($47D98, $47D9C).'
 port chgplayer94 0x104E2 0x10614 --note 'chgplayer and its far thunks are the cartridge code, with a few lines changed (CD blocks).'
-# hockey94 0x10614 0x112F8: not yet (src/segacd/songplay.asm and crowdanim.asm cover parts of it)
+port hockey94 0x10614 0x10B1E --note 'Part 1 of hockey94 (parts 2 and 3 are hockey94_2.asm and hockey94_3.asm). StartGame, the period\nstart and the clock are the cartridge code. CD: VBjsr and Begin (the cold start) are not here (the game\nstarts at file $7096); BIOS calls ($5F22, $6044) and the sub CPU flag ($FF800F bit 5) replace the\ninterrupt masking around screen setups.'
+port hockey94:2 0x10B58 0x10D28 --note 'Part 2 of hockey94 ($10B1E-$10B57 before it is src/segacd/songplay.asm). CD: ChkGoalies is no\nlonger called between periods, so the comments of the calls after it are one line off.'
+port hockey94:3 0x10E66 0x112F8 --note 'Part 3 of hockey94 ($10D28-$10E65 before it is src/segacd/crowdanim.asm, the cartridge updatecrowdf).'
 port menu94 0x112F8 0x11660 --note 'The menu core is the cartridge code; CD: a few lines wait on the main CPU flag ($FF800E).'
 port stats94 0x11660 0x13E04 --note 'Scores, line editor, roster and the stat screens are the cartridge code. CD: their graphics come\nthrough the pointer table ($47D0C ...) and some screen writes are commands to the main CPU\n($FF8022 / $FF8020); PrintGameInfo, DrawStatsRow, PrintCrowdMeter and ExitStatsScreen start\nwith new lines (their names are placed where the disc calls them).'
 port replay94 0x13E04 0x1498A --note 'The replay is the cartridge code; CD: its graphics come through the pointer table ($47D18,\n$47D64, $47D68).'
 port logic94 0x1498A 0x1BBB2 --note 'Player update, input and the assignments are the cartridge code. CD: the team struct offsets\nfrom tmap on are a word further on; several early exits branch to a nearer rts than the\ncartridge'"'"'s shared rtss2 (left as X_ equates, noted); the pad reads and a few other lines are new.'
+port middle94 0x1BBB2 0x1C10C --note 'Part 1 of middle94 (part 2 is middle94_2.asm; $1C10C-$1C2CF between them is src/segacd/sfxcd.asm,\ngate34.asm, cdrequest.asm and cdtrack.asm).'
+port middle94:2 0x1C2D0 0x1D946 --note 'Part 2 of middle94. CD: the sound driver calls and most of the VDP helpers here are new\n(CD audio and commands to the main CPU instead of the Z80 and VDP ports).'
+port decompress94 0x1D946 0x1DBD4 --note 'The graphics decompressor, the cartridge code.'
+port print94 0x1DBD4 0x1E41A --note 'The print routines. CD: writes to the VDP became commands to the main CPU (e.g. eraser sends\ncommand $D with the fill word in $FF8022).'
+port penalty94 0x1E41A 0x1F0FA --note 'Part 1 of penalty94. On the disc penalty94 and collide94 are interleaved: penalty94 up to\nupdatepwrplay, collide94 up to setpersonel, then the rest of each (penalty94_2.asm, collide94_2.asm).'
+port collide94 0x1F0FA 0x212D0 --note 'Part 1 of collide94 (see penalty94.asm for the interleaving).'
+port penalty94:2 0x212D0 0x22426 --note 'Part 2 of penalty94, from updatepwrplay (see penalty94.asm).'
+port collide94:2 0x22426 0x22AB8 --note 'Part 2 of collide94, from setpersonel (see penalty94.asm).'
 
 exit $fail

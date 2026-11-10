@@ -24,3 +24,5 @@
 - 2026-11-10 hockey: data can end on an odd address; a decoder that steps 2 bytes stays odd and never finds the code again. Step 1 byte there. (logic94 table ending at `$15CDD`)
 - 2026-11-10 hockey: SNASM pads `dc.w` to an even address; data at an odd address is `dc.b`. (records94)
 - 2026-11-10 hockey: `move #$2700,sr` (interrupts off) became `bclr.b #5,$FF800F` around screen setups; `jsr MenuWaitVblank` became `jsr $6044.w` (BIOS). (records94 `NameEntryScreen`, cards94)
+- 2026-11-10 owner (Abdul, PR #239): Sega CD code goes in the Sega CD folder and does not touch the existing work. The older fragments in `src/segacd/` stay as they are; a 94G twin is written in parts around them (`name.asm`, `name_2.asm`). Align code, symbols and file names with 94G where possible.
+- 2026-11-10 hockey: a constant defined in a 94G code file (`collrad = 8` in collide94) belongs to that file's fragment; other fragments get their own equate, never `hockey.inc`. (collide94: `collrad` multiply defined)
