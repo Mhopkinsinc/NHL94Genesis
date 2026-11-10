@@ -1,9 +1,9 @@
 ; MAIN.BIN $CB8-$12BF (runtime $FF1CB8-$FF22BF). Emitted by tools/emit_m68k.py.
 ; Byte-stream decoder and gate-array flag handshakes. 16-long table at $FF2280.
 
-X_FF1316	equ	$FF1316
+FlushOutputBuffer	equ	$FF1316
 X_FF151C	equ	$FF151C
-X_FF1278	equ	$FF1278
+DecompressGraphics	equ	$FF1278
 X_FF1B42	equ	$FF1B42
 X_FF16B6	equ	$FF16B6
 
@@ -134,7 +134,7 @@ SubCmd10					;command $10 (CmdJumpTable): a translated pointer: the linked routi
 	movea.l	(a0)+,a2
 	move.l	a0,$FF2912.l
 	adda.l	#$180000,a2
-	bsr.w	X_FF1278
+	bsr.w	DecompressGraphics
 	lea.l	$23A450.l,a0
 	move.l	d4,(a0)
 	rts
@@ -296,6 +296,7 @@ SubCmd12					;command $12 (CmdJumpTable): the block at $23A450
 	lea.l	$23A450.l,a1
 	bsr.w	LFF1FD6
 	rts
+DecompressBytecode					;unpack a0 into the 256-byte ring buffer at $FF2916
 	movem.l	d0-d3/a0-a2,-(sp)
 	move.w	d1,d3
 	clr.w	d1
@@ -308,22 +309,25 @@ LFF211E	move.b	(a0)+,d0
 	movea.l	(a2,d0.w),a2
 	jsr	(a2)
 	bra.b	LFF211E
+Opcode_CopyLiteral					;opcodes 0-1
 	move.b	-$1(a0),d0
 	andi.w	#$1F,d0
 LFF213C	move.b	(a0)+,(a1,d1.w)
 	addq.b	#$1,d1
 	bne.w	LFF214A
-	bsr.w	X_FF1316
+	bsr.w	FlushOutputBuffer
 LFF214A	dbra	d0,LFF213C
 	rts
+Opcode_ClearBytes					;opcode 2
 	move.b	-$1(a0),d0
 	andi.w	#$F,d0
 LFF2158	clr.b	(a1,d1.w)
 	addq.b	#$1,d1
 	bne.w	LFF2166
-	bsr.w	X_FF1316
+	bsr.w	FlushOutputBuffer
 LFF2166	dbra	d0,LFF2158
 	rts
+Opcode_FillBytes					;opcode 3
 	move.b	-$1(a0),d0
 	andi.w	#$F,d0
 	addq.w	#$2,d0
@@ -331,9 +335,10 @@ LFF2166	dbra	d0,LFF2158
 LFF2178	move.b	d2,(a1,d1.w)
 	addq.b	#$1,d1
 	bne.w	LFF2186
-	bsr.w	X_FF1316
+	bsr.w	FlushOutputBuffer
 LFF2186	dbra	d0,LFF2178
 	rts
+Opcode_CopyBackwardShort					;opcodes 4-7
 	move.b	-$1(a0),d0
 	andi.w	#$7,d0
 	addq.w	#$1,d0
@@ -341,20 +346,23 @@ LFF2186	dbra	d0,LFF2178
 	lsr.w	#$3,d2
 	andi.w	#$7,d2
 	addq.w	#$1,d2
-LFF21A2	neg.b	d2
+CopyBackwardRun					;shared copy loop
+	neg.b	d2
 	add.b	d1,d2
 LFF21A6	move.b	(a1,d2.w),(a1,d1.w)
 	addq.b	#$1,d2
 	addq.b	#$1,d1
 	bne.w	LFF21B8
-	bsr.w	X_FF1316
+	bsr.w	FlushOutputBuffer
 LFF21B8	dbra	d0,LFF21A6
 	rts
+Opcode_CopyBackwardMedium					;opcode 8
 	move.b	-$1(a0),d0
 	andi.w	#$F,d0
 	addq.w	#$2,d0
 	move.b	(a0)+,d2
-	bra.b	LFF21A2
+	bra.b	CopyBackwardRun
+Opcode_CopyBackwardLong					;opcode 9
 	move.b	(a0),d0
 	asl.b	#$1,d0
 	move.b	-$1(a0),d0
@@ -364,7 +372,8 @@ LFF21B8	dbra	d0,LFF21A6
 	move.b	(a0)+,d2
 	andi.w	#$7F,d2
 	addq.w	#$1,d2
-	bra.b	LFF21A2
+	bra.b	CopyBackwardRun
+Opcode_CopyBackwardExtended1					;opcode A
 	move.b	-$1(a0),d0
 	asl.w	#$8,d0
 	move.b	(a0),d0
@@ -374,7 +383,8 @@ LFF21B8	dbra	d0,LFF21A6
 	move.b	(a0)+,d2
 	andi.w	#$3F,d2
 	addq.w	#$1,d2
-	bra.b	LFF21A2
+	bra.b	CopyBackwardRun
+Opcode_CopyBackwardExtended2					;opcode B
 	move.b	-$1(a0),d0
 	asl.w	#$8,d0
 	move.b	(a0),d0
@@ -384,7 +394,8 @@ LFF21B8	dbra	d0,LFF21A6
 	move.b	(a0)+,d2
 	andi.w	#$1F,d2
 	addq.w	#$1,d2
-	bra.b	LFF21A2
+	bra.b	CopyBackwardRun
+Opcode_CopyBackwardReverseShort					;opcodes C-D
 	move.b	-$1(a0),d0
 	andi.w	#$3,d0
 	addq.w	#$1,d0
@@ -392,24 +403,27 @@ LFF21B8	dbra	d0,LFF21A6
 	lsr.w	#$2,d2
 	andi.w	#$7,d2
 	addq.w	#$1,d2
-LFF2230	neg.b	d2
+CopyBackwardReverseRun					;shared reverse copy loop
+	neg.b	d2
 	add.b	d1,d2
 LFF2234	move.b	(a1,d2.w),(a1,d1.w)
 	subq.b	#$1,d2
 	addq.b	#$1,d1
 	bne.w	LFF2246
-	bsr.w	X_FF1316
+	bsr.w	FlushOutputBuffer
 LFF2246	dbra	d0,LFF2234
 	rts
+Opcode_CopyBackwardReverseMedium					;opcode E; distance 0 is the end code
 	move.b	-$1(a0),d0
 	andi.w	#$F,d0
 	addq.w	#$2,d0
 	move.b	(a0)+,d2
-	bne.b	LFF2230
-	bsr.w	X_FF1316
+	bne.b	CopyBackwardReverseRun
+	bsr.w	FlushOutputBuffer
 	addq.l	#$4,sp
 	movem.l	(sp)+,d0-d3/a0-a2
 	rts
+Opcode_CopyBackwardReverseLong					;opcode F
 	move.b	(a0),d0
 	asl.b	#$1,d0
 	move.b	-$1(a0),d0
@@ -419,20 +433,21 @@ LFF2246	dbra	d0,LFF2234
 	move.b	(a0)+,d2
 	andi.w	#$7F,d2
 	addq.w	#$1,d2
-	bra.b	LFF2230
-	dc.l	$FF2134
-	dc.l	$FF2134
-	dc.l	$FF2150
-	dc.l	$FF216C
-	dc.l	$FF218C
-	dc.l	$FF218C
-	dc.l	$FF218C
-	dc.l	$FF218C
-	dc.l	$FF21BE
-	dc.l	$FF21CC
-	dc.l	$FF21E6
-	dc.l	$FF2200
-	dc.l	$FF221A
-	dc.l	$FF221A
-	dc.l	$FF224C
-	dc.l	$FF2266
+	bra.b	CopyBackwardReverseRun
+DecompressOpcodeTable					;one handler per opcode high nibble
+	dc.l	Opcode_CopyLiteral
+	dc.l	Opcode_CopyLiteral
+	dc.l	Opcode_ClearBytes
+	dc.l	Opcode_FillBytes
+	dc.l	Opcode_CopyBackwardShort
+	dc.l	Opcode_CopyBackwardShort
+	dc.l	Opcode_CopyBackwardShort
+	dc.l	Opcode_CopyBackwardShort
+	dc.l	Opcode_CopyBackwardMedium
+	dc.l	Opcode_CopyBackwardLong
+	dc.l	Opcode_CopyBackwardExtended1
+	dc.l	Opcode_CopyBackwardExtended2
+	dc.l	Opcode_CopyBackwardReverseShort
+	dc.l	Opcode_CopyBackwardReverseShort
+	dc.l	Opcode_CopyBackwardReverseMedium
+	dc.l	Opcode_CopyBackwardReverseLong

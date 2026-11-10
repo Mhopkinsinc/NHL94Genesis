@@ -56,7 +56,7 @@ SelectPcmChannel (`$D080`) reuses a matching channel, then a disabled one, then 
 
 ## Start-up sequence and credits
 
-RunStarterSequence (`$D8F8`): CopyScreensToWordRam (the five screens of `startergfx.asm` to `$80000`), LoadStarterPcmSamples, StartupStage1 (`$DA2A`), StartupStage2 (`$DB8C`), RunStarterFilm (`$EAE4`), CopyScreensToWordRam again, RunCredits (`$DD22`), ClearStarterPaletteAndWait (`$E14C`). What the two stages show is not worked out; StartupStage1 uses the screen copied to `$109DC`, StartupStage2 runs four animations (InitStarterAnimation, StepStarterAnimation) and ends on a pad press. The sprite list helpers are BeginStarterSpriteList, AppendStarterSprites (eight-byte entries, at most 80), FinishStarterSpriteList and CopyStarterSpriteData (to word RAM `$BC6F0`).
+RunStarterSequence (`$D8F8`): CopyScreensToWordRam (the five screens of `startergfx.asm` to `$80000`), LoadStarterPcmSamples, AnimateEASportsLogo (`$DA2A`), ShowHighScoreScreen (`$DB8C`), RunStarterFilm (`$EAE4`), CopyScreensToWordRam again, RunCredits (`$DD22`), ClearStarterPaletteAndWait (`$E14C`). AnimateEASportsLogo builds the EA SPORTS logo from the sprite pieces in EASportsLogoSprites (the copy at `$109DC`). ShowHighScoreScreen draws HighScoreScreen ("High Score Productions presents", the copy at `$109D8`, main command 8) and runs four sparkle animations from SparkleSprites (`$109E0`; InitStarterAnimation, StepStarterAnimation) until a pad press or the time is up. RunCredits draws CreditsTitleScreen and the credits lines in CreditsFont. Each screen is in `startergfx.asm`; their packed tiles are the cartridge's DecompressBytecode format, unpacked on the main CPU by MAIN.BIN's copy of DecompressGraphics. The sprite list helpers are BeginStarterSpriteList, AppendStarterSprites (eight-byte entries, at most 80), FinishStarterSpriteList and CopyStarterSpriteData (to word RAM `$BC6F0`).
 
 RunCredits reads the records at `$25F0E` and `$25F36`, the credits text at the start of `startertail.asm` (file `$1AF0E`). DrawCreditsLines (`$DE96`) draws length-prefixed lines until a negative word; WaitCreditsFrame (`$DEF2`) waits for the frame counter, scrolls and reads the pads; UpdateCreditsScroll (`$DF1E`) sends main command `$1D`.
 
@@ -112,4 +112,4 @@ RunStarterFilm (`$EAE4`) clears the PCM chip (pcmclear.asm), waits for the CD BI
 
 ## Not worked out
 
-What the two start-up stages show; who fills the packed PCM command queue; the main CPU side of the driver's commands beyond the table in `docs/segacd_main_shell.md`; why the module keeps a `HOCKEY.SEG` record.
+Who fills the packed PCM command queue; the main CPU side of the driver's commands beyond the table in `docs/segacd_main_shell.md`; why the module keeps a `HOCKEY.SEG` record.

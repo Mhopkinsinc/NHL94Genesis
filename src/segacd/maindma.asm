@@ -4,13 +4,15 @@
 
 X_FF151C	equ	$FF151C
 X_FF169C	equ	$FF169C
-X_FF210E	equ	$FF210E
-X_FF2912	equ	$FF2912
+DecompressBytecode	equ	$FF210E
+remapTablePtr	equ	$FF2912
 
 	org	$FF1272
 
-	lea.l	X_FF2912(pc),a0
+DecompressGraphicsPlain					;clear remapTablePtr, fall into DecompressGraphics (decompress94.asm)
+	lea.l	remapTablePtr(pc),a0
 	clr.l	(a0)
+DecompressGraphics					;a2 = tile count word and tiles (bit 15: packed), d4 = start char
 	movem.l	d0-d1/a0,-(sp)
 	movea.l	a2,a0
 	move.w	d4,d1
@@ -27,7 +29,7 @@ X_FF2912	equ	$FF2912
 	bra.w	LFF12B6
 LFF12A6	andi.w	#$7FFF,d0
 	add.w	d0,d4
-	bsr.w	X_FF210E
+	bsr.w	DecompressBytecode
 LFF12B0	movem.l	(sp)+,d0-d1/a0
 	rts
 LFF12B6	move.w	sr,-(sp)
@@ -60,6 +62,7 @@ LFF12F4	andi.w	#$F,d4
 	move.w	(sp)+,$23C6E8.l
 	move.w	(sp)+,sr
 	rts
+FlushOutputBuffer					;the ring buffer to VRAM; this copy can skip tiles through the byte list at a3
 	movem.l	d0-d1/a0-a1,-(sp)
 	move.w	d1,d0
 	bne.w	LFF1324

@@ -1255,10 +1255,10 @@ STARTER.BIN,$28F8,RunStarterSequence,Sierra C name tag
 STARTER.BIN,$294C,CopyScreensToWordRam,Sierra C name tag
 STARTER.BIN,$29DC,CopyBytesToEnd,Sierra C name tag
 STARTER.BIN,$29E4,LoadStarterPcmSamples,Sierra C name tag
-STARTER.BIN,$2A2A,StartupStage1,Sierra C name tag
-STARTER.BIN,$2AC6,StartupStage1Step,Sierra C name tag
-STARTER.BIN,$2B8C,StartupStage2,Sierra C name tag
-STARTER.BIN,$2C78,StartupStage2Step,Sierra C name tag
+STARTER.BIN,$2A2A,AnimateEASportsLogo,Sierra C name tag
+STARTER.BIN,$2AC6,AnimateEASportsLogoStep,Sierra C name tag
+STARTER.BIN,$2B8C,ShowHighScoreScreen,Sierra C name tag
+STARTER.BIN,$2C78,ShowHighScoreScreenStep,Sierra C name tag
 STARTER.BIN,$2D22,RunCredits,Sierra C name tag
 STARTER.BIN,$2E96,DrawCreditsLines,Sierra C name tag
 STARTER.BIN,$2EF2,WaitCreditsFrame,Sierra C name tag

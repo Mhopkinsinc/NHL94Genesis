@@ -1349,8 +1349,8 @@ RunStarterSequence
 	move.l	#$400,-(sp)
 	bsr.w	X_10540
 	bsr.w	SetMainLinkedResource
-	bsr.w	StartupStage1
-	bsr.w	StartupStage2
+	bsr.w	AnimateEASportsLogo
+	bsr.w	ShowHighScoreScreen
 	bsr.w	RunStarterFilm
 	move.w	$EC90.l,-(sp)
 	bsr.w	X_104F6
@@ -1412,7 +1412,7 @@ LoadStarterPcmSamples
 .LDA24
 	ori.b	#$0,d2
 	dc.w	$FFFF
-StartupStage1
+AnimateEASportsLogo
 	movem.l	d0-d7/a0-a6,-(sp)
 	andi.b	#$EF,$BC6E8.l
 	bsr.w	SendMainCommand02Inline
@@ -1440,7 +1440,7 @@ StartupStage1
 	clr.w	$10B6E.l
 	lea	(X_DB78).l,a3
 .LDA96
-	bsr.w	StartupStage1Step
+	bsr.w	AnimateEASportsLogoStep
 	bsr.w	WaitNextDriverFrame
 	bsr.w	ReadStarterPads
 	moveq	#$0,d1
@@ -1455,7 +1455,7 @@ StartupStage1
 	dc.w	$0000,$0CCC
 	movem.l	(sp)+,d0-d7/a0-a6
 	rts
-StartupStage1Step
+AnimateEASportsLogoStep
 	movem.l	d0-d6/a0-a2,-(sp)
 	btst.b	#$1,$BC6E8.l
 	bne.w	.LDB72
@@ -1506,7 +1506,7 @@ StartupStage1Step
 	ori.b	#$1,(a6)+
 	ori.b	#$1,d4
 	dc.w	$0006,$FFFF
-StartupStage2
+ShowHighScoreScreen
 	andi.b	#$9C,$BC6E8.l
 	bsr.w	SendMainCommand03
 	move.w	#$1,d4
@@ -1554,14 +1554,14 @@ StartupStage2
 	move.w	#$20,$BA8D0.l
 	move.w	#$B4,d7
 .LDC60
-	bsr.w	StartupStage2Step
+	bsr.w	ShowHighScoreScreenStep
 	bsr.w	WaitNextDriverFrame
 	bsr.w	ReadStarterPads
 	tst.w	d1
 	dbne	d7,.LDC60
 	bsr.w	ClearStarterPaletteAndWait
 	rts
-StartupStage2Step
+ShowHighScoreScreenStep
 	btst.b	#$1,$BC6E8.l
 	bne.w	.LDD20
 	bsr.w	BeginStarterSpriteList

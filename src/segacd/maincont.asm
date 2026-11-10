@@ -1,8 +1,8 @@
 ; MAIN.BIN $500-$CB7 (runtime $FF1500-$FF1CB7). Emitted by tools/emit_m68k.py.
 ; Rest of the DMA routine, the $23A450 copy, and a 9-long table at $FF1C94.
 
-X_FF1272	equ	$FF1272
-X_FF210E	equ	$FF210E
+DecompressGraphicsPlain	equ	$FF1272
+DecompressBytecode	equ	$FF210E
 X_FF20BE	equ	$FF20BE
 
 	org	$FF1500
@@ -236,7 +236,7 @@ LFF18A8	move.w	$23C6E8.l,-(sp)
 	bset.b	#$4,$23C6E8.l
 	moveq	#$1,d1
 	lea.l	$FF2A1A.l,a3
-	bsr.w	X_FF210E
+	bsr.w	DecompressBytecode
 	clr.w	d1
 	move.b	$FF2A18.l,d1
 	add.w	d1,d4
@@ -277,7 +277,7 @@ LFF1936	move.w	$4(a1,d0.w),d3
 	addq.w	#$1,$FF2DB4.l
 	addq.w	#$1,d6
 	dbra	d2,LFF1922
-	bsr.w	X_FF1272
+	bsr.w	DecompressGraphicsPlain
 	movem.l	(sp)+,d0-d3/d5-d6/a0-a3
 	move.w	(sp)+,$23C6E8.l
 	move.w	(sp)+,$FF2DB4.l

@@ -31,12 +31,12 @@
   2. Names: STARTER's driver module is named (`docs/segacd_starter_driver.md`). PLAYER's code is named
      (`docs/segacd_player.md`), and so are MAIN's shell, command table and sound engine
      (`docs/segacd_main_shell.md`; MAIN.BIN runs at `$FF1000`, not `$FF0000`). The older interface's handlers are
-     labelled too (`SubCmd00`-`SubCmd1D`), and hwread.asm's. Left: what the drawing commands draw, the two
-     STARTER start-up stages, and what `$6044` does (its code is not in the six files). HOCKEY's header and TeamList are source now; the graphics
+     labelled too (`SubCmd00`-`SubCmd1D`), and hwread.asm's. Left: what the drawing commands draw, and what `$6044` does (its code is not in the six files). HOCKEY's header and TeamList are source now; the graphics
      pointer table has 37 of 44 entries named (`--cdname` in `tools/segacd_hockey.sh`), the rest have no cartridge
      label (their comments say what they hold).
-  3. Formats: STARTER's data is five `.map.jim` screens and a block for driver function 5 (`startergfx.asm`);
-     left: the packed tile format (bit 15 of the tile count) and what function 5 does with the block. MAIN's
+  3. Formats: STARTER's data is five `.map.jim` pictures (the Credits title, its font, High Score Productions,
+     the EA SPORTS logo sprites, sparkles; packed tiles in the cartridge's DecompressBytecode format, which
+     MAIN.BIN's copy of the cartridge decompressor unpacks) and a PCM record directory (`startergfx.asm`). MAIN's
      Z80 program is asm80 source (`src/segacd/main/mainz80.z80`); left: how it ends up at Z80 `$0600`.
 - Open questions:
   - The team struct is one word longer from `tmap` on; probably `tmsort` became a long. Confirm when a fragment uses
