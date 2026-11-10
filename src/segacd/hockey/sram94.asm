@@ -12,8 +12,8 @@
 HiScoreScreen	equ	$2A58C
 orjoy	equ	$37460
 Opening	equ	$3F2D6
-ReadLineData	equ	$3FDE8
 DefaultMenus	equ	$40102
+ReadPads	equ	$47DB2
 
 	org	$21FC8
 
@@ -40,7 +40,7 @@ DefaultMenus	equ	$40102
 	move.l	#$2203A,-(sp)
 	move.l	$18D66.l,-(sp)
 	rts
-	jsr	$47DB2.l
+	jsr	(ReadPads).l
 .L22040
 	btst.b	#$4,$FF800E.l
 	bne.s	.L22040
@@ -129,7 +129,7 @@ Begin						;CD: its first lines have no twin; the rest of it starts here
 	jsr	$21FC8.l
 	move.w	#$3,d7
 	jsr	$6044.w	;CD: the cartridge has (InitSaveRAM).l
-	jsr	(ReadLineData).l
+	jsr	$3FDE8.l	;CD: the cartridge has (ReadLineData).l
 	jsr	(HiScoreScreen).l
 	jsr	(DefaultMenus).l
 	move.w	(OptLine).l,(TmpOptLine2).l

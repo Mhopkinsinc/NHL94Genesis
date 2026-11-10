@@ -15,6 +15,7 @@ forcefade	equ	$36D66
 xyVmMap	equ	$38BD4
 rtss2	equ	$3C000
 setvideo	equ	$3DD16
+DecompressGraphicsPlain	equ	$38958
 
 	org	$372D0
 
@@ -1316,6 +1317,7 @@ Vmaddr								;set video port to address d0. d0 = vram address, returns a0 = Vda
 	bne.s	.L387CE
 	bclr.b	#$4,$FF800F.l
 	rts
+dobitmap						;transfer palette data/map data/tiles data to vram. a0 = palette, a1 = (CD: entered here; the cartridge dobitmap starts at its first twin line, $3880E)
 	move.l	a6,-(sp)
 	movea.l	$19360.l,a6
 	btst.b	#$5,$FF800F.l
@@ -1335,7 +1337,6 @@ Vmaddr								;set video port to address d0. d0 = vram address, returns a0 = Vda
 ;	EA's compiler emits cmp #imm,Dn as CMP (Bxxx), SNASM emits CMPI (0Cxx). The source has the real cmp /
 ;	cmpi; fixopcodes.js patches the cmp encoding after assembly.
 
-dobitmap							;transfer palette data/map data/tiles data to vram. a0 = palette, a1 =
 									;map, a2 = tiles (DecompressGraphics data), d0 = start x, d1 = start y, d2
 									;= width x, d3 = width y, d4 = start char, d5 = pal used bits (0-3) for
 									;color fam 1-4. printy is restored and the tiles go last through
@@ -1403,7 +1404,7 @@ dobitmap							;transfer palette data/map data/tiles data to vram. a0 = palette,
 	btst.b	#0,(sflags6).l			;map as is?
 	bne.w	.0
 ;CD: no cartridge twin
-	jsr	$38958.l
+	jsr	(DecompressGraphicsPlain).l
 .0									;pop the d0-d3/d5-d6/a0-a3 saved above
 	movem.l	(sp)+,d0-d3/d5-d6/a0-a3
 	move.w	(sp)+,(disflags).l

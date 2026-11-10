@@ -42,6 +42,7 @@ NewPO	equ	$401C4
 MakeTree	equ	$40244
 FigureJoy	equ	$40318
 ReadPassBits	equ	$4057C
+DecompressGraphicsPlain	equ	$38958
 
 	org	$233CC
 
@@ -940,7 +941,7 @@ setoptions							;options screen display: build the game setup screen only: vbla
 ;CD: no cartridge twin
 	movea.l	(LogoBoxMapPtr).l,a2
 	addq.l	#$8,a2
-	jsr	$38958.l
+	jsr	(DecompressGraphicsPlain).l
 	move.w	d4,$1939A.l
 	movea.l	(LogoBoxMapPtr).l,a2
 	addq.l	#$8,a2
@@ -1143,7 +1144,7 @@ LoadSetupTiles						;Load the TeamBitmaps+8 tiles from char 2, then again remapp
 ;CD: no cartridge twin
 	movea.l	(TeamBitmapsPtr).l,a2
 	addq.l	#$8,a2
-	jsr	$38958.l
+	jsr	(DecompressGraphicsPlain).l
 	move.w	d4,$1939C.l
 	movea.l	(TeamBitmapsPtr).l,a2
 	addq.l	#$8,a2

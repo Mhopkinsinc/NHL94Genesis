@@ -16,6 +16,7 @@ assreplace	equ	$362E4
 rtss2	equ	$3C000
 sublist	equ	$41A6C
 priolist	equ	$41AD6
+chkpk2	equ	$338C8
 
 	org	$3D426
 
@@ -349,7 +350,7 @@ setplayer							;bring player onto the ice and set his attributes. d3 = offset o
 	btst.b	#sf2pwrplay,(sflags2).l	;might be checking for a PP
 	beq.w	.habonus				;penalty kill: minus the high nibble of the PP/PK byte
 ;CD: no cartridge twin
-	jsr	$338C8.l
+	jsr	(chkpk2).l
 	beq.w	.pk
 	move.b	srpppk(a0),(PPBonus).l	;moves PP/PK byte into PPBonus
 	andi.b	#$F,(PPBonus).l			;passes lower nibble of PP/PK byte (bug)

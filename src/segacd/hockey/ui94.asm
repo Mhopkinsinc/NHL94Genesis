@@ -360,8 +360,8 @@ GetTeamStruct						;a2 = tmstruct, or awtmstruct when team d2 is not tmteam of t
 .x									;exit (also the end of the code above)
 	rts
 ;CD: no cartridge twin
+CountButtonPress						;CD: entered here; the cartridge CountButtonPress starts at its first twin line, $2AD3E
 	movem.l	d1/a0,-(sp)
-CountButtonPress						;CD: its first lines have no twin; the rest of it starts here
 	btst.b	#gmclock,(gmode).l		;clock running?
 	bne.w	.x						;no count while the clock is stopped
 	move.w	(TempWord1).l,d1		;pad direction

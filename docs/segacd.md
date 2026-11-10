@@ -245,6 +245,15 @@ The disc assembler did not optimise: an unsized branch is `.w`, `add`/`sub` of a
 
 `tools/segacd_port.py` does the transcription. It walks the cartridge build listing (`output/obj/nhl94 .lst` from `npm run build:retail`; the Sega CD build empties `output/obj/`, so keep a copy) and the disc bytes side by side. A disc instruction that is the cartridge instruction with relocated operands is written as the cartridge source line, with the disc encoding and the cartridge's labels, symbols and comments. Byte-equal data is copied (String macros and all). Disc code with no cartridge twin is written under `;CD:`. A name the fragment uses but does not define is solved from the disc operand: RAM names and struct offsets go to `src/segacd/hockey/hockey.inc` (shared by the HOCKEY.BIN fragments), routines outside the fragment become equates at its top. The tool assembles the result and checks it against the disc; an instruction SNASM would encode differently becomes `dc.w` with a comment (none so far). `--register` adds the fragment to `tools/segacd.json`, `tools/verifySegacd.js` and `docs/segacd-handoff/name_map.csv`. `tools/segacd_hockey.sh` runs it for every HOCKEY.BIN segment in disc order with its range, the names checked by hand (`--name seed=0x18C18`) and the header note, so the fragments and `hockey.inc` can be written again from scratch.
 
+Names across fragments come from `docs/segacd-handoff/name_map.csv` (every fragment's labels, rewritten by `--register`):
+
+- A CD-only line that calls or loads an address another fragment names uses that name, with an equate at the top (`jsr (LoadGameGfx).l` in cards94).
+- A cartridge line is never solved to a routine's name when another fragment has that routine elsewhere. The CD changed the call there, so the line keeps the number with `;CD: the cartridge has setSlotBit`. For example, the CD moved the game loop's calls into the tail of `DoGameFrame`.
+- A label is placed by branch evidence only in its own 94G file, so a shared `rts` such as `rtss2` (collide94) is not defined again in logic94.
+- `--entry StartGame=0x2B7F8` moves a cartridge label to where its callers enter, when the CD put lines in front of the routine's first matching line. Each one is checked by hand and listed with its reason in the driver.
+
+Run the driver twice after a name changes, so the fragments written before the change see it.
+
 ```
 python tools/segacd_port.py --file onetimer94.asm --disc-start 0x76A8 --disc-end 0x7DDC --out src/segacd/hockey/onetimer94.asm --register
 ```

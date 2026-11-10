@@ -12,7 +12,6 @@ null	equ	$1B008
 TeamList	equ	$1B00C
 GameSetUp	equ	$233CC
 UserNameEntry	equ	$2702C
-ScoutingReport	equ	$282B6
 LoadHomeTeamGfx	equ	$2A9D0
 DrawPlayoffSprite	equ	$2ACD2
 StartGame	equ	$2B7F8
@@ -20,7 +19,6 @@ PlayoffStatsScreen	equ	$2DE18
 DoDMA_nd2	equ	$379D6
 DoFill	equ	$37AA2
 setVram	equ	$37B5A
-Vmaddr	equ	$38780
 dobitmap	equ	$387E2
 DecompressGraphicsWithRemap	equ	$38946
 DecompressGraphicsPlain	equ	$38958
@@ -35,11 +33,17 @@ AddTeamBlock	equ	$3940C
 rtss2	equ	$3C000
 AdvanceStringPtr	equ	$3CEC6
 VBlank	equ	$3DAB8
-dodmalist	equ	$3DBF0
 addframe2	equ	$3E6E6
 EncodePW	equ	$4065C
 PlayoffScreen_setup	equ	$41ADE
-X_3C000	equ	$3C000
+SetSPA	equ	$363C0
+forceblack	equ	$36D0A
+cramfade	equ	$36DF6
+ReadJoy1	equ	$374F0
+ReadJoy2	equ	$3750E
+X_38780	equ	$38780
+vb2	equ	$3DB90
+X_3DBF0	equ	$3DBF0
 X_3FC0C	equ	$3FC0C
 SPAglide	equ	$50C
 SPFgloves	equ	$161
@@ -163,7 +167,7 @@ setupice							;set all variables, send non purgeable graphics, build sprite fra
 	adda.w	#ffosize,a3
 	bsr.w	addframe2				;?? addframe
 	move.l	a5,(DMAlistend).l		;end of the DMA list
-	bsr.w	dodmalist
+	bsr.w	X_3DBF0	;CD: the cartridge has dodmalist
 	move.w	(sp)+,(disflags).l		;(palcount is set in setupice_highlight only)
 	move.l	#VBlank,(VBint).l
 	bclr.b	#dfok,(disflags).l		;graphics not ready
@@ -177,7 +181,7 @@ setupice_highlight					;Rebuild the rink sprites after a highlight replay withou
 									;spritechars. Called from StartHL2
 	movem.l	d0-d7/a0-a6,-(sp)
 ;CD: no cartridge twin
-	jsr	$36D0A.l
+	jsr	(forceblack).l
 	bclr.b	#sfpz,(sflags).l
 	move.w	(disflags).l,-(sp)
 	bset.b	#dfng,(disflags).l
@@ -224,7 +228,7 @@ setupice_highlight					;Rebuild the rink sprites after a highlight replay withou
 	adda.w	#ffosize,a3
 	bsr.w	addframe2
 	move.l	a5,(DMAlistend).l		;end of the queued dma
-	bsr.w	dodmalist
+	bsr.w	X_3DBF0	;CD: the cartridge has dodmalist
 	move.w	#$1C,(palcount).l		;fade in new graphics now
 	move.w	(sp)+,(disflags).l
 	move.l	#VBlank,(VBint).l
@@ -276,10 +280,10 @@ ReloadEnergyBarTiles				;Reload the energy bar tiles (EnergyBarMap+8) at energyb
 	movea.l	(FaceOffSpritesPtr).l,a2
 	addq.l	#$8,a2
 	bra.w	DecompressGraphicsPlain
+ReloadFaceOffMap						;CD: entered here; the cartridge ReloadFaceOffMap starts at its first twin line, $3ECFC
 	move.w	(ExtraChars).l,d4
 	movea.l	(FaceOffMapPtr).l,a2
 	addq.l	#$8,a2
-ReloadFaceOffMap						;CD: its first lines have no twin; the rest of it starts here
 	bra.w	DecompressGraphicsPlain
 setupTeamBlocksMap					;Load the TeamBlocks map tiles (Teamblocksmap) at d4+$2C and copy the home
 									;and visitor team blocks to vram at basetileoffset and basetileoffset+$16.
@@ -691,7 +695,7 @@ resetplstuff						;reset team variables/and players on both teams. Called from p
 	bmi.w	.next
 	move.w	#SPAglide,d1			;92 $346
 ;CD: no cartridge twin
-	jsr	$363C0.l
+	jsr	(SetSPA).l
 	clr.w	impact(a3)
 	clr.b	nopuck(a3)
 	andi.b	#$C2,pflags(a3)			;2^pfteam + 2^pfgoal +2^pfna, pflags
@@ -847,14 +851,14 @@ Opening2						;CD: its first lines have no twin; the rest of it starts here
 	cmpa.l	#(varend-M68K_RAM),a0	;clear from VSCRLPM up to it
 	blt.w	.0
 ;CD: no cartridge twin
-	move.l	#$3DB90,(VBint).l
+	move.l	#vb2,(VBint).l
 	bset.b	#$5,$FF800F.l
 	jsr	(GameSetUp).l
 	jsr	(UserNameEntry).l
 Opening3	bsr.w	PlayoffScreen	;playoff tree (returns at once outside playoff mode)
 	btst.b	#0,(gmode2).l			;shootout?
 	bne.w	.1
-	jsr	(ScoutingReport).l			;skipped in shootouts, so no global label here (.1 below is local to
+	jsr	$282B6.l			;skipped in shootouts, so no global label here (.1 below is local to (CD: the cartridge has (ScoutingReport).l)
 									;Opening3)
 .1									;start the game
 	jmp	(StartGame).l
@@ -870,7 +874,7 @@ PlayoffScreen						;bring up playoff screen if in playoff mode. Called from Game
 .L3F350
 	bclr.b	#$5,$FF800F.l
 	tst.w	(OptPlayMode).l
-	beq.w	X_3C000
+	beq.w	rtss2
 	move.l	#VBlank_Playoff,(VBint).l
 	bset.b	#$5,$FF800F.l
 	bclr.b	#df32c,(disflags).l		;32 cell mode off
@@ -1025,9 +1029,9 @@ PlayoffScreen						;bring up playoff screen if in playoff mode. Called from Game
 	bra.w	.input
 ;CD: no cartridge twin
 PlayoffScreen_jin						;CD: placed where the disc branches to it
-	jsr	$374F0.l
+	jsr	(ReadJoy1).l
 	move.w	d3,-(sp)
-	jsr	$3750E.l
+	jsr	(ReadJoy2).l
 	or.w	(sp)+,d3				;either pad
 	btst	#7,d3					;start?
 	bne.w	PlayoffScreen_exit		;yes: leave the screen
@@ -1157,7 +1161,7 @@ VBlank_Playoff						;the PlayoffScreen vblank handler (VBint): dma the sprite ta
 ;CD: no cartridge twin
 	jsr	$378D2.l
 	move.w	$18D30.l,d0	;CD: the cartridge has (VSCRLPM).w
-	bsr.w	Vmaddr					;set the vram address
+	bsr.w	X_38780					;set the vram address (CD: the cartridge has Vmaddr)
 	move.w	#$FEA0,d0				;hscroll = $FEA0 + position
 	add.w	(playoffscroll).l,d0
 ;CD: no cartridge twin
@@ -1177,7 +1181,7 @@ VBlank_Playoff						;the PlayoffScreen vblank handler (VBint): dma the sprite ta
 	bne.s	.L3F80E
 	bclr.b	#$4,$FF800F.l
 .nosat						;CD: placed where the disc branches to it
-	jsr	$36DF6.l
+	jsr	(cramfade).l
 .nograph						;CD: placed where the disc branches to it
 	addq.w	#$1,(Vcount).l
 	movem.l	(sp)+,d0-d7/a0-a6

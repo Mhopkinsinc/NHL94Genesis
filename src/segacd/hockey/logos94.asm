@@ -82,9 +82,9 @@ TeamLogoPalettes					;Team logo palettes, 16 colors per team. Used by PeriodStat
 	subi.w	#$444,-(a6)
 	andi.b	#$8,$400(a4)
 	dc.w	$0800
-	dc.w	$0C00,$48E7
-	dc.w	$80F0
-LeadSong						;CD: its first lines have no twin; the rest of it starts here
+	dc.w	$0C00
+LeadSong						;CD: entered here; the cartridge LeadSong starts at its first twin line, $2B2DA
+	movem.l	d0/a0-a3,-(sp)
 	move.w	(sflags2).l,-(sp)
 	btst.b	#1,(gmode2).l			;shootout?
 	bne.w	LeadSongExit			;shootout: no lead songs

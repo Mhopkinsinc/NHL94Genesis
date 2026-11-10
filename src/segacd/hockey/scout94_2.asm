@@ -32,6 +32,10 @@ UpdateScoutingDisplay	equ	$3F890
 PAttribOverallMask	equ	$41C70
 GAttribOverallMask	equ	$41DD2
 PicturePalette	equ	$428A0
+waitx	equ	$372D0
+ReadJoy1	equ	$374F0
+ReadJoy2	equ	$3750E
+vb2	equ	$3DB90
 
 	org	$28398
 
@@ -42,7 +46,7 @@ ScoutingReport						;CD: its first lines have no twin; the rest of it starts her
 ;CD: no cartridge twin
 	movea.l	(SmallFontMapPtr).l,a2
 	addq.l	#$8,a2
-	jsr	$38946.l
+	jsr	(DecompressGraphicsWithRemap).l
 	dc.w	$0A23,$4567
 	or.l	d4,-$3211(a3)
 	movea.l	(FramerMapPtr).l,a2
@@ -102,7 +106,7 @@ ScoutingReport						;CD: its first lines have no twin; the rest of it starts her
 	movea.l	(HotMapPtr).l,a2
 	adda.l	#$8,a2
 	move.w	d4,$1AD86.l
-	jsr	$38958.l
+	jsr	(DecompressGraphicsPlain).l
 	movea.l	(ColdMapPtr).l,a2
 	adda.l	#$8,a2
 	move.w	d4,(coldiconchars).l	;tiles: 1st vram char
@@ -118,7 +122,7 @@ ScoutingReport						;CD: its first lines have no twin; the rest of it starts her
 	move.w	#$0,$1A448.l
 	bsr.w	PrintAdvantageMarks
 	move.w	#$18,(palcount).l
-	move.l	#$3DB90,(VBint).l
+	move.l	#vb2,(VBint).l
 	bset.b	#$5,$FF800F.l
 .L2852E
 	tst.w	(palcount).l
@@ -262,9 +266,9 @@ ScoutingReport						;CD: its first lines have no twin; the rest of it starts her
 	bsr.w	.L289EC
 	move.l	d0,$17462.l
 	move.l	d1,-(sp)
-	jsr	$374F0.l
+	jsr	(ReadJoy1).l
 	move.w	d3,d5
-	jsr	$3750E.l
+	jsr	(ReadJoy2).l
 	or.w	d3,d5
 	btst.b	#$1,$1AD77.l
 	bne.w	.L28870
@@ -340,12 +344,12 @@ ScoutingReport						;CD: its first lines have no twin; the rest of it starts her
 	move.w	#$10,d7
 	jsr	$6044.w
 .L28870
-	move.l	#$3DB90,(VBint).l
+	move.l	#vb2,(VBint).l
 	jsr	$21FC8.l
 	bset.b	#$5,$FF800F.l
 .top						;CD: placed where the disc branches to it
 	moveq	#$0,d0
-	jsr	$372D0.l
+	jsr	(waitx).l
 	btst.b	#$1,$1AD77.l
 	beq.s	.L288AC
 	movea.l	#$FFFFFFFF,a0

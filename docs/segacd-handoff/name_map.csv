@@ -419,7 +419,7 @@ HOCKEY.BIN,$FC8E,FaceoffAnims,ui94.asm
 HOCKEY.BIN,$FCA0,CheckScoreLeader,ui94.asm
 HOCKEY.BIN,$FCD2,DrawPlayoffSprite,ui94.asm
 HOCKEY.BIN,$FD24,GetTeamStruct,ui94.asm
-HOCKEY.BIN,$FD3E,CountButtonPress,ui94.asm
+HOCKEY.BIN,$FD3A,CountButtonPress,ui94.asm
 HOCKEY.BIN,$FD86,TerminateLogName,ui94.asm
 HOCKEY.BIN,$FDB2,PlayedByHome,ui94.asm
 HOCKEY.BIN,$FDBC,PlayedByText,ui94.asm
@@ -434,7 +434,7 @@ HOCKEY.BIN,$FE92,PuckComingToward,helpers94.asm
 HOCKEY.BIN,$FEDC,ReadGoaliePulled,helpers94.asm
 HOCKEY.BIN,$FF00,EndOneTimer,helpers94.asm
 HOCKEY.BIN,$FF56,TeamLogoPalettes,logos94.asm
-HOCKEY.BIN,$102DA,LeadSong,logos94.asm
+HOCKEY.BIN,$102D6,LeadSong,logos94.asm
 HOCKEY.BIN,$10392,ClearLeadSong,logos94.asm
 HOCKEY.BIN,$1039C,LeadSongExit,logos94.asm
 HOCKEY.BIN,$103A8,ClearPenalties,logos94.asm
@@ -446,7 +446,7 @@ HOCKEY.BIN,$10602,swpchk,chgplayer94.asm
 HOCKEY.BIN,$10608,j_setc1player,chgplayer94.asm
 HOCKEY.BIN,$1060E,j_setc2player,chgplayer94.asm
 HOCKEY.BIN,$10614,LoadGameGfx,CD-only name in hockey94.asm
-HOCKEY.BIN,$10808,StartGame,hockey94.asm
+HOCKEY.BIN,$107F8,StartGame,hockey94.asm
 HOCKEY.BIN,$10984,ClearShotData,hockey94.asm
 HOCKEY.BIN,$10996,restoreteams,hockey94.asm
 HOCKEY.BIN,$109BC,ResetClock,hockey94.asm
@@ -455,7 +455,6 @@ HOCKEY.BIN,$10A3A,StartPer,hockey94.asm
 HOCKEY.BIN,$10B58,StartPer,hockey94.asm
 HOCKEY.BIN,$10B6C,Gameloop,hockey94.asm
 HOCKEY.BIN,$10B8E,DoGameFrame,hockey94.asm
-HOCKEY.BIN,$10B8E,checkwindow,hockey94.asm
 HOCKEY.BIN,$10BF0,periodicevents,hockey94.asm
 HOCKEY.BIN,$10C44,CheckInjury,hockey94.asm
 HOCKEY.BIN,$10C56,RestoreBenchEnergy,hockey94.asm
@@ -697,7 +696,6 @@ HOCKEY.BIN,$19EDC,SetFaceoffComputerLine,logic94.asm
 HOCKEY.BIN,$19F1E,StartFaceoffLineChange,logic94.asm
 HOCKEY.BIN,$19F6C,WaitForFaceoffLineChanges,logic94.asm
 HOCKEY.BIN,$19FAC,UpdateFaceoffLineChangeTimer,logic94.asm
-HOCKEY.BIN,$1A00C,clockcont_0,logic94.asm
 HOCKEY.BIN,$1A012,ChkGoalies,logic94.asm
 HOCKEY.BIN,$1A08E,ReturnGoalies,logic94.asm
 HOCKEY.BIN,$1A0CA,CPgoalie,logic94.asm
@@ -706,7 +704,6 @@ HOCKEY.BIN,$1A22A,puckfaceoff2,logic94.asm
 HOCKEY.BIN,$1A798,ResetAndSelectPlayers,logic94.asm
 HOCKEY.BIN,$1A86C,updatefaceoff,logic94.asm
 HOCKEY.BIN,$1A8EC,Endfaceoff,logic94.asm
-HOCKEY.BIN,$1AA3E,PeriodOver,logic94.asm
 HOCKEY.BIN,$1AAD4,pucknorm,logic94.asm
 HOCKEY.BIN,$1ABC6,ChkOffsides,logic94.asm
 HOCKEY.BIN,$1AC8C,ClearOffsidesIfAllPlayers,logic94.asm
@@ -738,7 +735,7 @@ HOCKEY.BIN,$1BB44,stopna,logic94.asm
 HOCKEY.BIN,$1BB8E,dirtab,logic94.asm
 HOCKEY.BIN,$1BBB2,UnpackNibbles,middle94.asm
 HOCKEY.BIN,$1BBE2,WeightedRandomSelect,middle94.asm
-HOCKEY.BIN,$1BC40,remap,middle94.asm
+HOCKEY.BIN,$1BC14,remap,middle94.asm
 HOCKEY.BIN,$1BD0A,forceblack,middle94.asm
 HOCKEY.BIN,$1BD38,forceblack2,middle94.asm
 HOCKEY.BIN,$1BD66,forcefade,middle94.asm
@@ -765,7 +762,7 @@ HOCKEY.BIN,$1CB58,WaitDMA,middle94.asm
 HOCKEY.BIN,$1CB5A,setVram,middle94.asm
 HOCKEY.BIN,$1CC4A,setVram_0,middle94.asm
 HOCKEY.BIN,$1D71E,Vmaddr,middle94.asm
-HOCKEY.BIN,$1D80E,dobitmap,middle94.asm
+HOCKEY.BIN,$1D7E2,dobitmap,middle94.asm
 HOCKEY.BIN,$1D946,DecompressGraphicsWithRemap,decompress94.asm
 HOCKEY.BIN,$1D958,DecompressGraphicsPlain,decompress94.asm
 HOCKEY.BIN,$1D95E,DecompressGraphics,decompress94.asm
@@ -813,7 +810,7 @@ HOCKEY.BIN,$1E26A,printbig,print94.asm
 HOCKEY.BIN,$1E326,PrintBigChar,print94.asm
 HOCKEY.BIN,$1E372,PutBigTile,print94.asm
 HOCKEY.BIN,$1E3E8,AddSmallFont,print94.asm
-HOCKEY.BIN,$1E402,AddFramer,print94.asm
+HOCKEY.BIN,$1E3FA,AddFramer,print94.asm
 HOCKEY.BIN,$1E40C,AddTeamBlock,print94.asm
 HOCKEY.BIN,$1E41A,AddPenalty,penalty94.asm
 HOCKEY.BIN,$1E456,AddPenalty2,penalty94.asm
@@ -944,7 +941,7 @@ HOCKEY.BIN,$23B3C,setupice_highlight,setup94.asm
 HOCKEY.BIN,$23C60,setupIceRinkPal,setup94.asm
 HOCKEY.BIN,$23C78,setupEASportsMap,setup94.asm
 HOCKEY.BIN,$23C94,ReloadEnergyBarTiles,setup94.asm
-HOCKEY.BIN,$23CFC,ReloadFaceOffMap,setup94.asm
+HOCKEY.BIN,$23CEE,ReloadFaceOffMap,setup94.asm
 HOCKEY.BIN,$23D00,setupTeamBlocksMap,setup94.asm
 HOCKEY.BIN,$23D5A,CopyTeamBlockMapData,setup94.asm
 HOCKEY.BIN,$23D9A,defaultsprites,setup94.asm
@@ -1009,7 +1006,7 @@ HOCKEY.BIN,$25EE4,PenShotBigTxt,setup94.asm
 HOCKEY.BIN,$25EFA,ShowGoalBox,setup94.asm
 HOCKEY.BIN,$260AA,GoalBoxText,setup94.asm
 HOCKEY.BIN,$260CA,PPGoalBigTxt,setup94.asm
-HOCKEY.BIN,$260F2,box,setup94.asm
+HOCKEY.BIN,$260EC,box,setup94.asm
 HOCKEY.BIN,$26108,GetPlayerName,setup94.asm
 HOCKEY.BIN,$2612E,getname,setup94.asm
 HOCKEY.BIN,$2616C,GetPlayerNumInitial,setup94.asm

@@ -66,6 +66,13 @@ GAttribColumns	equ	$41DAA
 PauseText2	equ	$420DC
 LineEditorMenuText	equ	$427D8
 LineEditorMenuNoLoad	equ	$42848
+LoadHomeTeamGfx	equ	$2A9D0
+forceblack	equ	$36D0A
+Sroot	equ	$3708E
+waitx	equ	$372D0
+Vmaddr	equ	$3871E
+DecompressGraphicsWithRemap	equ	$38946
+DecompressGraphicsPlain	equ	$38958
 
 	org	$2C660
 
@@ -2138,7 +2145,7 @@ PrintCrowdDB						;Print crowd level d0 as sqrt(d0 * 4) + 65 " dB"
 	ext.l	d0
 	asl.w	#2,d0					;level * 4
 ;CD: no cartridge twin
-	jsr	$3708E.l
+	jsr	(Sroot).l
 	addi.w	#$41,d0
 	moveq	#3,d1					;3 digits
 	jsr	(PushNumberWidth).l
@@ -2153,14 +2160,14 @@ SetupScreen							;Common start of the stats screens: blank, 40 cell mode, the f
 									;high
 	movem.l	d0-d1/a2,-(sp)			;keep d0/d1 (first/last row) and a2 (team) for the caller
 ;CD: no cartridge twin
-	jsr	$36D0A.l
+	jsr	(forceblack).l
 	bclr.b	#dfok,(disflags).l		;graphics not ready for transfer
 	move.w	(disflags).l,-(sp)
 .noint								;(not branched to)
 	bset.b	#dfng,(disflags).l
 	move.w	(VSPRITES).l,d0
 ;CD: no cartridge twin
-	jsr	$3871E.l
+	jsr	(Vmaddr).l
 .L2E754
 	btst.b	#$7,$FF800E.l
 	bne.s	.L2E754
@@ -2208,7 +2215,7 @@ SetupScreen							;Common start of the stats screens: blank, 40 cell mode, the f
 	bne.s	.L2E836
 	bclr.b	#$7,$FF800F.l
 	clr.w	d0
-	jsr	$3871E.l
+	jsr	(Vmaddr).l
 .L2E850
 	btst.b	#$7,$FF800E.l
 	bne.s	.L2E850
@@ -2230,7 +2237,7 @@ SetupScreen							;Common start of the stats screens: blank, 40 cell mode, the f
 ;CD: no cartridge twin
 	movea.l	(FramerMapPtr).l,a2
 	addq.l	#$8,a2
-	jsr	$38946.l
+	jsr	(DecompressGraphicsWithRemap).l
 	dc.l	$91234567,$89ABCDEF		;remap table
 	move.w	(smallfontchars).l,d4
 	jsr	(AddSmallFont).l
@@ -2270,7 +2277,7 @@ SetupScreen							;Common start of the stats screens: blank, 40 cell mode, the f
 	move.w	d4,(smallfont2chars).l
 	movea.l	(SmallFontMapPtr).l,a2
 	addq.l	#$8,a2
-	jsr	$38946.l
+	jsr	(DecompressGraphicsWithRemap).l
 	add.b	d0,-(a3)
 	dc.w	$4567
 	or.l	d4,-$3211(a3)
@@ -2286,7 +2293,7 @@ SetupScreen							;Common start of the stats screens: blank, 40 cell mode, the f
 	rts
 ;CD: no cartridge twin
 ExitStatsScreen						;CD: placed where the disc branches to it
-	jsr	$36D0A.l
+	jsr	(forceblack).l
 ReloadRinkGraphics					;after the forceblack: back to 32 cell mode and reload the rink (Rinktiles
 									;or RevRinkTiles in a reverse angle
 									;replay), font, framer, EASN and team graphics. Falls out through
@@ -2295,7 +2302,7 @@ ReloadRinkGraphics					;after the forceblack: back to 32 cell mode and reload th
 	bset.b	#dfng,(disflags).l
 	move.w	$18D30.l,d0	;CD: the cartridge has (VSCRLPM).w
 ;CD: no cartridge twin
-	jsr	$3871E.l
+	jsr	(Vmaddr).l
 .L2E9A0
 	btst.b	#$7,$FF800E.l
 	bne.s	.L2E9A0
@@ -2360,12 +2367,12 @@ ReloadRinkGraphics					;after the forceblack: back to 32 cell mode and reload th
 	movea.l	(RevRinkTilelistPtr).l,a2
 	addq.l	#$8,a2
 .L2EAD8
-	jsr	$38958.l
-	jsr	$2A9D0.l
+	jsr	(DecompressGraphicsPlain).l
+	jsr	(LoadHomeTeamGfx).l
 	move.w	(smallfontchars).l,d4
 	movea.l	(SmallFontMapPtr).l,a2
 	addq.l	#$8,a2
-	jsr	$38946.l
+	jsr	(DecompressGraphicsWithRemap).l
 	dc.l	$43434567,$89ABCDEF		;remap table
 	move.w	(framercset).l,d4		;frame chars
 	jsr	(AddFramer).l				;send the frame tiles
@@ -2403,7 +2410,7 @@ TimeoutMenu							;Pause menu "Timeout" for team a2: switch the menu to PauseTex
 	jsr	(RestoreTeamEnergy).l
 	moveq	#$78,d0
 ;CD: no cartridge twin
-	jmp	$372D0.l
+	jmp	(waitx).l
 Pausemode_go						;Pick team a2's goalie (or no goalie) from a
 									;list (Pausemode_gnum) with up / down, C or start; sets tmgoalie and
 									;SetPersonel. Menu item handler

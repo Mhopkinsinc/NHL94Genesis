@@ -41,6 +41,8 @@ printbigz	equ	$39258
 AddSmallFont	equ	$393E8
 setupIceRinkPal	equ	$3EC60
 VBlank_SetOptions	equ	$400D0
+orjoy	equ	$37460
+DecompressGraphicsPlain	equ	$38958
 
 	org	$26348
 
@@ -70,7 +72,7 @@ NameEntryScreen						;"NAME ENTRY" screen for the user records (own vblank VBlan
 	jsr	(setVram).l
 ;CD: no cartridge twin
 	bset.b	#$5,$FF800F.l
-	jsr	$37460.l
+	jsr	(orjoy).l
 	move.w	d4,(framercset).l
 	movea.l	(FramerMapPtr).l,a2
 	addq.l	#$8,a2
@@ -113,7 +115,7 @@ NameEntryScreen						;"NAME ENTRY" screen for the user records (own vblank VBlan
 ;CD: no cartridge twin
 	movea.l	(LogoBoxMapPtr).l,a2
 	addq.l	#$8,a2
-	jsr	$38958.l
+	jsr	(DecompressGraphicsPlain).l
 	move.w	d4,$18D40.l
 	movea.l	(BigFontMapPtr).l,a2
 	addq.l	#$8,a2

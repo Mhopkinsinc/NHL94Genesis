@@ -38,6 +38,10 @@ NoPicSkater1	equ	$42CD6
 NoPicSkater2	equ	$43040
 NoPicGoalie1	equ	$433AA
 NoPicGoalie2	equ	$43714
+LoadGameGfx	equ	$2B614
+ExitStatsScreen	equ	$2E980
+forceblack	equ	$36D0A
+DoDMApro	equ	$37762
 
 	org	$24B5E
 
@@ -1009,7 +1013,7 @@ RunPlayerOverlay						;CD-only routine (a name given here, not a cartridge name)
 	bne.s	.L25F9E
 	bclr.b	#$7,$FF800F.l
 	dbf	d0,.L25F64
-	jsr	$36D0A.l
+	jsr	(forceblack).l
 	move.l	a6,-(sp)
 	movea.l	$19360.l,a6
 	btst.b	#$5,$FF800F.l
@@ -1027,7 +1031,7 @@ RunPlayerOverlay						;CD-only routine (a name given here, not a cartridge name)
 	move.w	(FourWayPlay).l,d2
 	move.w	#$5,d7
 	jsr	$6044.w
-	jsr	$2B614.l
+	jsr	(LoadGameGfx).l
 	jsr	$21FC8.l
 	move.w	#$2,d0
 	jsr	$5F22.w
@@ -1046,11 +1050,11 @@ RunPlayerOverlay						;CD-only routine (a name given here, not a cartridge name)
 	move.w	#$13,d0
 	lea	$19364.l,a0
 	jsr	$5F22.w
-	jsr	$36D0A.l
+	jsr	(forceblack).l
 	move.w	#$8000,d0
 	move.w	#$0,d1
 	movea.l	#$AFF60,a0
-	jsr	$37762.l
+	jsr	(DoDMApro).l
 	jsr	$3816C.l
 .L2606A
 	btst.b	#$7,$FF800E.l
@@ -1078,7 +1082,7 @@ RunPlayerOverlay						;CD-only routine (a name given here, not a cartridge name)
 .L260D2
 	move.l	a6,$19360.l
 	movea.l	(sp)+,a6
-	jmp	$2E980.l
+	jmp	(ExitStatsScreen).l
 AppendTeamName						;Append the city name of team d0 (TeamList block Strings) to a1
 									;(appstring)
 	movem.l	d0/a0-a3,-(sp)

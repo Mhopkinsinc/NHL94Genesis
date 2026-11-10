@@ -38,7 +38,6 @@ startpause1	equ	$2C022
 startpause2	equ	$2C034
 startpause3	equ	$2C04C
 startpause4	equ	$2C060
-rtss2	equ	$31AB6
 forceblack	equ	$36D0A
 randomd0s	equ	$37044
 randomd0	equ	$37050
@@ -61,6 +60,7 @@ Stop4Pen	equ	$39A56
 PushRef	equ	$39D02
 checkcoll	equ	$3A0FA
 checkpuckcoll	equ	$3B882
+rtss2	equ	$3C000
 makepde	equ	$3C274
 getpde	equ	$3C2A0
 setpde	equ	$3C2C2
@@ -77,14 +77,26 @@ resetplstuff	equ	$3F0C6
 box	equ	$410EC
 asstab	equ	$415CC
 linelist	equ	$419F6
+ResetClock	equ	$2B9BC
+clockcont_0	equ	$2BE98
 X_317B6	equ	$317B6
 X_31AB6	equ	$31AB6
 X_31E14	equ	$31E14
 X_33056	equ	$33056
+X_3500C	equ	$3500C
 X_358D4	equ	$358D4
-X_3C000	equ	$3C000
-X_3CA0C	equ	$3CA0C
-X_3CBA0	equ	$3CBA0
+X_35A3E	equ	$35A3E
+DoDMA	equ	$3777C
+print	equ	$38F80
+linebar	equ	$3C746
+AvgCline	equ	$3C7E2
+Intermission	equ	$3CA0C
+UpdateScores	equ	$3CBA0
+SetupPenaltyShot	equ	$3D5E4
+forcepldata	equ	$3D668
+ResetBench	equ	$3D6E2
+GameOver	equ	$3F29E
+AddPlayoffTeamStats	equ	$40838
 PenGhold	equ	$8
 PenIcing	equ	$C
 SPAHold	equ	$C90
@@ -1295,7 +1307,7 @@ SetLCmode2							;a2 = team struct. Draw the line change box
 	bsr.w	setlccords
 ;CD: no cartridge twin
 .frame						;CD: placed where the disc branches to it
-	jsr	$38CA0.l
+	jsr	(Framer).l
 	subi.w	#2,(printy).l
 .0									;first row: the three line choices
 	addi.w	#1,(printx).l
@@ -1315,12 +1327,12 @@ SetLCmode2							;a2 = team struct. Draw the line change box
 	move.l	#$44120,(a1)			;String length 4, 'A '
 	add.b	d4,2(a1)				;'A'-'C'
 ;CD: no cartridge twin
-	jsr	$38F80.l
+	jsr	(print).l
 	move.w	d0,-(sp)
-	movea.l	#$419F6,a1
-	jsr	$3CEBE.l
+	movea.l	#linelist,a1
+	jsr	(Fprintsmall).l
 	move.w	(sp)+,d0
-	jsr	$3C746.l
+	jsr	(linebar).l
 	subi.w	#5,(printx).l
 .up									;next row up
 	subi.w	#1,(printy).l
@@ -1331,7 +1343,7 @@ SetLCmode2							;a2 = team struct. Draw the line change box
 	adda.w	(a1),a1
 	addi.w	#2,(printx).l
 ;CD: no cartridge twin
-	jmp	$38F80.l
+	jmp	(print).l
 setlccords							;set printx/y to cords for lc box on team a2
 	clr.w	d0
 	cmpa.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
@@ -1343,7 +1355,7 @@ setlccords							;set printx/y to cords for lc box on team a2
 	eori.w	#$16,d0
 ;CD: no cartridge twin
 .noflip						;CD: placed where the disc branches to it
-	jsr	$38F6E.l
+	jsr	(printz).l
 	String	CC_Font1Pri,$16,0,0
 	add.w	d0,(printy).l
 	moveq	#2,d0
@@ -1459,7 +1471,7 @@ lcfound_close						;close lc box
 	move.w	#$7FF,d2
 	bsr.w	eraser
 ;CD: no cartridge twin
-	jmp	$3C48C.l
+	jmp	(printscores1).l
 ; c button press check/speed
 burst								;cbut press check/speed. Also entered from check4check burst costs energy
 									;$CC (only when line changes are on, OptLine = 0)
@@ -2574,11 +2586,11 @@ asspenalty							;player a3 should goto penalty box
 .st									;not at the box yet: skate to temp3/temp4
 	move.w	temp3(a3),d0
 	move.w	temp4(a3),d1
-	movea.l	#rtss2,a0
+	movea.l	#$31AB6,a0	;CD: the cartridge has #rtss2
 	bra.w	skateto
 .clrplayer							;take the joystick off player a3
 	btst.b	#pfjoycon,pflags(a3)
-	beq.w	rtss2	;CD: the cartridge has rtss4
+	beq.w	X_31AB6	;CD: the cartridge has rtss4
 	clr.w	d4
 	move.w	SCnum(a3),d0
 	cmp.w	(c1playernum).l,d0
@@ -2588,7 +2600,7 @@ asspenalty							;player a3 should goto penalty box
 ; add player a3 to penalty box
 assdopen							;add player a3 to penalty box
 	btst.b	#pfalock,pflags(a3)
-	bne.w	rtss2	;CD: the cartridge has rtss4
+	bne.w	X_31AB6	;CD: the cartridge has rtss4
 	moveq	#$10,d0
 	btst.b	#pfteam,pflags(a3)
 	beq.w	.1
@@ -2601,7 +2613,7 @@ assdopen							;add player a3 to penalty box
 ; player a3 should exit penalty area
 assepen								;player a3 should exit penalty area
 	btst.b	#pfalock,pflags(a3)
-	bne.w	rtss2	;CD: the cartridge has rtss4
+	bne.w	X_31AB6	;CD: the cartridge has rtss4
 	bclr.b	#pfna,pflags(a3)
 	beq.w	.nna
 	bset.b	#pfnc,pflags(a3)		;set player in no collision mode
@@ -2695,9 +2707,9 @@ assfaceoffpl						;Face off player
 .lefty								;store the frame; computer players also start the faceoff stance once
 	move.w	d0,(a0)
 	btst.b	#pfjoycon,pflags(a3)
-	bne.w	rtss2	;CD: the cartridge has .exit2
+	bne.w	X_31AB6	;CD: the cartridge has .exit2
 	bset.b	#pf2aip,pflags2(a3)
-	bne.w	rtss2	;CD: the cartridge has .exit2
+	bne.w	X_31AB6	;CD: the cartridge has .exit2
 	move.w	#SPAfaceoff,d1
 	cmpi.w	#$10,(SortCords+(puckscnum*SCstruct)+temp1).l
 	bls.w	.d
@@ -2719,15 +2731,15 @@ assfight							;rts only: there is no fighting
 ; player should do nothing
 donothing							;player should do nothing
 	btst.b	#pfalock,pflags(a3)		;#pfalock
-	bne.w	rtss2	;CD: the cartridge has assfwatch
+	bne.w	X_31AB6	;CD: the cartridge has assfwatch
 	btst.b	#pfjoycon,pflags(a3)	;#pfjoycon
-	bne.w	rtss2	;CD: the cartridge has assfwatch
+	bne.w	X_31AB6	;CD: the cartridge has assfwatch
 	moveq	#8,d0
 	bra.w	doplayeracc
 ; player skates with stanley cup overhead
 assstanley							;player a3 skates with stanley cup overhead
 	btst.b	#pfalock,pflags(a3)
-	bne.w	rtss2	;CD: the cartridge has assfwatch
+	bne.w	X_31AB6	;CD: the cartridge has assfwatch
 	bclr.b	#pfna,pflags(a3)
 	beq.w	.nna
 	move.w	#$5A,temp3(a3)			;90
@@ -2745,14 +2757,14 @@ assstanley							;player a3 skates with stanley cup overhead
 	sub.w	Ypos(a3),d1
 	bsr.w	vtoa
 	cmpi.w	#7,d0
-	bgt.w	rtss2	;CD: the cartridge has assfwatch
+	bgt.w	X_31AB6	;CD: the cartridge has assfwatch
 	move.w	d0,d2
 	move.w	d2,facedir(a3)
 	bra.w	playeracc
 ; player a3 celebrates, if scoreing player then do arm pump
 assscore							;player a3 celebrates, if scoring player then do arm pump
 	btst.b	#pfalock,pflags(a3)
-	bne.w	rtss2	;CD: the cartridge has assfwatch
+	bne.w	X_31AB6	;CD: the cartridge has assfwatch
 	bclr.b	#pfna,pflags(a3)
 	beq.w	.nna
 	bsr.w	.1
@@ -2764,7 +2776,7 @@ assscore							;player a3 celebrates, if scoring player then do arm pump
 .0									;temp4 = Vpos; celebrate where the camera is
 	move.w	(Vpos).l,temp4(a3)
 .nna								;every call: in a shootout hold the skater until shootoutdelay runs out
-	movea.l	#rtss2,a0
+	movea.l	#$31AB6,a0	;CD: the cartridge has #rtss2
 	move.w	temp3(a3),d0
 	move.w	temp4(a3),d1
 	btst.b	#0,(gmode2).l			;start of new code
@@ -2807,12 +2819,12 @@ rtss6								;shared rts for the early exits nearby
 ; player a3 is defensive player on offense
 assdefo								;player a3 is defensive player on offense
 	btst.b	#pfalock,pflags(a3)
-	bne.w	rtss2	;CD: the cartridge has rtss6
+	bne.w	X_31AB6	;CD: the cartridge has rtss6
 	btst.b	#gmclock,(gmode).l		;#gmclock
 	bne.w	donothing				;Whistle blown, do nothing
 	bsr.w	check4bench				;check if player should go to bench
 	btst.b	#pfjoycon,pflags(a3)	;#pfjoycon - is player joystick controlled
-	bne.w	rtss2					;yes, then exit (CD: the cartridge has rtss6)
+	bne.w	X_31AB6					;yes, then exit (CD: the cartridge has rtss6)
 	bclr.b	#pfna,pflags(a3)		;#pfna - checks if theres a new assignment
 	beq.w	.nna
 	clr.w	temp1(a3)				;clears temp1 if new assignment
@@ -2875,12 +2887,12 @@ assdefo								;player a3 is defensive player on offense
 ; player a3 is defensive player on defense
 assdefd								;player a3 is defensive player on defense
 	btst.b	#pfalock,pflags(a3)		;check if locked in animiation
-	bne.w	rtss2					;exit if so (CD: the cartridge has rtss6)
+	bne.w	X_31AB6					;exit if so (CD: the cartridge has rtss6)
 	btst.b	#gmclock,(gmode).l		;check if clock running
 	bne.w	donothing				;donothing if no clock
 	bsr.w	check4bench				;check if going to bench
 	btst.b	#pfjoycon,pflags(a3)	;check if joystick controlled
-	bne.w	rtss2					;exit if so (CD: the cartridge has rtss6)
+	bne.w	X_31AB6					;exit if so (CD: the cartridge has rtss6)
 	bclr.b	#pfna,pflags(a3)		;clear new assignment bit
 	beq.w	.nna					;branch if no new assignment
 	clr.w	temp1(a3)				;clear temp1
@@ -3427,7 +3439,7 @@ assgoaliectrl						;joypad controlled goalie control: a3 = goalie; a goalie not 
 	bne.w	checkanim				;branch if set
 .na									;no new assignment
 	btst.b	#pfalock,pflags(a3)		;check if anim lock
-	bne.w	rtss2					;exit if so
+	bne.w	X_31AB6					;exit if so (CD: the cartridge has rtss2)
 	bsr.w	check4bench
 	bclr.b	#pfna,pflags(a3)		;clear new assignment bit
 	beq.w	.nna					;branch if already cleared
@@ -3438,7 +3450,7 @@ assgoaliectrl						;joypad controlled goalie control: a3 = goalie; a goalie not 
 	btst.b	#pf2aip,pflags2(a3)		;check if anim in progress
 	bne.w	.ex					;exit if so (CD: the cartridge has rtss2)
 	btst.b	#gmclock,(gmode).l		;check if clock stopped
-	bne.w	rtss2					;exit if so
+	bne.w	X_31AB6					;exit if so (CD: the cartridge has rtss2)
 	tst.w	temp5(a3)				;test temp5
 	bmi.w	.nofo					;branch if less than 0
 	move.w	SCnum(a3),d0			;move SCnum into d0
@@ -3945,7 +3957,7 @@ ClampYPosition						;d1 = y clamped to +-$103, minus goal line d3. d0 = 0 if a3 
 AdjustFacingDirection				;Turn facedir one step toward direction d0
 	move.w	facedir(a3),d1			;facedir
 	sub.w	d1,d0					;d0 = wanted - current
-	beq.w	rtss2
+	beq.w	X_31AB6	;CD: the cartridge has rtss2
 	neg.w	d0
 	andi.w	#4,d0					;bit 2 of (current - wanted) picks the turn sense
 	lsr.w	#1,d0
@@ -4487,9 +4499,9 @@ chk4lc								;see if computer should call line change
 	neg.w	d0
 .0									;coordinates for his end
 	tst.w	d0
-	bmi.w	rtss2
+	bmi.w	X_31AB6	;CD: the cartridge has rtss2
 	cmpi.w	#$58,d0
-	bgt.w	rtss2
+	bgt.w	X_31AB6	;CD: the cartridge has rtss2
 ;CD: no cartridge twin
 .L3381E
 	btst.b	#$7,$FF800E.l
@@ -4507,9 +4519,9 @@ chk4lc								;see if computer should call line change
 	bne.s	.L33858
 	bclr.b	#$7,$FF800F.l
 	andi.w	#3,d0
-	bne.w	rtss2
+	bne.w	X_31AB6	;CD: the cartridge has rtss2
 	btst.b	#pf2lcm,pflags2(a3)
-	bne.w	rtss2
+	bne.w	X_31AB6	;CD: the cartridge has rtss2
 	movea.l	#$1834C,a2	;a2 = own team struct, a1 = the other one (CD: the cartridge has #(tmstruct-M68K_RAM))
 	lea	tmsize(a2),a1
 	btst.b	#pfteam,pflags(a3)
@@ -4517,13 +4529,13 @@ chk4lc								;see if computer should call line change
 ;CD: no cartridge twin
 	exg	a1,a2
 .1						;CD: placed where the disc branches to it
-	jsr	$3C7E2.l
+	jsr	(AvgCline).l
 	cmpi.w	#$C00,d0
-	bhi.w	rtss2
+	bhi.w	X_31AB6	;CD: the cartridge has rtss2
 	bsr.w	CompLine				;pick and apply the new line
 ;CD: no cartridge twin
 	jsr	(setpersonel).l
-	jsr	$3C48C.l
+	jsr	(printscores1).l
 	bra.w	CompShoot
 .L338B4
 	rts
@@ -4664,11 +4676,11 @@ chk4shot							;player a3 looks for shot (computer controlled)
 	btst.b	#0,spodds(a3)
 	beq.w	.3
 	cmpi.w	#7,d0
-	bgt.w	rtss2
+	bgt.w	X_31AB6	;CD: the cartridge has rtss2
 	bra.w	.4
 .3									;odd spodds: a roll of 7 or less shoots; even: 8 or less
 	cmpi.w	#8,d0
-	bgt.w	rtss2
+	bgt.w	X_31AB6	;CD: the cartridge has rtss2
 .4									;shoot only from inside the shooting distance
 	move.w	(pucky).l,d0
 	btst.b	#pfgoal,pflags(a3)
@@ -4676,12 +4688,12 @@ chk4shot							;player a3 looks for shot (computer controlled)
 	neg.w	d0
 .ds0								;coordinates for his end
 	tst.w	d0
-	bmi.w	rtss2
+	bmi.w	X_31AB6	;CD: the cartridge has rtss2
 	move.w	#$108,d1
 	sub.w	d0,d1
-	bmi.w	rtss2
+	bmi.w	X_31AB6	;CD: the cartridge has rtss2
 	btst.b	#sf2offsig,(sflags2).l
-	bne.w	rtss2
+	bne.w	X_31AB6	;CD: the cartridge has rtss2
 ;CD: no cartridge twin
 CompShoot						;CD: placed where the disc branches to it
 	adda.w	#$4,sp
@@ -4707,7 +4719,7 @@ chk4pass							;player a3 looks for good pass (computer controlled)
 	add.b	spodds(a3),d0
 	bsr.w	randomd0				;0 <= d0 < $10 + odds
 	cmpi.w	#$C,d0
-	bgt.w	rtss2
+	bgt.w	X_31AB6	;CD: the cartridge has rtss2
 .dp0								;threat check passed
 	moveq	#6,d0					;Set up pass assignment
 	bsr.w	randomd0				;d0 = random teammate index 0-5
@@ -4722,21 +4734,21 @@ chk4pass							;player a3 looks for good pass (computer controlled)
 	cmpi.w	#$FFD8,(puckx).l
 	blt.w	.1
 	cmpi.w	#$CC,(pucky).l
-	bgt.w	rtss2
+	bgt.w	X_31AB6	;CD: the cartridge has rtss2
 	cmpi.w	#$FF34,(pucky).l
-	blt.w	rtss2
+	blt.w	X_31AB6	;CD: the cartridge has rtss2
 .1									;not to himself
 	cmp.w	SCnum(a3),d0
-	beq.w	rtss2
+	beq.w	X_31AB6	;CD: the cartridge has rtss2
 	asl.w	#7,d0					;d0 * SCstruct ($80)
 	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d0,a0					;a0 = receiver sort object
 	tst.w	position(a0)
-	ble.w	rtss2
+	ble.w	X_31AB6	;CD: the cartridge has rtss2
 	btst.b	#pf2unav,pflags2(a0)
-	bne.w	rtss2
+	bne.w	X_31AB6	;CD: the cartridge has rtss2
 	btst.b	#pfalock,pflags(a0)
-	bne.w	rtss2
+	bne.w	X_31AB6	;CD: the cartridge has rtss2
 	move.w	Ypos(a0),d0				;check for pass across blue line
 	move.w	Ypos(a3),d1				;d0 = receiver y, d1 = my y (toward the goal I shoot at)
 	btst.b	#pfgoal,pflags(a3)
@@ -4751,13 +4763,13 @@ chk4pass							;player a3 looks for good pass (computer controlled)
 	subi.w	#$58,d1
 	eor.w	d0,d1					;sign differs if the pass crosses the blue line
 	movem.w	(sp)+,d0-d1
-	bmi.w	rtss2
+	bmi.w	X_31AB6	;CD: the cartridge has rtss2
 .oko								;not across the blue line
 	cmpi.w	#$58,d0
 	bgt.w	.ok
 	sub.w	d1,d0
 	cmpi.w	#$FFF1,d0
-	blt.w	rtss2
+	blt.w	X_31AB6	;CD: the cartridge has rtss2
 .ok									;pass is safe
 	move.w	0(a0),d0					;receiver accepted: get the pass direction
 	sub.w	(puckx).l,d0
@@ -4789,13 +4801,13 @@ chk4pass							;player a3 looks for good pass (computer controlled)
 	bhi.w	.co1					;farther than the receiver: ignore
 	bsr.w	vtoa
 	cmp.w	(passdir).l,d0
-	beq.w	rtss2
+	beq.w	X_31AB6	;CD: the cartridge has rtss2
 .co1								;next opponent
 	adda.w	#SCstruct,a1			;next opponent
 	dbf	d3,.co0
 	bsr.w	dopass					;lane is clear: pass in passdir
 	tst.w	position(a3)
-	beq.w	rtss2
+	beq.w	X_31AB6	;CD: the cartridge has rtss2
 ;CD: no cartridge twin
 	adda.w	#$4,sp
 	bra.w	assexit
@@ -4804,25 +4816,25 @@ EvadePC								;player a3 should avoid the puck carrier if he's on my team out: 
 									;direction 0-7 pointing away from the puck (from vtoa), adjusted near the
 									;blue line
 	tst.w	(puckc).l
-	bmi.w	rtss2					;no puck carrier
+	bmi.w	X_31AB6					;no puck carrier (CD: the cartridge has rtss2)
 	move.b	Xvel(a3),d2				;Xvel
 	sub.b	(puckvx).l,d2			;sub puckvx from Xvel
 	ext.w	d2
 	add.w	0(a3),d2					;add Xpos
 	sub.w	(puckx).l,d2			;Sub puckx
 	cmpi.w	#$28,d2					;compare to 40 decimal
-	bgt.w	rtss2					;exit if greater than 40
+	bgt.w	X_31AB6					;exit if greater than 40 (CD: the cartridge has rtss2)
 	cmpi.w	#$FFD8,d2				;compare to -40
-	blt.w	rtss2					;exit if less than -40
+	blt.w	X_31AB6					;exit if less than -40 (CD: the cartridge has rtss2)
 	move.b	Yvel(a3),d1				;Yvel
 	sub.b	(puckvy).l,d1			;sub puckvy from Yvel
 	ext.w	d1
 	add.w	Ypos(a3),d1				;add Ypos to d1
 	sub.w	(pucky).l,d1			;Sub pucky
 	cmpi.w	#$28,d1					;compare to 40 dec
-	bgt.w	rtss2					;exit if greater than
+	bgt.w	X_31AB6					;exit if greater than (CD: the cartridge has rtss2)
 	cmpi.w	#$FFD8,d1				;compare to -40 dec
-	blt.w	rtss2					;exit if less than
+	blt.w	X_31AB6					;exit if less than (CD: the cartridge has rtss2)
 	move.w	0(a3),d0					;Xpos
 	sub.w	(puckx).l,d0			;Sub puckx from Xpos
 	move.w	Ypos(a3),d1				;Ypos
@@ -4858,7 +4870,7 @@ EvadePC								;player a3 should avoid the puck carrier if he's on my team out: 
 
 checkob								;bring up little warning ref if a player on your team is over blue line
 	btst.b	#gmoffs,(gmode).l
-	beq.w	rtss2
+	beq.w	X_31AB6	;CD: the cartridge has rtss2
 	btst.b	#2,(BA_PS_flags).l
 	bne.w	.L33D94	;CD: the cartridge has rtss2
 	movem.l	d0-d1/a0,-(sp)
@@ -5083,7 +5095,7 @@ assnearest							;this is a special assignment used for the player who is neares
 	bra.w	assexit					;I (old a3) drop this assignment
 .de1								;nobody nearer: go to the puck
 	btst.b	#pfalock,pflags(a3)		;pfalock - check if locked in animation
-	bne.w	rtss2					;exit if locked
+	bne.w	X_31AB6					;exit if locked (CD: the cartridge has rtss2)
 	moveq	#2,d1					;move 2 into d1
 	cmpi.w	#$190,d2				;compare $190 (20^2) to d2. d2 = distance to puck^2
 	bhi.w	.nfar					;branch if d2 higher
@@ -5108,7 +5120,7 @@ assnearest							;this is a special assignment used for the player who is neares
 	move.w	#$F0,temp3(a3)			;move 240 dec into temp3
 .nodec								;temp3 = 240 on a low roll: probably a hit timer
 	btst.b	#pfalock,pflags(a3)		;pfalock - check if anim lock
-	bne.w	rtss2					;exit if locked
+	bne.w	X_31AB6					;exit if locked (CD: the cartridge has rtss2)
 	btst.b	#2,(BA_PS_flags).l		;check bit 2
 	beq.w	.gmclock				;jump if not set
 	btst.b	#5,(BA_PS_flags).l		;check bit 5
@@ -5118,7 +5130,7 @@ assnearest							;this is a special assignment used for the player who is neares
 	bne.w	donothing				;branch if not
 .nodec2								;clock running: count down
 	btst.b	#pfjoycon,pflags(a3)	;pfjoycon - check if controlled
-	bne.w	rtss2					;jump if controlled
+	bne.w	X_31AB6					;jump if controlled (CD: the cartridge has rtss2)
 	btst.b	#tmfmid,tmflags(a2)		;tmfmid of tmflags(a2)
 	bne.w	.nodec22
 	tst.w	(puckc).l				;check if theres a puck carrier
@@ -5233,7 +5245,7 @@ check4check							;look for good opportunity for checking opponent. Falls in fro
 .nopen								;penalty odds
 	bsr.w	randomd0				;RNG d0
 	cmpi.w	#6,d0					;compare 6 to d0
-	bhi.w	rtss2					;exit if d0 higher than 6
+	bhi.w	X_31AB6					;exit if d0 higher than 6 (CD: the cartridge has rtss2)
 	moveq	#5,d2					;move 5 into d2
 	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
 	cmpi.w	#6,SCnum(a3)			;check if player on home team
@@ -5289,7 +5301,7 @@ check4check							;look for good opportunity for checking opponent. Falls in fro
 ; assignment for catching pass
 asspassrec							;assignment for catching a pass (apassrec)
 	btst.b	#pfalock,pflags(a3)		;pfalock - animation lock
-	bne.w	rtss2					;exit if locked
+	bne.w	X_31AB6					;exit if locked (CD: the cartridge has rtss2)
 	btst.b	#gmclock,(gmode).l		;gmclock - check if clock running
 	bne.w	donothing				;exit if clock stopped
 	btst.b	#pfjoycon,pflags(a3)	;pfjoycon - joystick controlled?
@@ -5348,20 +5360,20 @@ asspassrec							;assignment for catching a pass (apassrec)
 	move.w	(sp)+,d0
 .ex2								;count down the pass timer; when out, back to normal play
 	sub.b	d7,temp1(a3)
-	bpl.w	rtss2
+	bpl.w	X_31AB6	;CD: the cartridge has rtss2
 .exit								;exit
 	bclr.b	#pfdoff,pflags(a3)
 	bra.w	assexit
 SkateToTempTarget					;unreferenced. Skate to temp3 / temp4, then rts
 	move.w	temp3(a3),d0			;temp3
 	move.w	temp4(a3),d1			;temp4
-	lea	X_3C000(pc),a0	;CD: the cartridge has rtss2(pc)
+	lea	rtss2(pc),a0
 	bra.w	skateto
 
 ; assignment for computer shooting
 assshoot							;assignment for computer shooting. Assignment ashoot ($12)
 	btst.b	#pfalock,pflags(a3)		;pfalock - animation locked
-	bne.w	rtss2
+	bne.w	X_31AB6	;CD: the cartridge has rtss2
 	bclr.b	#pfna,pflags(a3)		;clear pfna
 	beq.w	.nna
 	bra.w	SetShotMode				;first frame: start the shot (temp2 = swing time set by CompShoot)
@@ -5646,13 +5658,13 @@ puckpenshot							;puck start for a penalty shot or shootout: on the first call 
 	dbf	d4,.scrollloop
 	move.w	#$3C,(yleader).l
 ;CD: no cartridge twin
-	jsr	$3D6E2.l
+	jsr	(ResetBench).l
 	movea.l	#tmstruct,a2
 	jsr	(setpersonel).l
-	jsr	$3D5E4.l
+	jsr	(SetupPenaltyShot).l
 	adda.l	#$366,a2
 	jsr	(setpersonel).l
-	jsr	$3D5E4.l
+	jsr	(SetupPenaltyShot).l
 	jsr	(resetplstuff).l
 	move.l	a3,-(sp)
 	movea.l	#SortCords+(11*SCstruct),a3	;away goalie SCstruct
@@ -5912,14 +5924,14 @@ puckfaceoff							;puck controller for the face off: a3 = the face off controlle
 	bclr.b	#1,(sflags6).l
 	bclr.b	#1,(gmode2).l
 	tst.w	(gameclock).l
-	beq.w	PeriodOver
+	beq.w	X_35A3E	;CD: the cartridge has PeriodOver
 	btst.b	#gmeog,(gmode).l
-	bne.w	PeriodOver
+	bne.w	X_35A3E	;CD: the cartridge has PeriodOver
 	cmpi.w	#3,(gsp).l
 	bne.w	.npo
 	move.w	(HmGoals).l,d0
 	cmp.w	(AwGoals).l,d0
-	bne.w	clockcont_0
+	bne.w	X_3500C	;CD: the cartridge has clockcont_0
 .npo								;no overtime win
 	btst.b	#gmpendel,(gmode).l
 	bne.w	Stop4Pen
@@ -5989,13 +6001,13 @@ puckfaceoff							;puck controller for the face off: a3 = the face off controlle
 SetFaceoffComputerLine				;faceoff: start a line change for team d0 when the computer controls it
 									;(line changes on)
 	tst.w	(OptLine).l
-	bne.w	X_3C000	;CD: the cartridge has rtss2
+	bne.w	rtss2
 	btst.b	#4,(sflags7).l
 	bne.w	.dochange
 	cmp.w	(cont1team).l,d0
-	beq.w	X_3C000	;CD: the cartridge has rtss2
+	beq.w	rtss2
 	cmp.w	(cont2team).l,d0
-	beq.w	X_3C000	;CD: the cartridge has rtss2
+	beq.w	rtss2
 .dochange							;change the line
 	bsr.w	CompLine
 ;CD: no cartridge twin
@@ -6032,9 +6044,9 @@ WaitForFaceoffLineChanges			;run both teams' faceoff line change timers (temp1 /
 	move.w	#$42,d0
 	bsr.w	UpdateFaceoffLineChangeTimer
 	tst.w	temp1(a3)
-	bpl.w	X_3C000	;CD: the cartridge has rtss2
+	bpl.w	rtss2
 	tst.w	temp2(a3)
-	bpl.w	X_3C000	;CD: the cartridge has rtss2
+	bpl.w	rtss2
 	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	lea	tmsize(a2),a1
 	moveq	#1,d0
@@ -6044,7 +6056,7 @@ WaitForFaceoffLineChanges			;run both teams' faceoff line change timers (temp1 /
 	bra.w	assreplace
 UpdateFaceoffLineChangeTimer		;count down one team's faceoff line change timer at offset d0 of a3
 	tst.w	(a3,d0.w)
-	bmi.w	X_3C000	;CD: the cartridge has rtss2
+	bmi.w	rtss2
 	move.w	$4(a3,d0.w),d1
 	asl.w	#7,d1
 	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
@@ -6059,7 +6071,7 @@ UpdateFaceoffLineChangeTimer		;count down one team's faceoff line change timer a
 	bra.w	SetLCmode2
 .countdown							;pf2lcm set
 	sub.w	d7,(a3,d0.w)
-	bpl.w	X_3C000	;CD: the cartridge has rtss2
+	bpl.w	rtss2
 	move.l	a3,-(sp)
 	lea	(a0,d1.w),a3
 	btst.b	#3,pflags2(a3)
@@ -6071,12 +6083,11 @@ UpdateFaceoffLineChangeTimer		;count down one team's faceoff line change timer a
 	movea.l	(sp)+,a3
 	rts
 ;CD: no cartridge twin
-clockcont_0						;CD: placed where the disc branches to it
-	jmp	$2BE98.l
+	jmp	(clockcont_0).l
 ; computer pulls goalie on delayed penalty
 ChkGoalies							;computer pulls goalie on delayed penalty. Called from periodicevents
 	btst.b	#gmclock,(gmode).l		;check if clock running
-	bne.w	X_3C000	;CD: the cartridge has rtss2
+	bne.w	rtss2
 	movea.l	#$1834C,a2	;a2 = team being tested, a1 = the other team (CD: the cartridge has #(tmstruct-M68K_RAM))
 	lea	tmsize(a2),a1
 	moveq	#1,d0					;d0 = team number (1 home, 2 visitors)
@@ -6085,16 +6096,16 @@ ChkGoalies							;computer pulls goalie on delayed penalty. Called from periodic
 	exg	a1,a2
 .chkgoalie							;local subroutine
 	tst.w	tmgoalie(a2)			;check for goalie
-	bmi.w	X_3C000					;no goalie, exit (CD: the cartridge has rtss2)
+	bmi.w	rtss2					;no goalie, exit
 	move.w	(puckc).l,d1			;move puck carrier SCnum into d1
-	bmi.w	X_3C000	;CD: the cartridge has rtss2
+	bmi.w	rtss2
 	subi.w	#6,d1
 	cmpa.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	beq.w	.chkpen
 	not.w	d1						;makes d1 negative if away team
 .chkpen								;penalty check
 	tst.w	d1
-	bpl.w	X_3C000	;CD: the cartridge has rtss2
+	bpl.w	rtss2
 	btst.b	#gmpendel,(gmode).l		;#gmpendel - delayed penalty called
 	beq.w	.nopen
 	st.b	tmgoalie(a2)				;sets to FFFF (no goalie)
@@ -6102,9 +6113,9 @@ ChkGoalies							;computer pulls goalie on delayed penalty. Called from periodic
 	jmp	(setpersonel).l
 .nopen								;gmpendel clear
 	cmp.w	(cont1team).l,d0
-	beq.w	X_3C000					;exit if team is joy controlled (CD: the cartridge has rtss2)
+	beq.w	rtss2					;exit if team is joy controlled
 	cmp.w	(cont2team).l,d0
-	beq.w	X_3C000					;exit if team is joy controlled (CD: the cartridge has rtss2)
+	beq.w	rtss2					;exit if team is joy controlled
 	move.w	(pucky).l,d1
 	bra.w	CPgoalie
 ; if computer pulled goalie, look to see if computer should return him
@@ -6118,26 +6129,26 @@ ReturnGoalies						;if computer pulled goalie, look to see if computer should re
 	exg	a1,a2						;... then fall into .r for the visitors
 .r									;local subroutine
 	cmpi.w	#$FFFF,tmgoalie(a2)
-	beq.w	X_3C000					;still no goalie (CD: the cartridge has rtss2)
+	beq.w	rtss2					;still no goalie
 	clr.b	tmgoalie(a2)			;clear for goalie return
 	cmp.w	(cont1team).l,d0
-	beq.w	X_3C000					;exit if team is joy controlled (CD: the cartridge has rtss2)
+	beq.w	rtss2					;exit if team is joy controlled
 	cmp.w	(cont2team).l,d0
-	beq.w	X_3C000					;exit if team is joy controlled (CD: the cartridge has rtss2)
+	beq.w	rtss2					;exit if team is joy controlled
 	move.w	(foy).l,d1
 ; see if computer should pull his goalie
 ; d1 = Faceoff Y position
 CPgoalie							;see if computer should pull his goalie. d1 = puck/faceoff y. Falls in
 									;from ReturnGoalies; also entered from ChkGoalies
 	cmpi.w	#2,(gsp).l				;check if 3rd period
-	bne.w	X_3C000					;exit if not (CD: the cartridge has rtss2)
+	bne.w	rtss2					;exit if not
 	move.w	tmscore(a1),d0			;tmscore
 	sub.w	tmscore(a2),d0
-	bmi.w	X_3C000					;exit if leading in the game (CD: the cartridge has rtss2)
+	bmi.w	rtss2					;exit if leading in the game
 	cmpi.w	#2,d0
-	bne.w	X_3C000					;exit if behind by more than 2 (CD: the cartridge has rtss2)
+	bne.w	rtss2					;exit if behind by more than 2
 	cmpi.w	#$3C,(gameclock).l		;#60
-	bgt.w	X_3C000					;exit if more than 1 min left (CD: the cartridge has rtss2)
+	bgt.w	rtss2					;exit if more than 1 min left
 	move.l	a0,-(sp)
 ;CD: no cartridge twin
 	movea.l	$22(a2),a0
@@ -6147,7 +6158,7 @@ CPgoalie							;see if computer should pull his goalie. d1 = puck/faceoff y. Fal
 	neg.w	d1						;make y positive toward the goal I shoot at
 .0									;Y for his end
 	tst.w	d1
-	bmi.w	X_3C000					;exit if d1 negative (faceoff in own zone) (CD: the cartridge has rtss2)
+	bmi.w	rtss2					;exit if d1 negative (faceoff in own zone)
 	st.b	tmgoalie(a2)				;set to FFFF (no goalie)
 ;CD: no cartridge twin
 	jmp	(setpersonel).l
@@ -6330,13 +6341,13 @@ puckfaceoff2						;face off control logic and general setup for action a3 = the 
 	dbf	d4,.cw
 	move.w	#$3C,(yleader).l
 ;CD: no cartridge twin
-	jsr	$3D6E2.l
+	jsr	(ResetBench).l
 	movea.l	#tmstruct,a2
 	jsr	(setpersonel).l
-	jsr	$3D668.l
+	jsr	(forcepldata).l
 	adda.w	#$366,a2
 	jsr	(setpersonel).l
-	jsr	$3D668.l
+	jsr	(forcepldata).l
 	jsr	(resetplstuff).l
 	move.l	a3,-(sp)				;keep the puck pointer
 	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
@@ -6612,7 +6623,7 @@ updatefaceoff						;a3 = puck. Drop animation frame from temp1; at 0 erases the 
 	addi.w	#6,d0
 	lsr.w	#3,d0					;(temp1 + 6) / 8
 	cmpi.w	#2,d0
-	bgt.w	X_3C000	;CD: the cartridge has rtss2
+	bgt.w	rtss2
 	neg.w	d0
 	addi.w	#$A,d0					;frame $A - d0 (8 to 10) as the drop approaches
 	move.w	d0,(fofdata).l			;+8
@@ -6638,7 +6649,7 @@ updatefaceoff						;a3 = puck. Drop animation frame from temp1; at 0 erases the 
 	movea.l	#$BBD30,a0
 	move.w	(Sattsize).l,d0
 	move.w	(VSPRITES).l,d1
-	jsr	$3777C.l
+	jsr	(DoDMA).l
 Endfaceoff							;drop the puck: pick the faceoff winner and send the puck off
 	move.w	#SFXpuckice+3,-(sp)		;SFXpuckice
 	bsr.w	sfx
@@ -6726,7 +6737,6 @@ Endfaceoff							;drop the puck: pick the faceoff winner and send the puck off
 .ftab								;direction offsets into dirtab for the faceoff pull
 	dc.b	0,8,$10,0,8,$10
 ;CD: no cartridge twin
-PeriodOver						;CD: placed where the disc branches to it
 	addi.w	#$1,(gsp).l
 	bchg.b	#$1,(gmode).l
 	cmpi.w	#$3,(gsp).l
@@ -6743,20 +6753,20 @@ PeriodOver						;CD: placed where the disc branches to it
 	move.w	#$4,(gsp).l
 .L35A90
 	bsr.w	forceblack
-	jsr	$2B9BC.l
+	jsr	(ResetClock).l
 	move.w	#$79,-(sp)
 	bsr.w	song
-	bsr.w	X_3CBA0
+	bsr.w	UpdateScores
 	cmpi.w	#$4,(gsp).l
 	bne.w	.L35AB8
-	jsr	$40838.l
+	jsr	(AddPlayoffTeamStats).l
 .L35AB8
-	bsr.w	X_3CA0C
+	bsr.w	Intermission
 	cmpi.w	#$4,(gsp).l
 	beq.w	.L35ACE
 	jmp	$2BA1E.l
 .L35ACE
-	jmp	$3F29E.l
+	jmp	(GameOver).l
 ; assignment for puck most of the time
 ; a3 = puck
 ; d7 = elapse frames since last call
@@ -6837,9 +6847,9 @@ pucknorm							;assignment for puck most of the time. a3 = puck, d7 = elapse fra
 
 ChkOffsides							;check for offsides penalty. a3 = puck. Flags the whole team
 	btst.b	#gmoffs,(gmode).l
-	beq.w	X_3C000	;CD: the cartridge has rtss2
+	beq.w	rtss2
 	btst.b	#2,(BA_PS_flags).l
-	bne.w	X_3C000	;CD: the cartridge has rtss2
+	bne.w	rtss2
 	movea.l	#$1834C,a1	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	lea	tmsize(a1),a2				;team 2 (tmsize)
 	bsr.w	ClearOffsidesIfAllPlayers	;first drop the flag of any team with no one over the line
@@ -6849,7 +6859,7 @@ ChkOffsides							;check for offsides penalty. a3 = puck. Flags the whole team
 	cmp.w	Ypos(a3),d0
 	bgt.w	.neg					;puck y < Blueline-4: go to the bottom line test
 	cmp.w	OldYpos(a3),d0			;OldYpos: puck crossed the top line this frame?
-	ble.w	X_3C000	;CD: the cartridge has rtss2
+	ble.w	rtss2
 	addi.w	#$A,d0					;d0 = Blueline+6: players must be past this
 	btst.b	#gmdir,(gmode).l		;pick which team is attacking this end
 	beq.w	.t0
@@ -6872,9 +6882,9 @@ ChkOffsides							;check for offsides penalty. a3 = puck. Flags the whole team
 .neg								;bottom blue line: the same test mirrored
 	neg.w	d0
 	cmp.w	Ypos(a3),d0
-	blt.w	X_3C000	;CD: the cartridge has rtss2
+	blt.w	rtss2
 	cmp.w	OldYpos(a3),d0
-	bge.w	X_3C000	;CD: the cartridge has rtss2
+	bge.w	rtss2
 	subi.w	#$A,d0
 	btst.b	#gmdir,(gmode).l
 	bne.w	.t1
@@ -6897,7 +6907,7 @@ ChkOffsides							;check for offsides penalty. a3 = puck. Flags the whole team
 ClearOffsidesIfAllPlayers			;a2 = team struct: clear the team offsides flag once no skater is past the
 									;line
 	btst.b	#tmfoside,tmflags(a2)
-	beq.w	X_3C000	;CD: the cartridge has rtss2
+	beq.w	rtss2
 ;CD: no cartridge twin
 	movea.l	$22(a2),a0
 	moveq	#5,d1
@@ -6912,29 +6922,29 @@ ClearOffsidesIfAllPlayers			;a2 = team struct: clear the team offsides flag once
 	adda.w	#SCstruct,a0
 	cmpi.w	#$58,d0
 	dbgt	d1,.top
-	bgt.w	X_3C000	;CD: the cartridge has rtss2
+	bgt.w	rtss2
 	bclr.b	#tmfoside,tmflags(a2)
 	rts
 a2offsides							;player a2 touched the puck: offsides penalty if his team is flagged and
 									;the puck is past the blue line
 	btst.b	#gmoffs,(gmode).l
-	beq.w	X_3C000	;CD: the cartridge has rtss2
+	beq.w	rtss2
 	move.w	(pucky).l,d0			;puck y toward the goal a2 shoots at
 	btst.b	#pfgoal,pflags(a2)
 	bne.w	.0
 	neg.w	d0
 .0									;Y for his end
 	cmpi.w	#$68,d0
-	blt.w	X_3C000	;CD: the cartridge has rtss2
+	blt.w	rtss2
 	movea.l	#$1834C,a0	;a0 = a2's team struct (CD: the cartridge has #(tmstruct-M68K_RAM))
 	btst.b	#pfteam,pflags(a2)
 	beq.w	.1
 	adda.w	#tmsize,a0
 .1									;team struct chosen
 	btst.b	#tmfoside,tmflags(a0)
-	beq.w	X_3C000	;CD: the cartridge has rtss2
+	beq.w	rtss2
 	btst.b	#gmhl,(gmode).l
-	bne.w	X_3C000	;CD: the cartridge has rtss2
+	bne.w	rtss2
 	exg	a2,a3
 	moveq	#$10,d0
 	bsr.w	AddPenalty
@@ -7005,24 +7015,24 @@ a2touchpuck							;player a2 touches puck. Look for penalties/offsides/other jun
 	bset.b	#ifdir,(iflags).l		;set icing direction up
 	neg.w	d0						;negate d0
 .0									;icing check
-	bmi.w	X_3C000					;exit if minus (CD: the cartridge has rtss2)
+	bmi.w	rtss2					;exit if minus
 	move.w	(tmstruct+tmap).l,d0	;(tmap).w
 	sub.w	(awtmstruct+tmap).l,d0	;(tmsize).w
 	btst.b	#pfteam,pflags(a2)		;check home or away
 	beq.w	.1						;branch if home
 	neg.w	d0						;negate d0
 .1									;icing for his team
-	bmi.w	X_3C000					;exit if minus (CD: the cartridge has rtss2)
+	bmi.w	rtss2					;exit if minus
 	bset.b	#ifok,(iflags).l		;set icing flag
 	rts
 ; check for icing of puck penalty
 PuckIChk							;check for icing of puck penalty. Called from pucknorm
 	btst.b	#ifok,(iflags).l		;#ifok
-	beq.w	X_3C000	;CD: the cartridge has rtss2
+	beq.w	rtss2
 	btst.b	#ifcgl,(iflags).l		;#ifcgl - if crossed goal line
-	bne.w	X_3C000	;CD: the cartridge has rtss2
+	bne.w	rtss2
 	tst.w	(puckc).l
-	bpl.w	X_3C000	;CD: the cartridge has rtss2
+	bpl.w	rtss2
 	move.w	#Blueline+goalline,d0	;goalline
 	btst.b	#ifdir,(iflags).l		;#ifdir - 1 = must cross top line
 	bne.w	.0
@@ -7032,7 +7042,7 @@ PuckIChk							;check for icing of puck penalty. Called from pucknorm
 	rts
 .0									;ifdir set
 	cmp.w	(pucky).l,d0
-	bgt.w	X_3C000	;CD: the cartridge has rtss2
+	bgt.w	rtss2
 .chkx								;check the X
 	cmpi.w	#$2C,(puckx).l			;2C - edge of crease
 	bgt.w	.set
@@ -7084,7 +7094,7 @@ puckshadow							;assignment for puck shadow. a3 = puck shadow (struct after the
 	rts
 .siren								;the goal light: only when it is lit
 	tst.w	frame(a3)				;frame
-	beq.w	X_3C000	;CD: the cartridge has rtss2
+	beq.w	rtss2
 	clr.w	0(a3)					;Xpos
 	move.w	#$12C,Ypos(a3)			;Ypos
 	move.w	#$E,Zpos(a3)			;Zpos
@@ -7227,7 +7237,7 @@ avdgoal								;don't try to skate thru goal: if d0/d1 cords intersect thru goal
 	clr.w	(deltax).l
 	clr.w	(deltay).l
 	tst.w	position(a3)			;goalie? If so, quit
-	beq.w	X_3C000	;CD: the cartridge has rtss2
+	beq.w	rtss2
 	move.w	0(a3),d2					;Xpos
 	eor.w	d0,d2
 	bpl.w	.chbar					;target on the same side of x = 0: line does not cross the center
@@ -7287,7 +7297,7 @@ avdgoal								;don't try to skate thru goal: if d0/d1 cords intersect thru goal
 .ch1								;local subroutine
 	move.w	d3,d4
 	eor.w	d2,d4
-	bpl.w	X_3C000	;CD: the cartridge has rtss2
+	bpl.w	rtss2
 	move.w	d0,d4
 	sub.w	0(a3),d4					;Xpos
 	muls.w	d2,d4
@@ -7295,9 +7305,9 @@ avdgoal								;don't try to skate thru goal: if d0/d1 cords intersect thru goal
 	divs.w	d2,d4
 	add.w	0(a3),d4					;Xpos
 	cmpi.w	#$50,d4					;#.xr
-	bgt.w	X_3C000	;CD: the cartridge has rtss2
+	bgt.w	rtss2
 	cmpi.w	#$FFB0,d4				;#-.xr
-	blt.w	X_3C000	;CD: the cartridge has rtss2
+	blt.w	rtss2
 	moveq	#$50,d3					;#.xr
 	tst.w	d4
 	bne.w	.ch2
@@ -7469,7 +7479,7 @@ GetHot								;push long address of structure to get hot spot from. Hot spot x/y
 ; d1 = new animation
 SetSPA								;set sprite animation on struct a3. d1 = new animation
 	cmp.w	SPA(a3),d1
-	beq.w	X_3C000	;CD: the cartridge has rtss2
+	beq.w	rtss2
 	clr.w	SPAnum(a3)
 	move.w	d1,SPA(a3)
 	st.b	SPAcnt(a3)					;restart animation
@@ -7937,7 +7947,7 @@ playeracc							;d2 = direction of acc
 	move.w	d1,Yvel(a3)				;move new Yvel into Yvel
 .sube								;energy drain
 	tst.w	(OptLine).l
-	bne.w	X_3C000	;CD: the cartridge has rtss2
+	bne.w	rtss2
 ;CD: no cartridge twin
 .L36A0E
 	btst.b	#$7,$FF800E.l
@@ -7955,7 +7965,7 @@ playeracc							;d2 = direction of acc
 	bne.s	.L36A48
 	bclr.b	#$7,$FF800F.l
 	andi.w	#$7F,d0
-	bne.w	X_3C000	;CD: the cartridge has rtss2
+	bne.w	rtss2
 	bsr.w	getpde
 	subi.w	#$21,d0					;33
 	cmpi.w	#$C00,d0
@@ -8032,11 +8042,11 @@ stopna								;slow player a3 by 150 on each axis, no animation change. Falls in
 	tst.w	Yvel(a3)				;Yvel
 	bpl.w	.yp
 	addi.w	#$96,Yvel(a3)
-	bmi.w	X_3C000	;CD: the cartridge has rtss2
+	bmi.w	rtss2
 	clr.w	Yvel(a3)
 .yp									;positive y speed: subtract 150, stop at 0
 	subi.w	#$96,Yvel(a3)
-	bpl.w	X_3C000	;CD: the cartridge has rtss2
+	bpl.w	rtss2
 	clr.w	Yvel(a3)
 	rts
 runspeed	equ	200					;acc speed equate for table below

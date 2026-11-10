@@ -29,6 +29,12 @@ ReloadFaceOffTiles	equ	$3ECDC
 ReloadFaceOffMap	equ	$3ECEE
 SprSort	equ	$3F03E
 revframetbl	equ	$4761C
+null	equ	$1B008
+ReadJoy1	equ	$374F0
+ReadJoy2	equ	$3750E
+ReadJoy3	equ	$3752C
+ReadJoy4	equ	$3754A
+dobitmap	equ	$387E2
 SPFPen	equ	$179
 SPFbglass	equ	$28D
 SPFfight	equ	$162
@@ -330,21 +336,21 @@ getpzjoy							;read the joystick of the pad that paused. pads 3 and 4 when Four
 	btst.b	#sfpj,(sflags).l		;pad 2 paused?
 ;CD: no cartridge twin
 	beq.s	.L2F30A
-	jmp	$3750E.l
+	jmp	(ReadJoy2).l
 .L2F30A
-	jmp	$374F0.l
+	jmp	(ReadJoy1).l
 .0									;FourWayPlay <> 0
 	tst.w	(pausepad).l			;pad 1 or 2?
 	beq.w	.loop
 	cmpi.w	#3,(pausepad).l			;pad 3?
 ;CD: no cartridge twin
 	bne.s	.L2F32A
-	jmp	$3752C.l
+	jmp	(ReadJoy3).l
 .L2F32A
-	jmp	$3754A.l
+	jmp	(ReadJoy4).l
 ShowReplayIcon						;CD: placed where the disc branches to it
 	move.w	#$F0,(replayicontimer).l
-	jsr	$38F6E.l
+	jsr	(printz).l
 	String	CC_Font3Pri,2,2
 	moveq	#$20,d0
 	moveq	#$55,d1
@@ -359,8 +365,8 @@ ShowReplayIcon						;CD: placed where the disc branches to it
 	movea.l	(RevRinkTilelistPtr).l,a1
 .L2F36E
 	adda.l	$4(a1),a1
-	movea.l	#$1B008,a2
-	jmp	$387E2.l
+	movea.l	#null,a2
+	jmp	(dobitmap).l
 EraseReplayIcon						;Erase the 8 x 4 replay icon (replayicontimer timer ran out)
 	jsr	(printz).l					;map at the icon
 	String	CC_Font3Pri,2,2
@@ -382,8 +388,8 @@ ShowReplayBanner					;Show ReplayMap at 0,0 (16 x 11) and stop the replayicontim
 ;CD: no cartridge twin
 	movea.l	(ReplayMapPtr).l,a1
 	adda.l	$4(a1),a1
-	movea.l	#$1B008,a2
-	jmp	$387E2.l
+	movea.l	#null,a2
+	jmp	(dobitmap).l
 EraseReplayBanner					;Erase the 16 x 11 area ShowReplayBanner drew
 	jsr	(printz).l					;map at the top left
 	String	CC_Font3Pri,2,2

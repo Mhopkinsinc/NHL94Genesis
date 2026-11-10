@@ -14,13 +14,13 @@ AddArenaAnimSprite	equ	$29364
 cramfade	equ	$36DF6
 sfx	equ	$37174
 jdtab	equ	$37588
-DoDMA	equ	$378D2
-Vmaddr	equ	$38780
 printz	equ	$38F6E
 print	equ	$38F80
 rtss2	equ	$3C000
 ButtonLabelCharTable	equ	$3E6B4
 sizetab	equ	$41A5C
+X_378D2	equ	$378D2
+X_38780	equ	$38780
 SPFarrow	equ	$180
 
 	org	$3DAB8
@@ -99,7 +99,7 @@ DumpSprites2						;Transfer sprite table, then the dma list. Falls into DoDMAlis
 	movea.l	#(Satt-M68K_RAM),a0		;transfer sprite table
 	move.w	(Sattsize).l,d0			;words
 	move.w	(VSPRITES).l,d1
-	bsr.w	DoDMA
+	bsr.w	X_378D2	;CD: the cartridge has DoDMA
 dodmalist							;(symbols are case-insensitive). Transfer data from dmalist.
 									;Also called from setupice
 	movea.l	(DMAlistend).l,a6
@@ -109,7 +109,7 @@ dodmalist							;(symbols are case-insensitive). Transfer data from dmalist.
 	move.w	-(a6),d1				;vram address
 	move.w	-(a6),d0				;words
 	movea.l	-(a6),a0				;source
-	bsr.w	DoDMA
+	bsr.w	X_378D2	;CD: the cartridge has DoDMA
 	cmpa.l	#DMAList,a6
 ;CD: no cartridge twin
 	bgt.w	.0
@@ -127,7 +127,7 @@ dodmalist							;(symbols are case-insensitive). Transfer data from dmalist.
 SetScroll2							;Write Hscroll / Vscroll to the vdp. Called from DumpSprites
 	move.w	$18D30.l,d0	;CD: the cartridge has (VSCRLPM).w
 	addi.w	#2,d0
-	bsr.w	Vmaddr
+	bsr.w	X_38780	;CD: the cartridge has Vmaddr
 ;CD: no cartridge twin
 .L3DC24
 	btst.b	#$4,$FF800E.l

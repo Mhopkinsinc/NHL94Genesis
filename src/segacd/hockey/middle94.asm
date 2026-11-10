@@ -59,6 +59,7 @@ WeightedRandomSelect				;d0 = number of word weights at nibblebuffer:
 	movem.l	(sp)+,d1/a1
 	rts
 ;CD: no cartridge twin
+remap						;a0 = data (char set), d0 = size in words, d1 = vram dest, a1 = mapping (CD: entered here; the cartridge remap starts at its first twin line, $36C40)
 	move.l	a6,-(sp)
 	movea.l	$19360.l,a6
 	btst.b	#$5,$FF800F.l
@@ -72,7 +73,6 @@ WeightedRandomSelect				;d0 = number of word weights at nibblebuffer:
 	move.l	a6,$19360.l
 	movea.l	(sp)+,a6
 
-remap								;a0 = data (char set), d0 = size in words, d1 = vram dest, a1 = mapping
 									;data (two color nibbles per byte, high nibble for even colors). Jumped to
 									;from DecompressGraphics
 	move.w	(disflags).l,-(sp)

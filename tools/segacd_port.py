@@ -506,6 +506,8 @@ def main():
     ap.add_argument("--no-text", action="store_true",
                     help="team data: a quoted line that is not in the public src/teamdata94.asm (player names, "
                          "nicknames) and every CD block are incbin from the disc file, never text")
+    ap.add_argument("--entry", action="append", default=[], metavar="NAME=ADDR",
+                    help="a cartridge label whose callers enter at ADDR, before its first twin line (CD lines in front)")
     ap.add_argument("--label", action="append", default=[], metavar="NAME=ADDR",
                     help="a name for a CD-only routine at runtime address ADDR in the fragment")
     ap.add_argument("--cdname", action="append", default=[], metavar="NAME=ADDR",
@@ -598,6 +600,9 @@ def main():
         n, v = nv.split("=")
         frag.dsym[n] = int(v, 0)
         frag.cdnames.add(n)
+    if not a.plain:
+        frag.gnames = global_names(os.path.basename(a.disc), frag.start, frag.end)
+        frag.gaddr = {n: v for v, n in frag.gnames.items()}
     text = frag.emit()
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     open(a.out, "w", newline="\n").write(text)
@@ -612,6 +617,26 @@ def main():
         register(a, frag)
     elif a.register:
         print("not registered: the fragment does not match the disc")
+
+
+def global_names(disc, start, end):
+    """The names the other fragments of this disc file define (docs/segacd-handoff/name_map.csv, written by
+    --register), as {runtime: name}: only an address with one name, and a name at one address."""
+    nm = os.path.join(ROOT, "docs", "segacd-handoff", "name_map.csv")
+    if not os.path.exists(nm):
+        return {}
+    by_addr, by_name = {}, {}
+    for row in open(nm, encoding="utf8").read().splitlines()[1:]:
+        f = row.split(",")
+        if len(f) < 3 or f[0] != disc or not f[1].startswith("$"):
+            continue
+        off = int(f[1][1:], 16)
+        if start <= off < end:
+            continue                    # this fragment's own rows: it is being written again
+        by_addr.setdefault(off, set()).add(f[2])
+        by_name.setdefault(f[2], set()).add(off)
+    return {BASE + off: next(iter(ns)) for off, ns in by_addr.items()
+            if len(ns) == 1 and len(by_name[next(iter(ns))]) == 1}
 
 
 def licensed_check(path, required=True):
@@ -924,6 +949,9 @@ class Fragment:
         self.cglob, self.ckind, self.clocal = cglob, ckind, clocal
         self.lo, self.hi, self.tail = lo, hi, tail
         self.start, self.end = a.disc_start, a.disc_end
+        # the global labels this fragment's 94G file(s) define: the only ones it may place by evidence
+        self.own_labels = ({it.label for it in items if it.label and not it.label.startswith(".")} |
+                           {parse_src(l2.src)[0] for it in items for kind, l2 in it.pre if kind == "label"})
         self.dsym = {}          # name -> disc value (solved)
         self.labels = {}        # disc runtime address -> [(name, scope)]
         self.label_at = {}      # (scope, name) or name -> disc runtime address
@@ -944,6 +972,9 @@ class Fragment:
         self.cdlabels = set()
         self.cdnames = set()
         self.listed = []            # (runtime, name, comment): names placed by place_team_list
+        self.gnames = {}            # runtime -> a name another fragment of this disc file gives it (name_map.csv)
+        self.gaddr = {}             # the same, name -> runtime
+        self.moved = {}             # --entry: name -> (first twin line, entry)
         self.teamlist = []
         self.header = False
         self.tagspans = {}
@@ -983,6 +1014,31 @@ class Fragment:
         self.restore_scopes()
         if NO_TEXT and self.start == 0:
             self.place_team_list()
+        self.move_entries()
+
+    def move_entries(self):
+        """--entry NAME=ADDR: a cartridge routine the CD gave a few new lines in front of its first twin line.
+        Its callers (in other fragments) enter at ADDR, so the name goes there, not on the first twin line."""
+        for nv in getattr(self.a, "entry", []) or []:
+            n, v = nv.split("=")
+            v = int(v, 0)
+            old = self.label_at.get(n)
+            if old is None or old == v or v not in self.starts or not (BASE + self.start <= v < old):
+                sys.exit(f"--entry {nv}: {n} is not a label after ${v:X} in this fragment")
+            self.labels[old].remove(n)
+            self.globals_sorted.remove((old, n))
+            del self.label_at[n]
+            self.restored.discard((old, n))
+            self.add_label(n, v, n)
+            self.moved[n] = (old, v)
+            own = ""                    # the comment of the label's own line in the cartridge source
+            for w in self.walk:
+                if w[0] in ("m", "s"):
+                    for kind, l2 in w[1].pre:
+                        if kind == "label" and parse_src(l2.src)[0] == n:
+                            own = split_comment(l2.src)[1].strip().lstrip(";").strip()
+            note = f"CD: entered here; the cartridge {n} starts at its first twin line, ${old:X}"
+            self.listed.append((v, n, f"{own} ({note})" if own else note))
 
     def place_team_list(self):
         """teamdata94 on the disc: the file header (jmp Begin, a word, null) and TeamList as source. The
@@ -1083,6 +1139,8 @@ class Fragment:
         else:
             if name in self.label_at or self.ckind.get(name) != "label":
                 return False
+            if self.own_labels and name not in self.own_labels:
+                return False                # another 94G file's label (a shared rts): never placed here
             # a global label must not split the local labels around it
             if any(self.scope_of(rt) == sc and lab_rt >= rt for (sc, lab), lab_rt in
                    [(k, v) for k, v in self.label_at.items() if isinstance(k, tuple)]):
@@ -1187,6 +1245,8 @@ class Fragment:
             sol &= 0xFFFFFFFF
         if self.ckind.get(u) == "label" and not (BASE <= sol < BASE + len(self.disc)):
             return False                # a routine name must land in HOCKEY.BIN (not the BIOS at $6044)
+        if self.ckind.get(u) == "label" and self.gaddr.get(u, sol) != sol:
+            return False                # another fragment has this label elsewhere: the CD changed the call here
         self.dsym[u] = sol
         return True
 
@@ -1313,6 +1373,10 @@ class Fragment:
             n = self.known_funcs[rt]
             self.externs[n] = rt
             return n
+        if not self.a.plain:
+            n = self.global_name(rt)            # a routine another fragment names
+            if n:
+                return n
         name = f"X_{rt:X}"
         self.externs[name] = rt
         return name
@@ -1327,6 +1391,19 @@ class Fragment:
             if x == v and isinstance(k, str):
                 hits.add(k)
         return hits.pop() if len(hits) == 1 else None
+
+    def global_name(self, v):
+        """The name another fragment of this disc file gives address v, as an equate here (CD-only lines).
+        Not a name this fragment defines or knows at another value, and never a cartridge constant."""
+        n = self.gnames.get(v)
+        if n is None or BASE + self.start <= v < BASE + self.end:
+            return None
+        if n in self.label_at or n in self.inc_old or self.dsym.get(n, v) != v or self.externs.get(n, v) != v:
+            return None
+        if n in self.cglob and self.ckind.get(n) != "label":
+            return None
+        self.externs[n] = v
+        return n
 
     def insn_line(self, insn, it, scope):
         """(mnemonic, operand text, numeric_fallbacks)."""
@@ -1357,6 +1434,10 @@ class Fragment:
                 n = self.rev_name(o["value"])
                 if n:
                     t = f"({n}).{o['size']}"
+            if t is None and it is None and not self.a.plain and o["mode"] == "abs" and o["value"] >= 0x10000:
+                n = self.global_name(o["value"])      # a routine or table another fragment names
+                if n:
+                    t = f"({n}).{o['size']}"
             if t is None and it is None and self.a.plain and o["mode"] == "abs" and \
                     base in ("jsr", "jmp", "lea", "pea") and o["value"] in self.starts and \
                     BASE + self.start <= o["value"] < BASE + self.end:
@@ -1365,6 +1446,8 @@ class Fragment:
             if it is None and o["mode"] == "imm" and o["value"] >= 0x10000 and \
                     insn.mnemonic in ("movea.l", "cmpa.l", "adda.l", "move.l") and k == 0:
                 n = self.rev_name(o["value"])
+                if n is None and not self.a.plain:
+                    n = self.global_name(o["value"])
                 if n:
                     t = "#" + n
             if it is not None and len(cops) == len(dops):
@@ -1415,7 +1498,10 @@ class Fragment:
             if w[0] in ("m", "s"):
                 it, p, ln = w[1], w[2], w[3]
                 rt = BASE + p
+                label = None if it.label in self.moved else it.label    # --entry: printed where callers enter
                 for kind, l2 in it.pre:
+                    if kind == "label" and parse_src(l2.src)[0] in self.moved:
+                        continue
                     body.append(("text", l2.src.rstrip()))
                 if w[0] == "m":
                     self.stats["aligned"] += 1
@@ -1431,10 +1517,10 @@ class Fragment:
                     if fb:
                         note = "CD: the cartridge has " + ", ".join(fb)
                         com = (com + " (" + note + ")") if com else ";" + note
-                    body.append(("insn", it.label, mn, ops, (gap + com) if com else "", p, insn.size))
+                    body.append(("insn", label, mn, ops, (gap + com) if com else "", p, insn.size))
                 elif it.kind in ("data", "macro", "align", "dir"):
                     if w[0] == "s":
-                        body.append(("data", it.label, self.reloc_data(it, p), p, ln))
+                        body.append(("data", label, self.reloc_data(it, p), p, ln))
                     elif it.mnem.lower() == "include":
                         pass
                     elif it.licensed:
@@ -1446,19 +1532,22 @@ class Fragment:
                         # line with its text masked as the comment (ratings and the P id stay)
                         code, com = split_comment(it.ln.src)
                         masked = re.sub(r"'(?:[^']|'')*'", "<text>", code.strip())
-                        body.append(("src", f"{it.label or ''}\tincbin\t..\\cdbin\\HOCKEY.BIN,${p:X},{ln}\t;{masked}"
+                        body.append(("src", f"{label or ''}\tincbin\t..\\cdbin\\HOCKEY.BIN,${p:X},{ln}\t;{masked}"
                                      + (" " + com.strip() if com else ""), p, ln))
                     elif it.mnem.lower() == "incbin" and "extracted" in it.ops.lower():
                         # a cartridge asset (extracted from the ROM there): the same bytes from the disc file
                         what = it.comment.lstrip(";").strip() or it.ops.split("\\")[-1]
-                        body.append(("src", f"{it.label or ''}\tincbin\t..\\cdbin\\HOCKEY.BIN,${p:X},{ln}\t;{what} (from the disc file)",
+                        body.append(("src", f"{label or ''}\tincbin\t..\\cdbin\\HOCKEY.BIN,${p:X},{ln}\t;{what} (from the disc file)",
                                      p, ln))
                     elif it.kind == "data" and ln and not self.resolvable(it.ops, it.scope):
                         # dc.w .pld-.0 of a record whose body has no twin: the disc bytes, the line as a comment
-                        body.append(("src", f"{it.label or ''}\t{raw_dc(self.disc[p:p + ln])}\t;{split_comment(it.ln.src)[0].strip()}",
+                        body.append(("src", f"{label or ''}\t{raw_dc(self.disc[p:p + ln])}\t;{split_comment(it.ln.src)[0].strip()}",
                                      p, ln))
                     else:
-                        body.append(("src", it.ln.src.rstrip(), p, ln))
+                        src = it.ln.src.rstrip()
+                        if it.label in self.moved:
+                            src = re.sub(r"^\S+", "", src, count=1)
+                        body.append(("src", src, p, ln))
             elif w[0] == "cd":
                 self.emit_cd(body, w[1], w[2])
             elif w[0] == "cut":
@@ -1543,7 +1632,8 @@ class Fragment:
     def find_targets(self):
         """Branch / pc-relative / absolute code targets inside the fragment (from every disc
         instruction the walk decodes), so CD blocks can be decoded in step with them."""
-        self.targets = {int(nv.split("=")[1], 0) for nv in (getattr(self.a, "label", []) or [])}   # --label routines are entered
+        self.targets = {int(nv.split("=")[1], 0) for nv in               # --label and --entry routines are entered
+                        (getattr(self.a, "label", []) or []) + (getattr(self.a, "entry", []) or [])}
         lo, hi = BASE + self.start, BASE + self.end
         for _ in range(3):
             found = set(self.targets)
@@ -1746,6 +1836,8 @@ class Fragment:
             if re.search(r"(?<![\w.@])" + re.escape(n) + r"(?![\w@])", used_text):
                 ext.append(f"{n}\tequ\t${v:X}")
         for n, v in sorted(self.externs.items(), key=lambda kv: kv[1]):
+            if names.get(n) == v and any(e.startswith(n + "\t") for e in ext):
+                continue                    # already an equate (a name the cartridge lines use too)
             ext.append(f"{n}\tequ\t${v:X}")
         # constants of another 94G code file (collrad = 8 in collide94): an equate here, never in hockey.inc
         for n in sorted(set(self.used_constants(""))):

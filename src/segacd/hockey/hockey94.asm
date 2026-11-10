@@ -121,11 +121,11 @@ LoadGameGfx						;CD-only routine (a name given here, not a cartridge name)
 	move.w	#$2,d0
 	jsr	$5F22.w
 	rts
+StartGame						;reset game state for a new game, then start the first period (CD: entered here; the cartridge StartGame starts at its first twin line, $2B808)
 	move.w	#$2,d0
 	jsr	$5F22.w
 	bclr.b	#$5,$FF800F.l
 
-StartGame							;reset game state for a new game, then start the first period
 	st.b	(arenaanim).l
 	clr.l	(homepresses).l
 	clr.l	(awaypresses).l

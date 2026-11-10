@@ -34,10 +34,18 @@ vb2	equ	$3DB90
 DumpSprites2	equ	$3DBB4
 setteams	equ	$3F1BC
 Penaltylist	equ	$4165C
-X_38D8C	equ	$38D8C
-X_38F80	equ	$38F80
-X_3919A	equ	$3919A
-X_3C000	equ	$3C000
+UnpackNibbles	equ	$36BB2
+WeightedRandomSelect	equ	$36BE2
+forceblack	equ	$36D0A
+ProcessInputWithRepeat	equ	$374BE
+ReadJoy1	equ	$374F0
+Framer	equ	$38CA0
+printsmallz	equ	$38D8C
+PushNumberWidth	equ	$3919A
+appendz	equ	$39200
+appstring	equ	$39208
+printbigz	equ	$39258
+printbig	equ	$3926A
 X_3FC0C	equ	$3FC0C
 
 	org	$3FDE8
@@ -66,15 +74,15 @@ EASportsScreen						;Called from Begin. Show the EA Sports screen until a button
 	jsr	$36F72.l
 	jsr	$37B74.l
 	rts
-	jsr	$374F0.l
+	jsr	(ReadJoy1).l
 	cmpi.b	#$E0,d3
-	bne.w	X_3C000
+	bne.w	rtss2
 	bset.b	#$5,$FF800F.l
 	move.l	#vb2,(VBint).l
 	jsr	$47DAC.l
-	jsr	$36D0A.l
+	jsr	(forceblack).l
 	move.w	#$18,(palcount).l
-	bsr.w	X_38D8C
+	bsr.w	printsmallz
 	dc.w	$0012,$F804
 	movep.w	$143(a4),d1
 	dc.b	'heck Sound|'
@@ -84,12 +92,12 @@ EASportsScreen						;Called from Begin. Show the EA Sports screen until a button
 .L3FEB4
 	cmp.w	(Vcount).l,d0
 	beq.w	.L3FEB4
-	jsr	$374F0.l
-	jsr	$374BE.l
+	jsr	(ReadJoy1).l
+	jsr	(ProcessInputWithRepeat).l
 	tst.b	d1
 	beq.w	.L3FEAE
 	btst	#$7,d1
-	bne.w	X_3C000
+	bne.w	rtss2
 	btst	#$3,d1
 	beq.w	.L3FEE4
 	addi.w	#$1,d6
@@ -104,9 +112,9 @@ EASportsScreen						;Called from Begin. Show the EA Sports screen until a button
 .L3FEFE
 	move.w	d6,d0
 	moveq	#$3,d1
-	bsr.w	X_3919A
+	bsr.w	PushNumberWidth
 	move.w	#$17,(printx).l
-	bsr.w	X_38F80
+	bsr.w	print
 	bra.w	.L3FEAE
 
 UpdatePlayoffLevel					;Set pojoy from the number of players for play modes 2 and 3.
@@ -224,8 +232,8 @@ PickStartingGoalie					;unreferenced. tmgoalie = 0 if a pad has team a2, else (g
 	adda.w	GoalieOdds(a0),a0		;GoalieOdds offset: a0 = .godds
 	moveq	#4,d0					;4 goalie weights
 ;CD: no cartridge twin
-	jsr	$36BB2.l
-	jsr	$36BE2.l
+	jsr	(UnpackNibbles).l
+	jsr	(WeightedRandomSelect).l
 .set						;CD: placed where the disc branches to it
 	move.w	d0,$28(a2)
 .x	movem.l	(sp)+,d0/a0
@@ -319,7 +327,7 @@ NewPO								;New playoff generates tree with same team 1. Called from GoNewPlay
 									;Falls into MakeTree
 	moveq	#PlayoffRows,d0
 ;CD: no cartridge twin
-	jsr	$37050.l
+	jsr	(randomd0).l
 .top								;loop
 	addi.w	#1,d0					;adds 1 to d0 (d0 cannot be 0)
 	andi.w	#PlayoffRows-1,d0		;row index, 0 through 31
@@ -591,7 +599,7 @@ GetRandomUnusedTeam					;return d0 = a random playoff team not yet set in d3, an
 									;Called from InitializeGameStructures
 	moveq	#NumPlayoffTeams,d0
 ;CD: no cartridge twin
-	jsr	$37050.l
+	jsr	(randomd0).l
 	bset	d0,d3					;mark it used
 	bne.w	GetRandomUnusedTeam		;already used, pick again
 	rts
@@ -1050,7 +1058,7 @@ ShowThreeStars						;End of game Stars of the Game box. Called from UpdatePA whi
 	moveq	#$1C,d0					;framer size
 	moveq	#9,d1
 ;CD: no cartridge twin
-	jsr	$38CA0.l
+	jsr	(Framer).l
 	jsr	(printz).l
 	dc.w	$001A,$BF09
 	dc.w	$1053
@@ -1080,10 +1088,10 @@ ShowThreeStars						;End of game Stars of the Game box. Called from UpdatePA whi
 	adda.w	Teamname(a1),a1
 	adda.w	(a1),a1
 ;CD: no cartridge twin
-	jsr	$38F80.l
+	jsr	(print).l
 	bsr.w	getname
 	move.w	#$3,(printx).l
-	jsr	$38F80.l
+	jsr	(print).l
 	dbf	d2,.loop					;next star
 	move.w	(HmGoals).l,d0
 .1									;(not branched to)
@@ -1222,7 +1230,7 @@ ShowInjuryBox						;Injury box: 'Injury to:' player TempPlOffset, 'Out for perio
 	moveq	#$12,d0					;framer size
 	moveq	#5,d1
 ;CD: no cartridge twin
-	jsr	$38CA0.l
+	jsr	(Framer).l
 	btst.b	#$5,(sflags7).l
 	bne.w	.L40DA4
 	jsr	(printz).l
@@ -1247,7 +1255,7 @@ ShowInjuryBox						;Injury box: 'Injury to:' player TempPlOffset, 'Out for perio
 	btst	d2,d0
 .L40DCC
 	bsr.w	GetPlayerNumInitial
-	jsr	$38F80.l
+	jsr	(print).l
 	btst.b	#$0,(puck_pflags2).l
 	beq.w	.ex
 	jsr	(printz).l
@@ -1276,9 +1284,9 @@ PenaltyShotBox						;Penalty shot box, called from chkprogress. Sets gmode2 bit 
 .2									;(not branched to)
 	moveq	#8,d1
 ;CD: no cartridge twin
-	jsr	$38CA0.l
+	jsr	(Framer).l
 	lea	PenShotBigTxt(pc),a1
-	jsr	$3926A.l
+	jsr	(printbig).l
 	move.w	(BA_Sktr_SCnum).l,d0
 	asl.w	#7,d0					;sprite structs are $80 bytes
 	movea.l	#SortCords,a2
@@ -1293,7 +1301,7 @@ PenaltyShotBox						;Penalty shot box, called from chkprogress. Sets gmode2 bit 
 .6									;team chosen
 	bsr.w	FormatPlayerNumInitial	;a1 = shooter's name
 ;CD: no cartridge twin
-	jsr	$38F80.l
+	jsr	(print).l
 	jsr	(printz).l
 	String	CC_Font1Pri,4,7
 	movem.l	a1/a3,-(sp)
@@ -1302,7 +1310,7 @@ PenaltyShotBox						;Penalty shot box, called from chkprogress. Sets gmode2 bit 
 	adda.w	(a1,d0.w),a1			;this penalty's data
 	lea	2(a1),a1
 ;CD: no cartridge twin
-	jsr	$38F80.l
+	jsr	(print).l
 	movem.l	(sp)+,a1/a3
 	jsr	(printz).l
 	String	' by',CC_Font1Pri,4,8
@@ -1349,7 +1357,7 @@ ShowGoalBox							;Goal box. Closes both line change boxes, then printbig 'GOAL!
 	addi.w	#1,d1					;8: two assists
 ;CD: no cartridge twin
 .frame						;CD: placed where the disc branches to it
-	jsr	$38CA0.l
+	jsr	(Framer).l
 	jsr	(CountGoalies).l			;goalies of each team
 	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	move.w	(homegoalies).l,(scorergoalies).l
@@ -1385,7 +1393,7 @@ ShowGoalBox							;Goal box. Closes both line change boxes, then printbig 'GOAL!
 	move.w	(sp)+,d0
 ;CD: no cartridge twin
 .print						;CD: placed where the disc branches to it
-	jsr	$3926A.l
+	jsr	(printbig).l
 	clr.w	d0
 	move.b	ssscorer(a4),d0
 	move.w	d0,-(sp)
@@ -1439,8 +1447,8 @@ PPGoalBigTxt	String	CC_Font1Pri,$D,3,'PP GOAL!',CC_Font1Pri,$C,5	;The same after
 									;PP GOAL!, then HAT TRICK!
 	String	CC_Font1Pri,$C,3,'HAT TRICK!',CC_Font1Pri,$C,5
 ;CD: no cartridge twin
+box						;CD: entered here; the cartridge box starts at its first twin line, $410F2
 	jsr	(printz).l
-box						;CD: its first lines have no twin; the rest of it starts here
 	String	CC_Font1,$B,2
 	moveq	#$13,d0
 	moveq	#8,d1
@@ -1474,10 +1482,10 @@ getname								;gets player number and name, appends to string: a1 = mesarea "NN
 	move.b	(a0),d0					;move a0 data (jersey #) to d0
 	bsr.w	ConvertByteToDigits		;convert JNo to ascii
 ;CD: no cartridge twin
-	jsr	$39200.l
+	jsr	(appendz).l
 	dc.w	$0004,$2000
 	movea.l	(sp)+,a1
-	jsr	$39208.l
+	jsr	(appstring).l
 	movea.l	#$17EF2,a1	;move mesarea address into a1 (CD: the cartridge has #(mesarea-M68K_RAM))
 	movem.l	(sp)+,d0-d3/a0/a2-a3
 	rts
@@ -1616,7 +1624,7 @@ ConvertByteToDigits					;converts decimal number in d0 to ascii: two ascii digit
 	rts
 ;CD: no cartridge twin
 	bclr.b	#$5,$FF800F.l
-	jsr	$39258.l
+	jsr	(printbigz).l
 AddError						;CD: its first lines have no twin; the rest of it starts here
 	String	CC_Font3Pri,0,0,'Address Error'
 	move.l	$A(sp),d0				;pc (exception frame)
@@ -1624,7 +1632,7 @@ AddError						;CD: its first lines have no twin; the rest of it starts here
 	bra.w	crash
 ;CD: no cartridge twin
 	bclr.b	#$5,$FF800F.l
-	jsr	$39258.l
+	jsr	(printbigz).l
 Illinst						;CD: its first lines have no twin; the rest of it starts here
 	String	CC_Font3Pri,0,0,'Illegal Instruction'
 	move.l	2(sp),d0				;pc (exception frame)
@@ -1632,7 +1640,7 @@ Illinst						;CD: its first lines have no twin; the rest of it starts here
 	bra.w	crash
 ;CD: no cartridge twin
 	bclr.b	#$5,$FF800F.l
-	jsr	$39258.l
+	jsr	(printbigz).l
 ZeroDiv						;CD: its first lines have no twin; the rest of it starts here
 	String	CC_Font3Pri,0,0,'Division by zero'
 	move.l	2(sp),d0				;pc (exception frame)
@@ -1654,7 +1662,7 @@ crash								;printbig d1 then d0 as hex, set the vdp up, copy 8 longs from the
 	bsr.w	.ri
 	movea.l	#$17EF2,a1	;CD: the cartridge has #(mesarea-M68K_RAM)
 ;CD: no cartridge twin
-	jsr	$3926A.l
+	jsr	(printbig).l
 	movea.l	#$C00000,a0
 .L4138E
 	btst.b	#$7,$FF800E.l

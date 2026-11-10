@@ -12,20 +12,20 @@ RunArenaAnim	equ	$2A1AA
 ChooseSong	equ	$2A478
 updatecrowdf	equ	$2BD28
 clockcont	equ	$2BE66
-updatereplay	equ	$2BFB8
 Pausemode	equ	$2C074
 rtss8	equ	$2F988
 updateplayers	equ	$2F98A
 song	equ	$371D2
-setSlotBit	equ	$37206
 PenaltyManager	equ	$394F2
-updatepwrplay	equ	$3DD16
 updatesound	equ	$3E8CE
 ShowInjuryBox	equ	$40D50
 stop_current_song	equ	$47DB0
-X_2BBDC	equ	$2BBDC
-X_2F844	equ	$2F844
-X_300B2	equ	$300B2
+setSlotBit	equ	$25000
+demoread	equ	$2BFB8
+updatereplay	equ	$2F844
+checkwindow	equ	$300B2
+ChkGoalies	equ	$35012
+updatepwrplay	equ	$3C2D0
 
 	org	$2BB58
 
@@ -34,16 +34,15 @@ StartPer						;CD: its first lines have no twin; the rest of it starts here
 	bge.w	Gameloop
 	bset.b	#sf3fosong,(sflags3).l	;set for periods 1 and 2 only
 Gameloop						;CD: placed where the disc branches to it
-.nosong	jsr	(setSlotBit).l
-	bsr.w	checkwindow
-	bsr.w	updatereplay
+.nosong	jsr	$37206.l	;CD: the cartridge has (setSlotBit).l
+	bsr.w	DoGameFrame	;CD: the cartridge has checkwindow
+	bsr.w	demoread	;CD: the cartridge has updatereplay
 	btst.b	#sfpz,(sflags).l		;sfpz
 	beq.w	Gameloop
 	bsr.w	Pausemode
 	bra.w	Gameloop
 
 DoGameFrame							;wait for at least one vblank, then run one frame of game logic
-checkwindow						;CD: placed where the disc branches to it
 	move.w	(Vcount).l,d7
 	sub.w	(OldVcount).l,d7		;number of frames since last loop
 	beq.w	DoGameFrame
@@ -51,18 +50,19 @@ checkwindow						;CD: placed where the disc branches to it
 	bsr.w	periodicevents
 	bsr.w	updateplayers			;apply velocity and check collisions
 	tst.w	(songdelay).l			;delayed song countdown
-	beq.w	X_2BBDC	;CD: the cartridge has .nosong
-	bmi.w	X_2BBDC	;CD: the cartridge has .nosong
+	beq.w	.L2BBDC	;CD: the cartridge has .nosong
+	bmi.w	.L2BBDC	;CD: the cartridge has .nosong
 	subi.w	#1,(songdelay).l
-	bne.w	X_2BBDC	;CD: the cartridge has .nosong
+	bne.w	.L2BBDC	;CD: the cartridge has .nosong
 	jsr	(stop_current_song).l
 	move.w	(delayedsong).l,-(sp)
 	jsr	(song).l
 ;CD: no cartridge twin
-	jsr	$25000.l
-	bsr.w	X_300B2	;CD: the cartridge has RestoreBenchEnergy
-	bsr.w	X_2F844	;CD: the cartridge has CheckInjury
-	jmp	(updatepwrplay).l
+.L2BBDC
+	jsr	(setSlotBit).l
+	bsr.w	checkwindow	;CD: the cartridge has RestoreBenchEnergy
+	bsr.w	updatereplay	;CD: the cartridge has CheckInjury
+	jmp	$3DD16.l	;CD: the cartridge has updatepwrplay
 
 periodicevents						;Called every time thru game loop with d7 = elapsed frames
 	jsr	(PenaltyManager).l
@@ -76,13 +76,13 @@ periodicevents						;Called every time thru game loop with d7 = elapsed frames
 	bpl.w	rtss8
 	addi.w	#jps,(lldisp).l			;jps: only update once per second
 ;CD: no cartridge twin
-	jsr	$35012.l
+	jsr	(ChkGoalies).l
 	bsr.w	UpdateCwdExcite	;CD: the cartridge has ChkGoalies
 	bsr.w	CheckLateGameSong	;CD: the cartridge has UpdateCwdExcite
 	bsr.w	RestoreBenchEnergy	;CD: the cartridge has CheckLateGameSong
 ;CD: no cartridge twin
 	bsr.w	CheckInjury
-	jmp	$3C2D0.l
+	jmp	(updatepwrplay).l
 
 CheckInjury							;Called once per second. Count down InjCntDown, act on it at zero
 	subi.w	#1,(InjCntDown).l
