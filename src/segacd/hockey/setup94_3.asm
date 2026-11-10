@@ -57,7 +57,7 @@ EASportsScreen						;Called from Begin. Show the EA Sports screen until a button
 	move.w	#7,(Map1col).l
 	move.w	#$F000,(VmMAP3).l
 	move.w	#$F800,(VSPRITES).l
-	move.w	#$FC00,(VSCRLPM).l
+	move.w	#$FC00,$18D30.l	;CD: the cartridge has (VSCRLPM).w
 	movea.l	#$BBCB0,a0	;CD: the cartridge has #(palfadenew-M68K_RAM)
 	moveq	#$1F,d1					;32 longs: all 64 colours black
 .clr	clr.l	(a0)+

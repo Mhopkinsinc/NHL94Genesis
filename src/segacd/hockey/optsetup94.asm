@@ -852,7 +852,7 @@ setoptions							;options screen display: build the game setup screen only: vbla
 	bclr.b	#dfok,(disflags).l		;#dfok - graphics are ready for transfer (clr = not ready)
 	bset.b	#dfng,(disflags).l		;#dfng - dont int graphics
 	bclr.b	#df32c,(disflags).l		;#df32c - 32 bit column mode (clr = off)
-	move.w	#0,(VSCRLPM).l
+	move.w	#0,$18D30.l	;CD: the cartridge has (VSCRLPM).w
 	move.w	#$B400,(VSPRITES).l
 	move.w	#$B800,(VmMAP3).l
 	move.w	#5,(Map3col).l

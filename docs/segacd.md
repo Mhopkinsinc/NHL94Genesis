@@ -79,7 +79,7 @@ The team block at the front of `HOCKEY.BIN` matches the cartridge from Montreal'
 
 `npm run build:segacd` (`node tools/build.js --segacd`) assembles the fragments below into `output/segacd/` and compares them to `cdbin/` with `tools/verifySegacd.js`. Each fragment's assembler options are in `tools/segacd.json`; a new fragment is one line there plus its compare in `verifySegacd.js`. The cartridge ROM is not involved. The Sega CD assemble uses `/o oz-` so a written `$0(an)` stays a 16-bit displacement. The cartridge build still uses `/o oz+`.
 
-Verified bytes are 183,322 of the 410,162 bytes in the four code files (44.7%; `tools/segacd_check.sh` prints the current numbers). Before the HOCKEY.BIN segments they were 22,690 (5.5%). `MAIN.BIN` is contiguous from the first byte through `$FF34B7` (13,496 of 60,416) plus the hardware readers and the Z80 loader (498 bytes more, 13,994 total, 23.2%). `STARTER.BIN` is 3,280 bytes. `HOCKEY.BIN` is 163,288 bytes (88.3%): everything from `$5432` to the end of the file, most of it the 94G twins in `src/segacd/hockey/`. 24,226 of those bytes are graphics (palettes, pictures, arena animations) read from the disc file with `incbin`; the rest is disassembled. The header and the team data (`$0`-`$5431`) are left. `PLAYER.BIN` is 2,760 bytes. `GRAPH2.BIN` and `GTABLE.BIN` are still untouched. CD audio is `docs/segacd_audio.md`. `song` and `sfx` are `docs/segacd_song.md`. The scouting-report script is `docs/segacd_announce.md`. Career stats and photos are `docs/segacd_stats.md`. Crowd frames are `docs/segacd_crowd.md`. The film player, Z80 loader, and hardware readers are `docs/segacd_film.md`.
+Verified bytes are 204,876 of the 410,162 bytes in the four code files (50.0%; `tools/segacd_check.sh` prints the current numbers). Before the HOCKEY.BIN segments they were 22,690 (5.5%). `MAIN.BIN` is contiguous from the first byte through `$FF34B7` (13,496 of 60,416) plus the hardware readers and the Z80 loader (498 bytes more, 13,994 total, 23.2%). `STARTER.BIN` is 3,280 bytes. `HOCKEY.BIN` is matched in full (184,842 bytes), most of it the 94G twins in `src/segacd/hockey/`. 43,120 of those bytes are read from the disc file with `incbin`: graphics (palettes, pictures, arena animations), the licensed player names and team nicknames, and the team data blocks that differ from the cartridge; the rest is source. `PLAYER.BIN` is 2,760 bytes. `GRAPH2.BIN` and `GTABLE.BIN` are still untouched. CD audio is `docs/segacd_audio.md`. `song` and `sfx` are `docs/segacd_song.md`. The scouting-report script is `docs/segacd_announce.md`. Career stats and photos are `docs/segacd_stats.md`. Crowd frames are `docs/segacd_crowd.md`. The film player, Z80 loader, and hardware readers are `docs/segacd_film.md`.
 
 | Source | Compared to | Bytes |
 | --- | --- | --- |
@@ -124,6 +124,7 @@ Verified bytes are 183,322 of the 410,162 bytes in the four code files (44.7%; `
 | `src/segacd/filmclose.asm` | `cdbin/STARTER.BIN` `$473A` | `FilmClose` (66) |
 | `src/segacd/z80load.asm` | `cdbin/MAIN.BIN` `$76C8` | Z80 loader (240) |
 | `src/segacd/hwread.asm` | `cdbin/MAIN.BIN` `$3B3C` | VDP, joypad, and HV readers (258) |
+| `src/segacd/hockey/teamdata94.asm` | `cdbin/HOCKEY.BIN` `$0` | header and `teamdata94.asm`: team records; licensed names read from the disc (21,554) |
 | `src/segacd/hockey/frames94.asm` | `cdbin/HOCKEY.BIN` `$5432` | `frames94.asm`: sprite animation tables, unchanged (7,062) |
 | `src/segacd/hockey/sram94.asm` | `cdbin/HOCKEY.BIN` `$6FC8` | `sram94.asm`: CD start-up, `Begin` (the game start), backup RAM (1,388) |
 | `src/segacd/hockey/cards94_2.asm` | `cdbin/HOCKEY.BIN` `$7534` | `cards94.asm` part 2: the save RAM readers, moved here (372) |
@@ -205,6 +206,8 @@ The disc assembler did not optimise: an unsized branch is `.w`, `add`/`sub` of a
 ```
 python tools/segacd_port.py --file onetimer94.asm --disc-start 0x76A8 --disc-end 0x7DDC --out src/segacd/hockey/onetimer94.asm --register
 ```
+
+The team data (`teamdata94.asm`) is ported with `--no-text`: a quoted line that is not word for word in the public `src/teamdata94.asm` (a player row, a nickname) is `incbin` from the disc, with the line as its comment (text masked, ratings and the `P` id kept), and every block with no cartridge twin is `incbin` too, so a name only the disc has can never be written. The record structure, palettes, line sets and ratings are source.
 
 What the cartridge build takes from the ROM (the licensed New York team nicknames in `optsetup94`, the asset files it `incbin`s from `Extracted/`, such as the matchup palettes in `cards94`) is `incbin ..\cdbin\HOCKEY.BIN,offset,length` here, read from your own disc file. The Sega CD build never reads `Extracted/`, and `segacd_port.py` stops if a written fragment would contain a player name or team nickname.
 

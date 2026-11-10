@@ -125,7 +125,7 @@ dodmalist							;(symbols are case-insensitive). Transfer data from dmalist.
 	bgt.w	.L3DC00
 	rts
 SetScroll2							;Write Hscroll / Vscroll to the vdp. Called from DumpSprites
-	move.w	(VSCRLPM).l,d0
+	move.w	$18D30.l,d0	;CD: the cartridge has (VSCRLPM).w
 	addi.w	#2,d0
 	bsr.w	Vmaddr
 ;CD: no cartridge twin

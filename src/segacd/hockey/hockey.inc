@@ -4,7 +4,36 @@
 ;	value does not show (a difference, a copied line); a disc operand may still change it.
 
 ; RAM
+GoalieStruct	equ	$AFA6
+VSCRLPM	equ	$B002
+Ylist	equ	$B826
+OOlistpos	equ	$B846
+OOlist	equ	$B866
+pads	equ	$B8AA
+Joy1Struct	equ	$B8C6
+CameraPosStruct	equ	$B8FE
+Joy3Struct	equ	$B91A
+Joy4Struct	equ	$B936
+glovestruct	equ	$B952
+sso	equ	$B97E
+clockram	equ	$BA7A
+fodir1	equ	$BA8C
+fodir2	equ	$BA8E
+PushWidthBuf	equ	$BAFC
+PushNumberBuf	equ	$BB04
+TeamBlockMap	equ	$BB58
+RefRamMap	equ	$BC1A
+ScoreSum	equ	$BC98
+PenSum	equ	$BE02
 replaystart	equ	$C45C
+gstruct	equ	$C5BE
+potree	equ	$C64C
+PlList	equ	$C66C
+nibblebuffer	equ	$C78E
+varend	equ	$C796
+outputbuffer	equ	$C7E8
+tpassbits	equ	$C8CC
+PALflag	equ	$E93E
 replayend	equ	$173B0
 fodropx	equ	$1746C
 fodropy	equ	$1746E
@@ -213,7 +242,6 @@ TmpOptLine2	equ	$18C22
 TempOptPlayMode	equ	$18C24
 databuffer	equ	$18C26
 passbits	equ	$18C38
-VSCRLPM	equ	$18D30
 VSPRITES	equ	$18D32
 VmMAP1	equ	$18D34
 Map1col	equ	$18D36
@@ -285,7 +313,6 @@ awayplayers	equ	$193B0
 shootoutclock	equ	$193B6
 shootoutjiffy	equ	$193B8
 ValidSRAM	equ	$193BA
-M68K_RAM	equ	$193BC
 namelog	equ	$1A2FC
 nameentrybuf	equ	$1A37C
 namelength	equ	$1A38A
@@ -372,53 +399,29 @@ iconplayer	equ	$1AD8A
 iconx	equ	$1AD8C
 scoutwait	equ	$1AD8E
 replaydelay	equ	$1AD92
-statsbuffer	equ	$243BC
-Stack	equ	$25814
-GoalieStruct	equ	$307BC
-Ylist	equ	$3103C
-OOlistpos	equ	$3105C
-OOlist	equ	$3107C
-pads	equ	$310C0
-Joy1Struct	equ	$310DC
-CameraPosStruct	equ	$31114
-Joy3Struct	equ	$31130
-Joy4Struct	equ	$3114C
-glovestruct	equ	$31168
-sso	equ	$31194
-clockram	equ	$31290
-fodir1	equ	$312A2
-fodir2	equ	$312A4
-PushWidthBuf	equ	$31312
-PushNumberBuf	equ	$3131A
-TeamBlockMap	equ	$3136E
-RefRamMap	equ	$31430
-ScoreSum	equ	$314AE
-PenSum	equ	$31618
-gstruct	equ	$31DD4
-potree	equ	$31E62
-PlList	equ	$31E82
-nibblebuffer	equ	$31FA4
-varend	equ	$31FAC
-outputbuffer	equ	$31FFE
-tpassbits	equ	$320E2
+Satt	equ	$AF8D6
+decompbuffer	equ	$AFBA6
+starscores	equ	$AFBA6
 dmaram	equ	$BBC9E
 palfadenew	equ	$BBCB0
 ThreeStars	equ	$BC000
 recordbuf	equ	$BC000
 teamrecbuf	equ	$BC0C8
-Satt	equ	$D50EC
-decompbuffer	equ	$D53BC
-starscores	equ	$D53BC
+M68K_RAM	equ	$FFFF3BA6
+statsbuffer	equ	$FFFFEBA6
 
 ; constants
 abut	equ	$6
 aggress	equ	$73
 aidef	equ	$6B
 aioff	equ	$6A
+ANH	equ	$0
 asslist	equ	$38
 assnum	equ	$36
 attribute	equ	$4
 Blueline	equ	$58
+BOS	equ	$1
+BUF	equ	$2
 camidle	equ	$18
 camtrack	equ	$16
 cbut	equ	$5
@@ -441,13 +444,16 @@ CC_Font3Pal3	equ	$CD
 CC_Font3Pal3Pri	equ	$8D
 CC_Font3Pri	equ	$BD
 CC_ListEnd	equ	$FF
+CC_PageEnd	equ	-1
 CC_SetAttribute	equ	$FE
 CC_SetFont	equ	$F9
 CC_SetMap	equ	$FF
 CC_SetMapAndPosition	equ	$F8
 CC_SetX	equ	$FD
 CC_SetY	equ	$FC
+CGY	equ	$3
 checking	equ	$75
+CHI	equ	$4
 crgoalsopp	equ	$2
 crgoalsoppuser	equ	$3
 crgoalsuser	equ	$1
@@ -461,17 +467,21 @@ crsaves	equ	$4
 crsavesopp	equ	$6
 crsavesoppuser	equ	$7
 crsavesuser	equ	$5
+DAL	equ	$5
 dbut	equ	$1
+DET	equ	$6
 df32c	equ	$1
 dfclock	equ	$3
 dffaceoff	equ	$4
 dfng	equ	$2
 dfok	equ	$0
+EDM	equ	$7
 endurance	equ	$72
 facedir	equ	$54
 ffonum	equ	$7		;not checked on the disc yet
 ffosize	equ	$1C
 fighting	equ	$74
+FLA	equ	$8
 foattr	equ	$2
 foframe	equ	$0		;not checked on the disc yet
 fosize	equ	$4		;not checked on the disc yet
@@ -501,6 +511,7 @@ gssize	equ	$10
 gst1	equ	$0		;not checked on the disc yet
 gst2	equ	$2
 handed	equ	$76
+HFD	equ	$9
 ifcgl	equ	$0
 ifdir	equ	$1
 ifok	equ	$2
@@ -511,6 +522,7 @@ jimdata	equ	$4
 jimtilecount	equ	$8
 jimtiles	equ	$A
 jps	equ	$18
+LA	equ	$A
 lbut	equ	$2
 legspd	equ	$69
 legstr	equ	$68
@@ -521,19 +533,25 @@ mapheight	equ	$2
 mapwords	equ	$4
 maxros	equ	$1A		;not checked on the disc yet
 MaxSprites	equ	$40
+MTL	equ	$B
 NameLogBase	equ	$DA0
 NameLogBytes	equ	$80
 newpnum	equ	$61
 newpos	equ	$60
+NJ	equ	$C
 nopuck	equ	$5E
 nopuckb	equ	$5F
+NumofTeams	equ	$1C
 NumPlayoffTeams	equ	$1A
 NumTeams	equ	$1C
+NYI	equ	$D
+NYR	equ	$E
 oldframe	equ	$8
 OldXpos	equ	$1C
 OldYpos	equ	$20
 OldZpos	equ	$24
 osflag	equ	$4E20
+OTW	equ	$F
 Palettedata	equ	$2
 passacc	equ	$6E
 pbscnum	equ	$1
@@ -564,8 +582,11 @@ pfna	equ	$1
 pfnc	equ	$2
 pfrev	equ	$4
 pfteam	equ	$6
+PHI	equ	$10
+PIT	equ	$11
+Playerdata	equ	$0
 PlayoffRows	equ	$20
-PlayoffRowTeams	equ	$10		;not checked on the disc yet
+PlayoffRowTeams	equ	$10
 pldaidef	equ	$3
 pldcheck	equ	$4
 pldendur	equ	$6
@@ -584,6 +605,7 @@ pruser	equ	$1
 pspen	equ	$2
 psplayer	equ	$3
 puckscnum	equ	$E
+QUE	equ	$12
 radiusx	equ	$4A
 radiusy	equ	$4C
 rbut	equ	$3
@@ -651,6 +673,7 @@ SFXwhistle	equ	$3
 shotacc	equ	$6D
 shotspd	equ	$6C
 Sideline	equ	$88
+SJ	equ	$13
 SngEOP	equ	$79
 SngFaceoff	equ	$2
 SngGoal	equ	$3
@@ -672,8 +695,11 @@ ssflags	equ	$2
 ssonum	equ	$4		;not checked on the disc yet
 ssosize	equ	$14
 ssscorer	equ	$3
+Stack	equ	-2		;not checked on the disc yet
 stickhand	equ	$71
+STL	equ	$14
 strtext	equ	$2
+TB	equ	$15
 Teamname	equ	$4
 TeamRecBase	equ	$D20
 temp1	equ	$40
@@ -730,6 +756,7 @@ tmteam	equ	$2A		;the cartridge has $28
 tmtouch1	equ	$18
 tmtouch2	equ	$1A
 tmtouch3	equ	$1C
+TOR	equ	$16
 ubut	equ	$0
 urgames	equ	$A
 urgoalsopp	equ	$2
@@ -741,6 +768,7 @@ ursavesoppuser	equ	$7
 ursavesteam	equ	$5
 urties	equ	$C
 urwins	equ	$8
+VAN	equ	$17
 Vctrl	equ	$C00004
 Vdata	equ	$C00000
 VRchar	equ	$12
@@ -748,6 +776,8 @@ VRoffs	equ	$A
 Wallcos	equ	$4E
 Wallsin	equ	$50
 weight	equ	$67
+WPG	equ	$19
+WSH	equ	$18
 Xcord	equ	$0
 Xpos	equ	$0
 Xvel	equ	$28

@@ -851,7 +851,7 @@ setVram_0						;CD: its first lines have no twin; the rest of it starts here
 	bne.s	.L37EFC
 	bclr.b	#$7,$FF800F.l
 	move.w	#$8D00,d0				;reg $D: scroll table
-	move.b	(VSCRLPM).l,d0
+	move.b	$18D30.l,d0	;CD: the cartridge has (VSCRLPM).w
 	lsr.b	#2,d0
 ;CD: no cartridge twin
 .L37F1A
@@ -1147,7 +1147,7 @@ setVram_0						;CD: its first lines have no twin; the rest of it starts here
 	bne.s	.L384AE
 	bclr.b	#$7,$FF800F.l
 	move.w	#$8D00,d0
-	move.b	(VSCRLPM).l,d0
+	move.b	$18D30.l,d0
 	lsr.b	#$2,d0
 .L384CC
 	btst.b	#$7,$FF800E.l

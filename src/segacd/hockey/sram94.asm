@@ -60,10 +60,10 @@ DefaultMenus	equ	$40102
 .L22094
 	rts
 Begin						;CD: its first lines have no twin; the rest of it starts here
-	movea.l	#$C458,sp	;stack pointer to Stack (CD: the cartridge has #(Stack-M68K_RAM))
-	movea.l	#$1745C,a0	;clear out ram (CD: the cartridge has #(VSCRLPM-M68K_RAM))
+	movea.l	#(Stack-M68K_RAM),sp	;stack pointer to Stack
+	movea.l	#(VSCRLPM-M68K_RAM),a0	;clear out ram
 .0	clr.l	(a0)+					;clear the RAM from VSCRLPM through PALflag
-	cmpa.l	#$1AD9A,a0	;CD: the cartridge has #(PALflag+2-M68K_RAM)
+	cmpa.l	#(PALflag+2-M68K_RAM),a0
 	blt.w	.0
 ;CD: no cartridge twin
 	move.w	#$C,d7
@@ -300,7 +300,7 @@ ClearSRAM							;Clears first $2000 of RAM and SaveRAM: zero M68K_RAM $0-$1FFF w
 									;$1FFE = $FF (the checksum of zeros), write it to
 									;the save RAM, set byte 1 to 1, then MakeSRAMChecksum. Called from
 									;InitSaveRAM
-	lea	(M68K_RAM).l,a0
+	lea	$193BC.l,a0	;CD: the cartridge has (M68K_RAM).l
 	move.w	#$F1F,d0	;CD: the cartridge has #$1FFF
 	clr.l	d1
 .loop								;clear each byte
@@ -310,7 +310,7 @@ ClearSRAM							;Clears first $2000 of RAM and SaveRAM: zero M68K_RAM $0-$1FFF w
 	rts
 	movem.l	d0-d1/a0-a1,-(sp)
 	movea.l	d0,a1
-	adda.l	#M68K_RAM,a1
+	adda.l	#$193BC,a1
 	subq.l	#$1,d1
 .L22460
 	move.b	(a1)+,(a0)+
@@ -331,7 +331,7 @@ ClearSRAM							;Clears first $2000 of RAM and SaveRAM: zero M68K_RAM $0-$1FFF w
 	move.l	a6,$19360.l
 	movea.l	(sp)+,a6
 	movea.l	d0,a1
-	adda.l	#M68K_RAM,a1
+	adda.l	#$193BC,a1
 	subq.l	#$1,d1
 .L224A6
 	move.b	(a0)+,(a1)+
@@ -350,7 +350,7 @@ ClearSRAM							;Clears first $2000 of RAM and SaveRAM: zero M68K_RAM $0-$1FFF w
 	jsr	$5F16.w
 	move.w	#$4,d0
 	lea	$2241C.l,a0
-	lea	(M68K_RAM).l,a1
+	lea	$193BC.l,a1
 	jsr	$5F16.w
 	bcc.w	.L22508
 .L22500

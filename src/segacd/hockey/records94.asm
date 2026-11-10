@@ -58,7 +58,7 @@ NameEntryScreen						;"NAME ENTRY" screen for the user records (own vblank VBlan
 	bclr.b	#dfok,(disflags).l		;display not ready
 	bset.b	#dfng,(disflags).l		;no game drawing while the screen is built
 	bclr.b	#df32c,(disflags).l		;32 cell flag off
-	move.w	#0,(VSCRLPM).l			;plain scroll and the map / sprite table layout of the setup screens
+	move.w	#0,$18D30.l			;plain scroll and the map / sprite table layout of the setup screens (CD: the cartridge has (VSCRLPM).w)
 	move.w	#$B400,(VSPRITES).l
 	move.w	#$B800,(VmMAP3).l
 	move.w	#5,(Map3col).l

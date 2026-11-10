@@ -150,3 +150,4 @@ compareAt('output/segacd/hockey/cards94_2.bin', 'cdbin/HOCKEY.BIN', 0x7534, 0x17
 compareAt('output/segacd/hockey/graphics94_2.bin', 'cdbin/HOCKEY.BIN', 0x28A7E, 0x427E);
 compareAt('output/segacd/hockey/cdgfxptrs.bin', 'cdbin/HOCKEY.BIN', 0x2CCFC, 0xB0);
 compareAt('output/segacd/hockey/cdpads.bin', 'cdbin/HOCKEY.BIN', 0x2CDAC, 0x45E);
+compareAt('output/segacd/hockey/teamdata94.bin', 'cdbin/HOCKEY.BIN', 0x0, 0x5432);

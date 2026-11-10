@@ -69,7 +69,7 @@ setupice							;set all variables, send non purgeable graphics, build sprite fra
 	move.w	#6,(Map1col).l			;map 1 width (same as 2 always)
 	move.w	#$F000,(VmMAP3).l
 	move.w	#5,(Map3col).l			;map 3 width (dependent on df32c mode)
-	move.w	#$FC00,(VSCRLPM).l
+	move.w	#$FC00,$18D30.l	;CD: the cartridge has (VSCRLPM).w
 	moveq	#0,d0					;color to fade to
 	bsr.w	setVram
 	bclr.b	#sfpz,(sflags).l
@@ -841,7 +841,7 @@ GameOver							;EncodePW (save the password), then in playoff mode PlayoffStatsS
 	bclr.b	#$5,$FF800F.l
 Opening2						;CD: its first lines have no twin; the rest of it starts here
 	movea.l	#(Stack-M68K_RAM),sp
-	movea.l	#$1745C,a0	;varstart (CD: the cartridge has #(VSCRLPM-M68K_RAM))
+	movea.l	#(VSCRLPM-M68K_RAM),a0	;varstart
 .0									;loop
 	clr.l	(a0)+
 	cmpa.l	#(varend-M68K_RAM),a0	;clear from VSCRLPM up to it
@@ -874,7 +874,7 @@ PlayoffScreen						;bring up playoff screen if in playoff mode. Called from Game
 	move.l	#VBlank_Playoff,(VBint).l
 	bset.b	#$5,$FF800F.l
 	bclr.b	#df32c,(disflags).l		;32 cell mode off
-	move.w	#0,(VSCRLPM).l
+	move.w	#0,$18D30.l	;CD: the cartridge has (VSCRLPM).w
 	move.w	#$BC00,(VSPRITES).l
 	move.w	#$B000,(VmMAP3).l
 	move.w	#6,(Map3col).l
@@ -1156,7 +1156,7 @@ VBlank_Playoff						;the PlayoffScreen vblank handler (VBint): dma the sprite ta
 	move.w	(VSPRITES).l,d1			;to the sprites address
 ;CD: no cartridge twin
 	jsr	$378D2.l
-	move.w	(VSCRLPM).l,d0
+	move.w	$18D30.l,d0	;CD: the cartridge has (VSCRLPM).w
 	bsr.w	Vmaddr					;set the vram address
 	move.w	#$FEA0,d0				;hscroll = $FEA0 + position
 	add.w	(playoffscroll).l,d0

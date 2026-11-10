@@ -1260,7 +1260,7 @@ SPAwallright_table:					;table of the animation above: direction offsets, flags,
 	dc.w	.4-.t
 	dc.w	.5-.t
 	dc.w	.6-.t
-	dc.w	.7-.t
+	dc.w	$003E	;dc.w	.7-.t
 	dc.w	0
 
 .a	=	SPFPen

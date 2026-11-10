@@ -39,6 +39,7 @@ from capstone import Cs, CS_ARCH_M68K, CS_MODE_BIG_ENDIAN, CS_MODE_M68K_000
 md = Cs(CS_ARCH_M68K, CS_MODE_M68K_000 | CS_MODE_BIG_ENDIAN)
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 BASE = 0x1B000
+NO_TEXT = False             # --no-text: never write text from the disc (team data)
 OPTIONS = ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-",
            "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]
 
@@ -61,6 +62,14 @@ class Line:
 
     def __init__(self, addr, field, mac, src, n):
         self.addr, self.field, self.mac, self.src, self.n = addr, field, mac, src, n
+
+
+def is_ram(name, cglob, ckind):
+    """A cartridge RAM address ($FFxxxx); a small negative equate (CC_PageEnd equ -1) is a constant."""
+    v = cglob.get(name)
+    if v is None or v < 0xFF0000:
+        return False
+    return not (ckind.get(name) == "equ" and v >= 0xFFFFFF00)
 
 
 def read_listing(path):
@@ -484,6 +493,9 @@ def main():
                     help="add the fragment to tools/segacd.json, tools/verifySegacd.js and the name map")
     ap.add_argument("--also", action="append", default=[], metavar="FILE",
                     help="another 94G file whose routines may have moved into this disc range")
+    ap.add_argument("--no-text", action="store_true",
+                    help="team data: a quoted line that is not in the public src/teamdata94.asm (player names, "
+                         "nicknames) and every CD block are incbin from the disc file, never text")
     ap.add_argument("--label", action="append", default=[], metavar="NAME=ADDR",
                     help="a name for a CD-only routine at runtime address ADDR in the fragment")
     ap.add_argument("--name", action="append", default=[], metavar="NAME=ADDR",
@@ -523,6 +535,12 @@ def main():
         items += more
     walk = align(items, disc, a.disc_start, a.disc_end, nmain)
     frag = Fragment(a, items, walk, disc, rom, cart_glob, cart_kind, cart_local, lines, lo, hi, tail)
+    if a.no_text:
+        global NO_TEXT
+        NO_TEXT = True
+        # the placeholder file is public: a line that reads the same there holds no licensed text
+        frag.public = {re.sub(r"\s+", "", split_comment(l)[0]) for l in
+                       open(os.path.join(ROOT, "src", "teamdata94.asm"), encoding="latin1")}
     # Constants defined in a 94G code file (not the RAM map / team data / macros): they stay that file's own.
     shared = set()
     for f in ("ram94.asm", "teamdata94.asm", os.path.join("macros", "genesis.mac")):
@@ -532,8 +550,9 @@ def main():
                 m = re.match(r"\s*(" + ID + r")\s*(:?\s+(equ|set|rs(\.[bwl])?)\b|\s*=)", line, re.I)
                 if m:
                     shared.add(m.group(1))
+    frag.shared = shared
     frag.local_consts = {n for n, k in cart_kind.items() if k in ("equ", "rs") and n not in shared
-                         and cart_glob[n] < 0xFF0000}
+                         and not is_ram(n, cart_glob, cart_kind)}
     for nv in a.name:
         n, v = nv.split("=")
         if n not in cart_glob:
@@ -562,6 +581,11 @@ def licensed_check(path):
     text = open(path, encoding="latin1").read()
     if re.search(r"^[^;\n]*\b(incbin|include)\s+\.\.\\Extracted", text, re.M | re.I):
         sys.exit(f"{path}: reads Extracted/ (cartridge assets); the Sega CD build must read cdbin/ only.")
+    # a line that reads the same in the public placeholder file (String 'All Stars East') is not licensed
+    public = {re.sub(r"\s+", "", split_comment(l)[0]) for l in
+              open(os.path.join(ROOT, "src", "teamdata94.asm"), encoding="latin1")}
+    text = "\n".join(l for l in text.split("\n")
+                     if not ("'" in l and re.sub(r"\s+", "", split_comment(l)[0]) in public))
     quoted = " ".join(re.findall(r"'([^']*)'", text))
     hits = {n for n in lists["PlayerNames.txt"] if re.search(r"\b" + re.escape(n) + r"\b", text)}
     hits |= {n for n in lists["TeamNicknames.txt"] if re.search(r"\b" + re.escape(n) + r"\b", quoted)}
@@ -739,15 +763,17 @@ def align(items, disc, start, end, nmain=None):
         cands += idx.get(("d", bytes(disc[p:p + 4])), [])
         cands += idx.get(("d2", bytes(disc[p:p + 2])), [])
         best = None
-        for j in cands:
+        # prefer the run that follows on, then lines of this file, then the nearest after: try them in
+        # that order and take the first that fits (a dc.w 0 or an rts has thousands of candidates)
+        order = sorted(set(cands), key=lambda j: (0 if j == nxt else 1, 0 if j < nmain else 1,
+                                                  0 if j > nxt else 1, abs(j - nxt)))
+        for j in order:
             # a short skip forward needs K lines; any other jump (back, far, another file) needs more
             need = K if (j < nmain and (nxt <= j <= nxt + 40 or not in_run and walk == [])) else K + 2
             if j in used or not run_ok(items, j, disc, p, end, need, used):
                 continue
-            # prefer the run that follows on, then lines of this file, then the nearest after
-            key = (0 if j == nxt else 1, 0 if j < nmain else 1, 0 if j > nxt else 1, abs(j - nxt))
-            if best is None or key < best[0]:
-                best = (key, j)
+            best = (None, j)
+            break
         if best is not None:
             j = best[1]
             # zero-length lines just before it (labels, even) come along
@@ -835,6 +861,8 @@ class Fragment:
         self.targets = set()
         self.cd_pcs = set()
         self.cdlabels = set()
+        self.public = set()
+        self.shared = set()
         self.local_consts = set()
 
     # -- labels from aligned items
@@ -901,7 +929,7 @@ class Fragment:
         k = self.ckind.get(name)
         if k in ("equ", "rs"):
             v = self.cglob[name]
-            if v >= 0xFF0000 or (0xFFFF0000 <= v):
+            if is_ram(name, self.cglob, self.ckind):
                 raise Unknown(name)            # RAM: the disc has its own map
             return v
         raise Unknown(name)
@@ -931,7 +959,7 @@ class Fragment:
             return True
         if k == "label":
             return True
-        return v is not None and v >= 0xFF0000
+        return is_ram(name, self.cglob, self.ckind)
 
     def solve(self, expr, value, width, scope, mode=None):
         """Try to make expr equal value (mod width). Returns True and records new symbols."""
@@ -1084,6 +1112,18 @@ class Fragment:
             if not ok:
                 bad.add(key)
         return bad
+
+    def resolvable(self, text, scope):
+        """Every label a copied data line uses is defined in this fragment (or is a known name)."""
+        for tok in re.findall(ID, re.sub(r"'(?:[^']|'')*'", "", text)):
+            if tok.lower() in REGS:
+                continue
+            if tok.startswith("."):
+                if (scope, tok) not in self.label_at:
+                    return False
+            elif self.ckind.get(tok) == "label" and tok not in self.label_at and tok not in self.dsym:
+                return False
+        return True
 
     def same_number(self, cop, o, insn):
         """The cartridge operand text, when it is a plain number equal to the disc operand."""
@@ -1251,10 +1291,22 @@ class Fragment:
                     elif it.licensed:
                         body.append(("src", f"\tincbin\t..\\cdbin\\HOCKEY.BIN,${p:X},{ln}\t;licensed text: read from the disc file",
                                      p, ln))
+                    elif NO_TEXT and "'" in split_comment(it.ln.src)[0] and \
+                            re.sub(r"\s+", "", split_comment(it.ln.src)[0]) not in self.public:
+                        # licensed text (a player row, a nickname): the bytes from the disc file, the
+                        # line with its text masked as the comment (ratings and the P id stay)
+                        code, com = split_comment(it.ln.src)
+                        masked = re.sub(r"'(?:[^']|'')*'", "<text>", code.strip())
+                        body.append(("src", f"{it.label or ''}\tincbin\t..\\cdbin\\HOCKEY.BIN,${p:X},{ln}\t;{masked}"
+                                     + (" " + com.strip() if com else ""), p, ln))
                     elif it.mnem.lower() == "incbin" and "extracted" in it.ops.lower():
                         # a cartridge asset (extracted from the ROM there): the same bytes from the disc file
                         what = it.comment.lstrip(";").strip() or it.ops.split("\\")[-1]
                         body.append(("src", f"{it.label or ''}\tincbin\t..\\cdbin\\HOCKEY.BIN,${p:X},{ln}\t;{what} (from the disc file)",
+                                     p, ln))
+                    elif it.kind == "data" and ln and not self.resolvable(it.ops, it.scope):
+                        # dc.w .pld-.0 of a record whose body has no twin: the disc bytes, the line as a comment
+                        body.append(("src", f"{it.label or ''}\t{raw_dc(self.disc[p:p + ln])}\t;{split_comment(it.ln.src)[0].strip()}",
                                      p, ln))
                     else:
                         body.append(("src", it.ln.src.rstrip(), p, ln))
@@ -1351,6 +1403,9 @@ class Fragment:
     def emit_cd(self, body, p, q):
         body.append(("text", ";CD: no cartridge twin"))
         self.stats["cd_bytes"] += q - p
+        if NO_TEXT:                     # team data: may hold disc-only names, never decode it to text
+            body.append(("src", f"\tincbin\t..\\cdbin\\HOCKEY.BIN,${p:X},{q - p}\t;read from the disc file", p, q - p))
+            return
         for u in self.cd_units(p, q):
             if u[0] == "text":
                 pc, n = u[1], u[2]
@@ -1401,10 +1456,12 @@ class Fragment:
                         placed.add((rt, name))
             if markers and sp is not None:
                 out.append(f".zzm{k}")
-            if e[0] == "text":
-                out.append(e[1])
-            elif e[0] == "src":
-                out.append(e[1])
+            if e[0] in ("text", "src"):
+                m = re.match(r"(" + ID + r")\s*(\s(equ|set)\b|=)", split_comment(e[1])[0], re.I)
+                if m and (m.group(1) in self.inc_old or m.group(1) in self.shared) and not m.group(1).startswith("."):
+                    out.append(";" + e[1] + "\t(defined in hockey.inc)")   # shared with other fragments
+                else:
+                    out.append(e[1])
             elif e[0] == "data":
                 lab = e[1] or ""
                 out.append(lab + e[2])
@@ -1485,6 +1542,14 @@ class Fragment:
             if n not in merged and n not in self.local_consts:
                 merged[n] = self.cglob[n]
                 assumed.add(n)
+        # shared names this fragment defines (NumTeams = ... in teamdata94): their line is a comment here,
+        # the value lives in hockey.inc for every fragment
+        for e in self.body:
+            if e[0] in ("text", "src"):
+                m = re.match(r"(" + ID + r")\s*(\s(equ|set)\b|=)", split_comment(e[1])[0], re.I)
+                if m and m.group(1) in self.shared and m.group(1) in self.cglob and not m.group(1).startswith("."):
+                    merged[m.group(1)] = self.cglob[m.group(1)]
+                    assumed.discard(m.group(1))
         write_inc(self.a.inc, merged, self.cglob, self.ckind, assumed)
 
     def used_constants(self, text):
@@ -1515,7 +1580,7 @@ class Fragment:
                 if tok in self.label_at or tok in self.externs or tok in self.dsym:
                     continue
                 k = self.ckind.get(tok)
-                if k in ("equ", "rs") and self.cglob[tok] < 0xFF0000:
+                if k in ("equ", "rs") and not is_ram(tok, self.cglob, self.ckind):
                     out.append(tok)
                     # a constant in a byte-equal copied data line (String CC_Font1,...) shows its value
                     if e[0] == "src" and e[3] and re.fullmatch(r"\s*(" + ID + r"\s+)?(string|dc\.[bwl]|dc)\b.*", split_comment(e[1])[0], re.I | re.S):
@@ -1650,7 +1715,7 @@ def same_mnem(cart, disc):
 
 
 def raw_dc(raw):
-    if len(raw) >= 6 and all(0x20 <= b < 0x7F and b != 0x27 for b in raw):
+    if not NO_TEXT and len(raw) >= 6 and all(0x20 <= b < 0x7F and b != 0x27 for b in raw):
         return "dc.b\t'" + raw.decode("ascii") + "'"
     if len(raw) % 2 == 0:
         return "dc.w\t" + ",".join(f"${int.from_bytes(raw[i:i + 2], 'big'):04X}" for i in range(0, len(raw), 2))
@@ -1664,16 +1729,17 @@ def read_inc(path, assumed=None):
     out = {}
     if os.path.exists(path):
         for line in open(path):
-            m = re.match(r"(" + ID + r")\s+equ\s+\$([0-9A-Fa-f]+)", line)
+            m = re.match(r"(" + ID + r")\s+equ\s+(\$[0-9A-Fa-f]+|-\d+)", line)
             if m:
-                out[m.group(1)] = int(m.group(2), 16)
+                g = m.group(2)
+                out[m.group(1)] = int(g[1:], 16) if g.startswith("$") else int(g) & 0xFFFFFFFF
                 if assumed is not None and ASSUMED in line:
                     assumed.add(m.group(1))
     return out
 
 
 def write_inc(path, merged, cglob, ckind, assumed=()):
-    ram = {n: v for n, v in merged.items() if cglob.get(n, 0) >= 0xFF0000}
+    ram = {n: v for n, v in merged.items() if is_ram(n, cglob, ckind)}
     const = {n: v for n, v in merged.items() if n not in ram}
     out = [";\tHOCKEY.BIN names: the sub CPU RAM map (where each cartridge variable lives on the disc) and the",
            ";\tcartridge constants the HOCKEY.BIN fragments use. tools/segacd_port.py adds to this file.",
@@ -1688,7 +1754,8 @@ def write_inc(path, merged, cglob, ckind, assumed=()):
         note = f"\t\t;the cartridge has ${c:X}" if c is not None and c != v else ""
         if n in assumed:
             note = f"\t\t;{ASSUMED}"
-        out.append(f"{n}\tequ\t${v:X}{note}")
+        val = f"{v - 0x100000000}" if v >= 0xFFFFFF00 else f"${v:X}"
+        out.append(f"{n}\tequ\t{val}{note}")
     os.makedirs(os.path.dirname(path), exist_ok=True)
     open(path, "w", newline="\n").write("\n".join(out) + "\n")
 

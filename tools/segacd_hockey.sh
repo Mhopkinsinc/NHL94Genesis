@@ -38,6 +38,7 @@ port() {  # name[:part] start end [options...]   name:2 writes src/segacd/hockey
 }
 mkdir -p output
 
+port teamdata94 0x0 0x5432 --no-text --note 'The file header (jmp to Begin, null, TeamList) and the team data. The player names and team nicknames\nare licensed: those lines are incbin from the disc file, with the line (text masked, ratings and the\nP id kept) as the comment; every block with no cartridge twin is read from the disc file too. The\nrecord structure, palettes, lines and ratings are the cartridge source.'
 port frames94 0x5432 0x6FC8 --note 'The sprite animation tables, the cartridge data unchanged (the cartridge has them at $5B1C).'
 port sram94 0x6FC8 0x7534 --also hockey94.asm --note 'CD start-up and save data. The file opens with new code (the BIOS vector at $6038, a handshake with\nthe main CPU), then Begin, the game start that the jmp at file $0 enters (stack at $C458, clears\n$1745C-$1AD99), then ValidateSRAM / ClearSRAM reworked for the backup RAM through the BIOS ($6044).'
 port cards94:2 0x7534 0x76A8 --note 'Part 2 of cards94: the save RAM readers (ReadPlayerRecord ... NameLogIO, PlayerRecordOffsets).\nOn the disc they sit here, next to sram94, not in cards94 (part 1 at $9B5E). The cartridge code.'

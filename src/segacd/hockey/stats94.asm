@@ -2293,7 +2293,7 @@ ReloadRinkGraphics					;after the forceblack: back to 32 cell mode and reload th
 									;setplayercolors. Also called from the replay code
 	move.w	(disflags).l,-(sp)
 	bset.b	#dfng,(disflags).l
-	move.w	(VSCRLPM).l,d0
+	move.w	$18D30.l,d0	;CD: the cartridge has (VSCRLPM).w
 ;CD: no cartridge twin
 	jsr	$3871E.l
 .L2E9A0
@@ -2312,7 +2312,7 @@ ReloadRinkGraphics					;after the forceblack: back to 32 cell mode and reload th
 	bne.s	.L2E9DE
 	bclr.b	#$7,$FF800F.l
 	move.w	#$8D00,d0				;register $D: hscroll table
-	move.b	(VSCRLPM).l,d0
+	move.b	$18D30.l,d0	;CD: the cartridge has (VSCRLPM).w
 	lsr.b	#2,d0
 ;CD: no cartridge twin
 .L2E9FC
