@@ -7441,7 +7441,7 @@ GetHot								;push long address of structure to get hot spot from. Hot spot x/y
 	tst.w	frame(a0)
 	ble.w	.ex						;branch if <= 0
 ;CD: no cartridge twin
-	movea.l	$47D28.l,a1
+	movea.l	(HotListPtr).l,a1
 	subq.l	#$2,a1
 	move.w	frame(a0),d0			;move frame into d0
 	add.w	d0,d0					;double d0

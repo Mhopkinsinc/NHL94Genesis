@@ -90,7 +90,7 @@ setupice							;set all variables, send non purgeable graphics, build sprite fra
 	addq.l	#$8,a2
 	btst.b	#$4,(sflags4).l
 	beq.w	.0
-	movea.l	$47D64.l,a2
+	movea.l	(RevRinkTilelistPtr).l,a2
 	addq.l	#$8,a2
 .0									;normal or reverse rink tiles chosen
 	bsr.w	DecompressGraphicsPlain	;tiles to vram at d4, d4 advanced past them

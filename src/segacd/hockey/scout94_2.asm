@@ -444,7 +444,7 @@ ScoutingReport						;CD: its first lines have no twin; the rest of it starts her
 .L28A18
 	addi.w	#$1B,d0
 .L28A1C
-	movea.l	$47CFC.l,a1
+	movea.l	(ScoutingReportTextPtr).l,a1
 	movea.l	a1,a2
 	move.w	#$0,d1
 	bra.w	.L28A4A

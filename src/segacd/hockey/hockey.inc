@@ -524,6 +524,7 @@ gst1	equ	$0		;not checked on the disc yet
 gst2	equ	$2
 handed	equ	$76
 HFD	equ	$9
+HotListPtr	equ	$47D28
 HotMapPtr	equ	$47D98
 IceRinkHorMapPtr	equ	$47D6C
 ifcgl	equ	$0
@@ -631,6 +632,7 @@ RefMap2Ptr	equ	$47D20
 RefsMapPtr	equ	$47D1C
 ReplayMapPtr	equ	$47D68
 replaysize	equ	$62
+RevRinkTilelistPtr	equ	$47D64
 RinktilelistPtr	equ	$47D18
 RonBarrMapPtr	equ	$47D54
 RosterSlots	equ	$1A
@@ -644,6 +646,7 @@ satX	equ	$6
 sbut	equ	$7
 SCnum	equ	$52
 ScoresMapPtr	equ	$47D58
+ScoutingReportTextPtr	equ	$47CFC
 ScoutReport	equ	$8
 scsize	equ	$7
 SCstruct	equ	$80

@@ -262,7 +262,7 @@ jdtab	dc.b	8					;convert buttons l,r,d,u into directions 0-7,8
 	jsr	$375B6.l
 	rts
 	movem.l	d0/a0,-(sp)
-	lea	$47CFC.l,a0
+	lea	(ScoutingReportTextPtr).l,a0
 	move.l	#$2B,d0
 .L375C6
 	clr.l	(a0)+

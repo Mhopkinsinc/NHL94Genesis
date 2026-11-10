@@ -1,54 +1,639 @@
-;	GRAPH2.BIN (3,051,520 bytes): a table of 23 long offsets (from the start of the file), then the 23 blocks.
-;	Written by hand. The table is source; each block is graphics, read from the disc file (cdbin/GRAPH2.BIN),
-;	as the cartridge build reads its graphics from Extracted/. Which block is which picture is not worked
-;	out yet (HOCKEY.BIN loads them into its graphics pointer table, cdgfxptrs.asm).
+;	GRAPH2.BIN (3,051,520 bytes, 1490 sectors): the graphics archive. Written by tools/segacd_graph2.py.
+;	99 resources, each starting on a 2048-byte sector, ending with the mark $12345678 and zero filled to
+;	the next sector. GTABLE.BIN (gtable.asm) is the index: the start sector and byte size of each, in
+;	this order. HOCKEY.BIN asks for resource n with the BIOS call $6044, d7 = 1 and d0 = n, and gets its
+;	address in a0.
+;
+;	Resources 0 and 1 are packs: a table of long offsets from the pack start, then the pieces. The code
+;	adds the pack address to each offset and keeps the pointers in HOCKEY.BIN's graphics pointer table
+;	(src/segacd/hockey/cdgfxptrs.asm): scoutload.asm for resource 0, LoadGameGfx (hockey94.asm) for
+;	resource 1. A piece is named R0_ or R1_ and the cartridge label (graphics94.asm) of the graphic it
+;	is; the comment names the cartridge file when the bytes are that file's. All the data is read from
+;	the disc file, as the cartridge build reads its graphics from Extracted/.
 
 	org	0
 
 Graph2
-	dc.l	Graph2_00-Graph2
-	dc.l	Graph2_01-Graph2
-	dc.l	Graph2_02-Graph2
-	dc.l	Graph2_03-Graph2
-	dc.l	Graph2_04-Graph2
-	dc.l	Graph2_05-Graph2
-	dc.l	Graph2_06-Graph2
-	dc.l	Graph2_07-Graph2
-	dc.l	Graph2_08-Graph2
-	dc.l	Graph2_09-Graph2
-	dc.l	Graph2_10-Graph2
-	dc.l	Graph2_11-Graph2
-	dc.l	Graph2_12-Graph2
-	dc.l	Graph2_13-Graph2
-	dc.l	Graph2_14-Graph2
-	dc.l	Graph2_15-Graph2
-	dc.l	Graph2_16-Graph2
-	dc.l	Graph2_17-Graph2
-	dc.l	Graph2_18-Graph2
-	dc.l	Graph2_19-Graph2
-	dc.l	Graph2_20-Graph2
-	dc.l	Graph2_21-Graph2
-	dc.l	Graph2_22-Graph2
-Graph2_00	incbin	..\cdbin\GRAPH2.BIN,$5C,61370
-Graph2_01	incbin	..\cdbin\GRAPH2.BIN,$F016,27768
-Graph2_02	incbin	..\cdbin\GRAPH2.BIN,$15C8E,132154
-Graph2_03	incbin	..\cdbin\GRAPH2.BIN,$360C8,8960
-Graph2_04	incbin	..\cdbin\GRAPH2.BIN,$383C8,3278
-Graph2_05	incbin	..\cdbin\GRAPH2.BIN,$39096,550
-Graph2_06	incbin	..\cdbin\GRAPH2.BIN,$392BC,754
-Graph2_07	incbin	..\cdbin\GRAPH2.BIN,$395AE,604
-Graph2_08	incbin	..\cdbin\GRAPH2.BIN,$3980A,4674
-Graph2_09	incbin	..\cdbin\GRAPH2.BIN,$3AA4C,120
-Graph2_10	incbin	..\cdbin\GRAPH2.BIN,$3AAC4,1496
-Graph2_11	incbin	..\cdbin\GRAPH2.BIN,$3B09C,3406
-Graph2_12	incbin	..\cdbin\GRAPH2.BIN,$3BDEA,3418
-Graph2_13	incbin	..\cdbin\GRAPH2.BIN,$3CB44,1426
-Graph2_14	incbin	..\cdbin\GRAPH2.BIN,$3D0D6,448
-Graph2_15	incbin	..\cdbin\GRAPH2.BIN,$3D296,17022
-Graph2_16	incbin	..\cdbin\GRAPH2.BIN,$41514,462
-Graph2_17	incbin	..\cdbin\GRAPH2.BIN,$416E2,14110
-Graph2_18	incbin	..\cdbin\GRAPH2.BIN,$44E00,4832
-Graph2_19	incbin	..\cdbin\GRAPH2.BIN,$460E0,25518
-Graph2_20	incbin	..\cdbin\GRAPH2.BIN,$4C48E,10062
-Graph2_21	incbin	..\cdbin\GRAPH2.BIN,$4EBDC,1418
-Graph2_22	incbin	..\cdbin\GRAPH2.BIN,$4F166,2727578
+
+;	resource 0 (sector $000, 325,336 bytes): the start-up pack. scoutload.asm loads it (d0 = 0)
+Res00
+	dc.l	R0_ScoutingReportText-Res00			; 0 -> $47CFC
+	dc.l	R0_TeamLogos-Res00			; 1 -> $47D8C
+	dc.l	R0_PlayerCards-Res00			; 2 -> $47D88
+	dc.l	R0_03-Res00			; 3 -> $47DA4
+	dc.l	R0_SmallFontMap-Res00			; 4 -> SmallFontMapPtr
+	dc.l	R0_HotMap-Res00			; 5 -> HotMapPtr
+	dc.l	R0_ColdMap-Res00			; 6 -> ColdMapPtr
+	dc.l	R0_Arrowsmap-Res00			; 7 -> ArrowsmapPtr
+	dc.l	R0_BigFontMap-Res00			; 8 -> BigFontMapPtr
+	dc.l	R0_FramerMap-Res00			; 9 -> FramerMapPtr
+	dc.l	R0_RonBarrMap-Res00			;10 -> RonBarrMapPtr
+	dc.l	R0_PrintFont2Map-Res00			;11 -> PrintFont2MapPtr
+	dc.l	R0_EASportsBGMap-Res00			;12 -> EASportsBGMapPtr
+	dc.l	R0_13-Res00			;13 -> $47D08
+	dc.l	R0_SetupFramerMap-Res00			;14 -> SetupFramerMapPtr
+	dc.l	R0_Teamblocksmap-Res00			;15 -> TeamblocksmapPtr
+	dc.l	R0_LogoBoxMap-Res00			;16 -> LogoBoxMapPtr
+	dc.l	R0_TeamBitmaps-Res00			;17 -> TeamBitmapsPtr
+	dc.l	R0_StanleyCupSprite-Res00			;18 -> StanleyCupSpritePtr
+	dc.l	R0_Rinktilelist-Res00			;19 -> RinktilelistPtr
+	dc.l	R0_GameSetUpMap-Res00			;20 -> GameSetUpMapPtr
+	dc.l	R0_SetupMenuMap-Res00			;21 -> SetupMenuMapPtr
+	dc.l	R0_GameSetUpMap2-Res00			;22 -> GameSetUpMap2Ptr
+R0_ScoutingReportText	incbin	..\cdbin\GRAPH2.BIN,$5C,61370	;the scouting script (the disc has its own, longer than the cartridge text)
+R0_TeamLogos	incbin	..\cdbin\GRAPH2.BIN,$F016,27768	;the team logos: a table of offsets, then the pictures (resource 4 holds the same)
+R0_PlayerCards	incbin	..\cdbin\GRAPH2.BIN,$15C8E,132154	;the player cards: a table of offsets, then the pictures (resource 3 holds the same)
+R0_03	incbin	..\cdbin\GRAPH2.BIN,$360C8,8960	;not known (resource 98 holds the same)
+R0_SmallFontMap	incbin	..\cdbin\GRAPH2.BIN,$383C8,3278	;= SmallFont.map.jim
+R0_HotMap	incbin	..\cdbin\GRAPH2.BIN,$39096,550	;= Hot.map.jim
+R0_ColdMap	incbin	..\cdbin\GRAPH2.BIN,$392BC,754	;= Cold.map.jim
+R0_Arrowsmap	incbin	..\cdbin\GRAPH2.BIN,$395AE,604	;= Arrows.map.jim
+R0_BigFontMap	incbin	..\cdbin\GRAPH2.BIN,$3980A,4674	;= BigFont94.map.jim
+R0_FramerMap	incbin	..\cdbin\GRAPH2.BIN,$3AA4C,120	;= Framer.map.jim
+R0_RonBarrMap	incbin	..\cdbin\GRAPH2.BIN,$3AAC4,1496	;= RonBarr.map.jim
+R0_PrintFont2Map	incbin	..\cdbin\GRAPH2.BIN,$3B09C,3406	;= SmallFont94.map.jim
+R0_EASportsBGMap	incbin	..\cdbin\GRAPH2.BIN,$3BDEA,3418	;= EASportsBG.map.jim
+R0_13	incbin	..\cdbin\GRAPH2.BIN,$3CB44,1426	;a screen map with no cartridge twin
+R0_SetupFramerMap	incbin	..\cdbin\GRAPH2.BIN,$3D0D6,448	;= GameSetupBkgd2.map.jim
+R0_Teamblocksmap	incbin	..\cdbin\GRAPH2.BIN,$3D296,17022	;the disc has its own (the cartridge TeamBlocks.map.jim is another size)
+R0_LogoBoxMap	incbin	..\cdbin\GRAPH2.BIN,$41514,462	;= GameSetupLogoBorder.map.jim
+R0_TeamBitmaps	incbin	..\cdbin\GRAPH2.BIN,$416E2,14110	;= TeamBlocks94.map.jim
+R0_StanleyCupSprite	incbin	..\cdbin\GRAPH2.BIN,$44E00,4832	;the first 4,832 bytes of the cartridge StanleyCup.anim
+R0_Rinktilelist	incbin	..\cdbin\GRAPH2.BIN,$460E0,25518	;= IceRink94.map.jim
+R0_GameSetUpMap	incbin	..\cdbin\GRAPH2.BIN,$4C48E,10062	;= GameSetUp94-1.map.jim
+R0_SetupMenuMap	incbin	..\cdbin\GRAPH2.BIN,$4EBDC,1418	;= GameSetupBkgd1.map.jim
+R0_GameSetUpMap2	incbin	..\cdbin\GRAPH2.BIN,$4F166,1390	;GameSetUp94-2.map.jim and more
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$4F800-*,0				;zero fill to sector $09F
+
+;	resource 1 (sector $09F, 130,114 bytes): the game graphics pack. LoadGameGfx (hockey94.asm)
+;	loads it (d0 = 1)
+Res01
+	dc.l	R1_SmallFontMap-Res01			; 0 -> SmallFontMapPtr
+	dc.l	R1_Rinktilelist-Res01			; 1 -> RinktilelistPtr
+	dc.l	R1_EnergyBarMap-Res01			; 2 -> EnergyBarMapPtr
+	dc.l	R1_CrowdSprites-Res01			; 3 -> CrowdSpritesPtr
+	dc.l	R1_BigFontMap-Res01			; 4 -> BigFontMapPtr
+	dc.l	R1_EASportsMap-Res01			; 5 -> EASportsMapPtr
+	dc.l	R1_ZamSprites-Res01			; 6 -> ZamSpritesPtr
+	dc.l	R1_FaceOffSprites-Res01			; 7 -> FaceOffSpritesPtr
+	dc.l	R1_RefsMap-Res01			; 8 -> RefsMapPtr
+	dc.l	R1_RefMap2-Res01			; 9 -> RefMap2Ptr
+	dc.l	R1_Teamblocksmap-Res01			;10 -> TeamblocksmapPtr
+	dc.l	R1_FramerMap-Res01			;11 -> FramerMapPtr
+	dc.l	R1_ScoresMap-Res01			;12 -> ScoresMapPtr
+	dc.l	R1_FaceOffMap-Res01			;13 -> FaceOffMapPtr
+	dc.l	R1_HotList-Res01			;14 -> HotListPtr
+	dc.l	R1_EASportsBGMap-Res01			;15 -> EASportsBGMapPtr
+	dc.l	R1_RevRinkTilelist-Res01			;16 -> RevRinkTilelistPtr
+	dc.l	R1_ReplayMap-Res01			;17 -> ReplayMapPtr
+	dc.l	R1_IceRinkHorMap-Res01			;18 -> IceRinkHorMapPtr
+	dc.l	R1_PrintFont2Map-Res01			;19 -> PrintFont2MapPtr
+	dc.l	R1_NHLLogoMap-Res01			;20 -> NHLLogoMapPtr
+	dc.l	R1_NHLPALogoMap-Res01			;21 -> NHLPALogoMapPtr
+	dc.l	R1_HotMap-Res01			;22 -> HotMapPtr
+	dc.l	R1_ColdMap-Res01			;23 -> ColdMapPtr
+	dc.l	R1_24-Res01			;24 -> $47DA8
+R1_SmallFontMap	incbin	..\cdbin\GRAPH2.BIN,$4F864,3278	;= SmallFont.map.jim
+R1_Rinktilelist	incbin	..\cdbin\GRAPH2.BIN,$50532,25518	;= IceRink94.map.jim
+R1_EnergyBarMap	incbin	..\cdbin\GRAPH2.BIN,$568E0,244	;= EnergyBar.map.jim
+R1_CrowdSprites	incbin	..\cdbin\GRAPH2.BIN,$569D4,11610	;= Crowd.anim
+R1_BigFontMap	incbin	..\cdbin\GRAPH2.BIN,$5972E,4674	;= BigFont94.map.jim
+R1_EASportsMap	incbin	..\cdbin\GRAPH2.BIN,$5A970,272	;= EASports.map.jim
+R1_ZamSprites	incbin	..\cdbin\GRAPH2.BIN,$5AA80,4334	;= Zam.anim
+R1_FaceOffSprites	incbin	..\cdbin\GRAPH2.BIN,$5BB6E,4212	;= FaceOff.anim
+R1_RefsMap	incbin	..\cdbin\GRAPH2.BIN,$5CBE2,2908	;= Refs.map.jim
+R1_RefMap2	incbin	..\cdbin\GRAPH2.BIN,$5D73E,3862	;= Refs2.map.jim
+R1_Teamblocksmap	incbin	..\cdbin\GRAPH2.BIN,$5E654,17022	;the disc has its own (resource 0 holds the same)
+R1_FramerMap	incbin	..\cdbin\GRAPH2.BIN,$628D2,120	;= Framer.map.jim
+R1_ScoresMap	incbin	..\cdbin\GRAPH2.BIN,$6294A,998	;= Scores.map.jim
+R1_FaceOffMap	incbin	..\cdbin\GRAPH2.BIN,$62D30,1124	;= FaceOff.map.jim
+R1_HotList	incbin	..\cdbin\GRAPH2.BIN,$63194,1674	;the first 1,674 bytes of the cartridge HotList.bin
+R1_EASportsBGMap	incbin	..\cdbin\GRAPH2.BIN,$6381E,3418	;= EASportsBG.map.jim
+R1_RevRinkTilelist	incbin	..\cdbin\GRAPH2.BIN,$64578,25454	;= IceRink94Reverse.map.jim
+R1_ReplayMap	incbin	..\cdbin\GRAPH2.BIN,$6A8E6,2926	;= ReplayOptions.map.jim
+R1_IceRinkHorMap	incbin	..\cdbin\GRAPH2.BIN,$6B454,8718	;= IceRinkHor.map.jim
+R1_PrintFont2Map	incbin	..\cdbin\GRAPH2.BIN,$6D662,3406	;= SmallFont94.map.jim
+R1_NHLLogoMap	incbin	..\cdbin\GRAPH2.BIN,$6E3B0,1110	;= NHLLogo.map.jim
+R1_NHLPALogoMap	incbin	..\cdbin\GRAPH2.BIN,$6E806,1046	;the first 1,046 bytes of the cartridge NHLPALogo.map.jim
+R1_HotMap	incbin	..\cdbin\GRAPH2.BIN,$6EC1C,550	;= Hot.map.jim
+R1_ColdMap	incbin	..\cdbin\GRAPH2.BIN,$6EE42,754	;= Cold.map.jim
+R1_24	incbin	..\cdbin\GRAPH2.BIN,$6F134,778	;the same form as the per-team resources 35-62
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$6F800-*,0				;zero fill to sector $0DF
+
+;	resource 2 (sector $0DF, 288,340 bytes): the sprite pack: two offsets, then Spritetiles.bin (from +$A) and frameSprData.bin (at +$408AA).
+;	hockey94 LoadGameGfx and period94 load it into $47D24
+Res02	incbin	..\cdbin\GRAPH2.BIN,$6F800,288336
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$B6000-*,0				;zero fill to sector $16C
+
+;	resource 3 (sector $16C, 132,158 bytes): the player cards: a table of offsets, then the pictures (NoPic*.map.jim, PicturePalette.bin,
+;	Card*.map.jim). Resource 0 piece 2 is the same without the end mark
+Res03	incbin	..\cdbin\GRAPH2.BIN,$B6000,132154
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$D6800-*,0				;zero fill to sector $1AD
+
+;	resource 4 (sector $1AD, 27,772 bytes): the team logos: a table of offsets, then logoANA.map.jim ... (period94 loads it into $47D8C).
+;	Resource 0 piece 1 is the same without the end mark
+Res04	incbin	..\cdbin\GRAPH2.BIN,$D6800,27768
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$DD800-*,0				;zero fill to sector $1BB
+
+;	resource 5 (sector $1BB, 36,148 bytes): not traced
+Res05	incbin	..\cdbin\GRAPH2.BIN,$DD800,36144
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$E6800-*,0				;zero fill to sector $1CD
+
+;	resource 6 (sector $1CD, 25,076 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res06	incbin	..\cdbin\GRAPH2.BIN,$E6800,25072
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$ED000-*,0				;zero fill to sector $1DA
+
+;	resource 7 (sector $1DA, 39,822 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res07	incbin	..\cdbin\GRAPH2.BIN,$ED000,39818
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$F7000-*,0				;zero fill to sector $1EE
+
+;	resource 8 (sector $1EE, 34,922 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res08	incbin	..\cdbin\GRAPH2.BIN,$F7000,34918
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$100000-*,0				;zero fill to sector $200
+
+;	resource 9 (sector $200, 35,836 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res09	incbin	..\cdbin\GRAPH2.BIN,$100000,35832
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$109000-*,0				;zero fill to sector $212
+
+;	resource 10 (sector $212, 36,176 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res10	incbin	..\cdbin\GRAPH2.BIN,$109000,36172
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$112000-*,0				;zero fill to sector $224
+
+;	resource 11 (sector $224, 34,784 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res11	incbin	..\cdbin\GRAPH2.BIN,$112000,34780
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$11A800-*,0				;zero fill to sector $235
+
+;	resource 12 (sector $235, 34,238 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res12	incbin	..\cdbin\GRAPH2.BIN,$11A800,34234
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$123000-*,0				;zero fill to sector $246
+
+;	resource 13 (sector $246, 32,012 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res13	incbin	..\cdbin\GRAPH2.BIN,$123000,32008
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$12B000-*,0				;zero fill to sector $256
+
+;	resource 14 (sector $256, 22,784 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res14	incbin	..\cdbin\GRAPH2.BIN,$12B000,22780
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$131000-*,0				;zero fill to sector $262
+
+;	resource 15 (sector $262, 33,656 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res15	incbin	..\cdbin\GRAPH2.BIN,$131000,33652
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$139800-*,0				;zero fill to sector $273
+
+;	resource 16 (sector $273, 38,756 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res16	incbin	..\cdbin\GRAPH2.BIN,$139800,38752
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$143000-*,0				;zero fill to sector $286
+
+;	resource 17 (sector $286, 34,442 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res17	incbin	..\cdbin\GRAPH2.BIN,$143000,34438
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$14B800-*,0				;zero fill to sector $297
+
+;	resource 18 (sector $297, 34,946 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res18	incbin	..\cdbin\GRAPH2.BIN,$14B800,34942
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$154800-*,0				;zero fill to sector $2A9
+
+;	resource 19 (sector $2A9, 33,988 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res19	incbin	..\cdbin\GRAPH2.BIN,$154800,33984
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$15D000-*,0				;zero fill to sector $2BA
+
+;	resource 20 (sector $2BA, 35,864 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res20	incbin	..\cdbin\GRAPH2.BIN,$15D000,35860
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$166000-*,0				;zero fill to sector $2CC
+
+;	resource 21 (sector $2CC, 39,404 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res21	incbin	..\cdbin\GRAPH2.BIN,$166000,39400
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$170000-*,0				;zero fill to sector $2E0
+
+;	resource 22 (sector $2E0, 33,008 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res22	incbin	..\cdbin\GRAPH2.BIN,$170000,33004
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$178800-*,0				;zero fill to sector $2F1
+
+;	resource 23 (sector $2F1, 38,362 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res23	incbin	..\cdbin\GRAPH2.BIN,$178800,38358
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$182000-*,0				;zero fill to sector $304
+
+;	resource 24 (sector $304, 31,716 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res24	incbin	..\cdbin\GRAPH2.BIN,$182000,31712
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$18A000-*,0				;zero fill to sector $314
+
+;	resource 25 (sector $314, 31,870 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res25	incbin	..\cdbin\GRAPH2.BIN,$18A000,31866
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$192000-*,0				;zero fill to sector $324
+
+;	resource 26 (sector $324, 35,778 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res26	incbin	..\cdbin\GRAPH2.BIN,$192000,35774
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$19B000-*,0				;zero fill to sector $336
+
+;	resource 27 (sector $336, 36,654 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res27	incbin	..\cdbin\GRAPH2.BIN,$19B000,36650
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1A4000-*,0				;zero fill to sector $348
+
+;	resource 28 (sector $348, 36,106 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res28	incbin	..\cdbin\GRAPH2.BIN,$1A4000,36102
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1AD000-*,0				;zero fill to sector $35A
+
+;	resource 29 (sector $35A, 33,768 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res29	incbin	..\cdbin\GRAPH2.BIN,$1AD000,33764
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1B5800-*,0				;zero fill to sector $36B
+
+;	resource 30 (sector $36B, 35,880 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res30	incbin	..\cdbin\GRAPH2.BIN,$1B5800,35876
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1BE800-*,0				;zero fill to sector $37D
+
+;	resource 31 (sector $37D, 34,124 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+Res31	incbin	..\cdbin\GRAPH2.BIN,$1BE800,34120
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1C7000-*,0				;zero fill to sector $38E
+
+;	resource 32 (sector $38E, 59,118 bytes): not traced
+Res32	incbin	..\cdbin\GRAPH2.BIN,$1C7000,59114
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1D5800-*,0				;zero fill to sector $3AB
+
+;	resource 33 (sector $3AB, 57,602 bytes): not traced
+Res33	incbin	..\cdbin\GRAPH2.BIN,$1D5800,57598
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1E4000-*,0				;zero fill to sector $3C8
+
+;	resource 34 (sector $3C8, 18,660 bytes): not traced
+Res34	incbin	..\cdbin\GRAPH2.BIN,$1E4000,18656
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1E9000-*,0				;zero fill to sector $3D2
+
+;	resource 35 (sector $3D2, 782 bytes): per team: ANH (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res35	incbin	..\cdbin\GRAPH2.BIN,$1E9000,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1E9800-*,0				;zero fill to sector $3D3
+
+;	resource 36 (sector $3D3, 782 bytes): per team: BUF (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res36	incbin	..\cdbin\GRAPH2.BIN,$1E9800,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1EA000-*,0				;zero fill to sector $3D4
+
+;	resource 37 (sector $3D4, 782 bytes): per team: CGY (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res37	incbin	..\cdbin\GRAPH2.BIN,$1EA000,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1EA800-*,0				;zero fill to sector $3D5
+
+;	resource 38 (sector $3D5, 782 bytes): per team: CHI (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res38	incbin	..\cdbin\GRAPH2.BIN,$1EA800,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1EB000-*,0				;zero fill to sector $3D6
+
+;	resource 39 (sector $3D6, 782 bytes): per team: DAL (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res39	incbin	..\cdbin\GRAPH2.BIN,$1EB000,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1EB800-*,0				;zero fill to sector $3D7
+
+;	resource 40 (sector $3D7, 782 bytes): per team: DET (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res40	incbin	..\cdbin\GRAPH2.BIN,$1EB800,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1EC000-*,0				;zero fill to sector $3D8
+
+;	resource 41 (sector $3D8, 782 bytes): per team: EDM (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res41	incbin	..\cdbin\GRAPH2.BIN,$1EC000,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1EC800-*,0				;zero fill to sector $3D9
+
+;	resource 42 (sector $3D9, 782 bytes): per team: FLA (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res42	incbin	..\cdbin\GRAPH2.BIN,$1EC800,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1ED000-*,0				;zero fill to sector $3DA
+
+;	resource 43 (sector $3DA, 782 bytes): per team: HFD (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res43	incbin	..\cdbin\GRAPH2.BIN,$1ED000,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1ED800-*,0				;zero fill to sector $3DB
+
+;	resource 44 (sector $3DB, 782 bytes): per team: LA (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res44	incbin	..\cdbin\GRAPH2.BIN,$1ED800,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1EE000-*,0				;zero fill to sector $3DC
+
+;	resource 45 (sector $3DC, 782 bytes): per team: MTL (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res45	incbin	..\cdbin\GRAPH2.BIN,$1EE000,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1EE800-*,0				;zero fill to sector $3DD
+
+;	resource 46 (sector $3DD, 782 bytes): per team: NJ (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res46	incbin	..\cdbin\GRAPH2.BIN,$1EE800,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1EF000-*,0				;zero fill to sector $3DE
+
+;	resource 47 (sector $3DE, 782 bytes): per team: NYI (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res47	incbin	..\cdbin\GRAPH2.BIN,$1EF000,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1EF800-*,0				;zero fill to sector $3DF
+
+;	resource 48 (sector $3DF, 782 bytes): per team: NYR (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res48	incbin	..\cdbin\GRAPH2.BIN,$1EF800,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1F0000-*,0				;zero fill to sector $3E0
+
+;	resource 49 (sector $3E0, 782 bytes): per team: OTW (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res49	incbin	..\cdbin\GRAPH2.BIN,$1F0000,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1F0800-*,0				;zero fill to sector $3E1
+
+;	resource 50 (sector $3E1, 782 bytes): per team: PHI (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res50	incbin	..\cdbin\GRAPH2.BIN,$1F0800,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1F1000-*,0				;zero fill to sector $3E2
+
+;	resource 51 (sector $3E2, 782 bytes): per team: PIT (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res51	incbin	..\cdbin\GRAPH2.BIN,$1F1000,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1F1800-*,0				;zero fill to sector $3E3
+
+;	resource 52 (sector $3E3, 782 bytes): per team: QUE (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res52	incbin	..\cdbin\GRAPH2.BIN,$1F1800,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1F2000-*,0				;zero fill to sector $3E4
+
+;	resource 53 (sector $3E4, 782 bytes): per team: SJ (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res53	incbin	..\cdbin\GRAPH2.BIN,$1F2000,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1F2800-*,0				;zero fill to sector $3E5
+
+;	resource 54 (sector $3E5, 782 bytes): per team: STL (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res54	incbin	..\cdbin\GRAPH2.BIN,$1F2800,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1F3000-*,0				;zero fill to sector $3E6
+
+;	resource 55 (sector $3E6, 782 bytes): per team: TB (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res55	incbin	..\cdbin\GRAPH2.BIN,$1F3000,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1F3800-*,0				;zero fill to sector $3E7
+
+;	resource 56 (sector $3E7, 782 bytes): per team: TOR (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res56	incbin	..\cdbin\GRAPH2.BIN,$1F3800,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1F4000-*,0				;zero fill to sector $3E8
+
+;	resource 57 (sector $3E8, 782 bytes): per team: VAN (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res57	incbin	..\cdbin\GRAPH2.BIN,$1F4000,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1F4800-*,0				;zero fill to sector $3E9
+
+;	resource 58 (sector $3E9, 782 bytes): per team: WSH (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res58	incbin	..\cdbin\GRAPH2.BIN,$1F4800,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1F5000-*,0				;zero fill to sector $3EA
+
+;	resource 59 (sector $3EA, 782 bytes): per team: WPG (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res59	incbin	..\cdbin\GRAPH2.BIN,$1F5000,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1F5800-*,0				;zero fill to sector $3EB
+
+;	resource 60 (sector $3EB, 782 bytes): per team: BOS (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res60	incbin	..\cdbin\GRAPH2.BIN,$1F5800,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1F6000-*,0				;zero fill to sector $3EC
+
+;	resource 61 (sector $3EC, 782 bytes): per team: ASE (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res61	incbin	..\cdbin\GRAPH2.BIN,$1F6000,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1F6800-*,0				;zero fill to sector $3ED
+
+;	resource 62 (sector $3ED, 782 bytes): per team: ASW (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	into $47D90)
+Res62	incbin	..\cdbin\GRAPH2.BIN,$1F6800,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1F7000-*,0				;zero fill to sector $3EE
+
+;	resource 63 (sector $3EE, 782 bytes): the per-team form; no team in the HOCKEY.BIN $2A9FA list uses it
+Res63	incbin	..\cdbin\GRAPH2.BIN,$1F7000,778
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1F7800-*,0				;zero fill to sector $3EF
+
+;	resource 64 (sector $3EF, 3,308 bytes): not traced
+Res64	incbin	..\cdbin\GRAPH2.BIN,$1F7800,3304
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1F8800-*,0				;zero fill to sector $3F1
+
+;	resource 65 (sector $3F1, 4,836 bytes): the Stanley Cup sprite (resource 0 piece 18 without the end mark)
+Res65	incbin	..\cdbin\GRAPH2.BIN,$1F8800,4832
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1FA000-*,0				;zero fill to sector $3F4
+
+;	resource 66 (sector $3F4, 554 bytes): Hot.map.jim (HotMap)
+Res66	incbin	..\cdbin\GRAPH2.BIN,$1FA000,550
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1FA800-*,0				;zero fill to sector $3F5
+
+;	resource 67 (sector $3F5, 758 bytes): Cold.map.jim (ColdMap)
+Res67	incbin	..\cdbin\GRAPH2.BIN,$1FA800,754
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$1FB000-*,0				;zero fill to sector $3F6
+
+;	resource 68 (sector $3F6, 31,400 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res68	incbin	..\cdbin\GRAPH2.BIN,$1FB000,31396
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$203000-*,0				;zero fill to sector $406
+
+;	resource 69 (sector $406, 29,128 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res69	incbin	..\cdbin\GRAPH2.BIN,$203000,29124
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$20A800-*,0				;zero fill to sector $415
+
+;	resource 70 (sector $415, 32,136 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res70	incbin	..\cdbin\GRAPH2.BIN,$20A800,32132
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$212800-*,0				;zero fill to sector $425
+
+;	resource 71 (sector $425, 31,912 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res71	incbin	..\cdbin\GRAPH2.BIN,$212800,31908
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$21A800-*,0				;zero fill to sector $435
+
+;	resource 72 (sector $435, 31,816 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res72	incbin	..\cdbin\GRAPH2.BIN,$21A800,31812
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$222800-*,0				;zero fill to sector $445
+
+;	resource 73 (sector $445, 24,360 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res73	incbin	..\cdbin\GRAPH2.BIN,$222800,24356
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$228800-*,0				;zero fill to sector $451
+
+;	resource 74 (sector $451, 30,088 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res74	incbin	..\cdbin\GRAPH2.BIN,$228800,30084
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$230000-*,0				;zero fill to sector $460
+
+;	resource 75 (sector $460, 31,016 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res75	incbin	..\cdbin\GRAPH2.BIN,$230000,31012
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$238000-*,0				;zero fill to sector $470
+
+;	resource 76 (sector $470, 28,968 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res76	incbin	..\cdbin\GRAPH2.BIN,$238000,28964
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$23F800-*,0				;zero fill to sector $47F
+
+;	resource 77 (sector $47F, 29,864 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res77	incbin	..\cdbin\GRAPH2.BIN,$23F800,29860
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$247000-*,0				;zero fill to sector $48E
+
+;	resource 78 (sector $48E, 31,304 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res78	incbin	..\cdbin\GRAPH2.BIN,$247000,31300
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$24F000-*,0				;zero fill to sector $49E
+
+;	resource 79 (sector $49E, 31,912 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res79	incbin	..\cdbin\GRAPH2.BIN,$24F000,31908
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$257000-*,0				;zero fill to sector $4AE
+
+;	resource 80 (sector $4AE, 31,976 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res80	incbin	..\cdbin\GRAPH2.BIN,$257000,31972
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$25F000-*,0				;zero fill to sector $4BE
+
+;	resource 81 (sector $4BE, 32,552 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res81	incbin	..\cdbin\GRAPH2.BIN,$25F000,32548
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$267000-*,0				;zero fill to sector $4CE
+
+;	resource 82 (sector $4CE, 33,512 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res82	incbin	..\cdbin\GRAPH2.BIN,$267000,33508
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$26F800-*,0				;zero fill to sector $4DF
+
+;	resource 83 (sector $4DF, 28,072 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res83	incbin	..\cdbin\GRAPH2.BIN,$26F800,28068
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$276800-*,0				;zero fill to sector $4ED
+
+;	resource 84 (sector $4ED, 31,880 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res84	incbin	..\cdbin\GRAPH2.BIN,$276800,31876
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$27E800-*,0				;zero fill to sector $4FD
+
+;	resource 85 (sector $4FD, 31,144 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res85	incbin	..\cdbin\GRAPH2.BIN,$27E800,31140
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$286800-*,0				;zero fill to sector $50D
+
+;	resource 86 (sector $50D, 30,184 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res86	incbin	..\cdbin\GRAPH2.BIN,$286800,30180
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$28E000-*,0				;zero fill to sector $51C
+
+;	resource 87 (sector $51C, 30,024 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res87	incbin	..\cdbin\GRAPH2.BIN,$28E000,30020
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$295800-*,0				;zero fill to sector $52B
+
+;	resource 88 (sector $52B, 28,200 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res88	incbin	..\cdbin\GRAPH2.BIN,$295800,28196
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$29C800-*,0				;zero fill to sector $539
+
+;	resource 89 (sector $539, 32,296 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res89	incbin	..\cdbin\GRAPH2.BIN,$29C800,32292
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$2A4800-*,0				;zero fill to sector $549
+
+;	resource 90 (sector $549, 31,912 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res90	incbin	..\cdbin\GRAPH2.BIN,$2A4800,31908
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$2AC800-*,0				;zero fill to sector $559
+
+;	resource 91 (sector $559, 32,552 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res91	incbin	..\cdbin\GRAPH2.BIN,$2AC800,32548
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$2B4800-*,0				;zero fill to sector $569
+
+;	resource 92 (sector $569, 30,440 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res92	incbin	..\cdbin\GRAPH2.BIN,$2B4800,30436
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$2BC000-*,0				;zero fill to sector $578
+
+;	resource 93 (sector $578, 29,096 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res93	incbin	..\cdbin\GRAPH2.BIN,$2BC000,29092
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$2C3800-*,0				;zero fill to sector $587
+
+;	resource 94 (sector $587, 29,416 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res94	incbin	..\cdbin\GRAPH2.BIN,$2C3800,29412
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$2CB000-*,0				;zero fill to sector $596
+
+;	resource 95 (sector $596, 28,328 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+Res95	incbin	..\cdbin\GRAPH2.BIN,$2CB000,28324
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$2D2000-*,0				;zero fill to sector $5A4
+
+;	resource 96 (sector $5A4, 62,202 bytes): hockey94 LoadGameGfx loads it (d0 = $60) into $47DA0 and passes it to the BIOS call with d7 = 8
+Res96	incbin	..\cdbin\GRAPH2.BIN,$2D2000,62198
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$2E1800-*,0				;zero fill to sector $5C3
+
+;	resource 97 (sector $5C3, 20,428 bytes): not traced
+Res97	incbin	..\cdbin\GRAPH2.BIN,$2E1800,20424
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$2E6800-*,0				;zero fill to sector $5CD
+
+;	resource 98 (sector $5CD, 8,964 bytes): resource 0 piece 3 without the end mark
+Res98	incbin	..\cdbin\GRAPH2.BIN,$2E6800,8960
+	dc.b	$12,$34,$56,$78				;the end mark
+	dcb.b	$2E9000-*,0				;zero fill to the end of the last sector

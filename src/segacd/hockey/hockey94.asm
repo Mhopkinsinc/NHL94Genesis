@@ -80,12 +80,12 @@ LoadGameGfx						;CD-only routine (a name given here, not a cartridge name)
 	add.l	d0,(ScoresMapPtr).l
 	move.l	(a0)+,(FaceOffMapPtr).l
 	add.l	d0,(FaceOffMapPtr).l
-	move.l	(a0)+,$47D28.l
-	add.l	d0,$47D28.l
+	move.l	(a0)+,(HotListPtr).l
+	add.l	d0,(HotListPtr).l
 	move.l	(a0)+,(EASportsBGMapPtr).l
 	add.l	d0,(EASportsBGMapPtr).l
-	move.l	(a0)+,$47D64.l
-	add.l	d0,$47D64.l
+	move.l	(a0)+,(RevRinkTilelistPtr).l
+	add.l	d0,(RevRinkTilelistPtr).l
 	move.l	(a0)+,(ReplayMapPtr).l
 	add.l	d0,(ReplayMapPtr).l
 	move.l	(a0)+,(IceRinkHorMapPtr).l

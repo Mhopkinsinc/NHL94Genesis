@@ -356,7 +356,7 @@ ShowReplayIcon						;CD: placed where the disc branches to it
 	movea.l	(RinktilelistPtr).l,a1
 	btst.b	#$4,(sflags4).l
 	beq.w	.L2F36E
-	movea.l	$47D64.l,a1
+	movea.l	(RevRinkTilelistPtr).l,a1
 .L2F36E
 	adda.l	$4(a1),a1
 	movea.l	#$1B008,a2

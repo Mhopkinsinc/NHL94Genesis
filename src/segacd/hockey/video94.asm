@@ -234,7 +234,7 @@ updatescroll						;Using hpos and vpos set scroll cords; queue rink map rows on 
 	movea.l	(RinktilelistPtr).l,a0
 	btst.b	#$4,(sflags4).l
 	beq.w	.0
-	movea.l	$47D64.l,a0
+	movea.l	(RevRinkTilelistPtr).l,a0
 .0									;normal or reverse rink map chosen
 	adda.l	jimdata(a0),a0			;a0 = map header: (a0) = chars per row, data at 4(a0) (the move / adda
 									;leave the cmp flags)

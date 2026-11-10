@@ -2357,7 +2357,7 @@ ReloadRinkGraphics					;after the forceblack: back to 32 cell mode and reload th
 	addq.l	#$8,a2
 	btst.b	#$4,(sflags4).l
 	beq.w	.L2EAD8
-	movea.l	$47D64.l,a2
+	movea.l	(RevRinkTilelistPtr).l,a2
 	addq.l	#$8,a2
 .L2EAD8
 	jsr	$38958.l

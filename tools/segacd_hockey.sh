@@ -22,8 +22,10 @@ KNOWN=(
   --name tmpshots=0xEA         # cards94 UpdatePlayerRecords: addi.w #$EA,d0 for addi.w #tmpshots,d0
   --name LineDataBase=0xE20    # shootoutpath94 ReadLineData / WriteLineData: move.l #$E20,d0 for #LineDataBase
 )
-# Graphics pointer table entries (cdgfxptrs.asm), named after the cartridge label the replaced lines used:
+# Graphics pointer table entries (cdgfxptrs.asm), named after the cartridge label of the graphic each holds
+# (the GRAPH2 pack pieces, tools/segacd_graph2.py) and the replaced lines:
 CDNAMES=(
+  --cdname ScoutingReportTextPtr=0x47CFC
   --cdname GameSetUpMapPtr=0x47D00
   --cdname GameSetUpMap2Ptr=0x47D04
   --cdname EASportsBGMapPtr=0x47D0C
@@ -32,6 +34,7 @@ CDNAMES=(
   --cdname RinktilelistPtr=0x47D18
   --cdname RefsMapPtr=0x47D1C
   --cdname RefMap2Ptr=0x47D20
+  --cdname HotListPtr=0x47D28
   --cdname CrowdSpritesPtr=0x47D2C
   --cdname FaceOffSpritesPtr=0x47D30
   --cdname ZamSpritesPtr=0x47D34
@@ -44,6 +47,7 @@ CDNAMES=(
   --cdname ArrowsmapPtr=0x47D50
   --cdname RonBarrMapPtr=0x47D54
   --cdname ScoresMapPtr=0x47D58
+  --cdname RevRinkTilelistPtr=0x47D64
   --cdname ReplayMapPtr=0x47D68
   --cdname IceRinkHorMapPtr=0x47D6C
   --cdname PrintFont2MapPtr=0x47D70

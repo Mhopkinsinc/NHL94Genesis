@@ -21,10 +21,14 @@
 - STARTER.BIN, MAIN.BIN, PLAYER.BIN (PLAN steps 3 and 4) match in full: `src/segacd/starter/`, `main/`, `player/`,
   written by `tools/segacd_starter.sh`, `segacd_main.sh`, `segacd_player.sh` (no ROM or listing needed).
 - Next:
-  1. PLAN step 5 is done in its first form: GRAPH2's offset table is source and its 23 blocks are incbin; GTABLE is
-     source. Left: which code reads GTABLE (the 12-byte record guess), and which GRAPH2 block is which picture.
+  1. PLAN step 5: GRAPH2.BIN is an archive of 99 sector-aligned resources and GTABLE.BIN is its index (start sector,
+     byte size); HOCKEY.BIN loads resource n with BIOS `$6044`, d7 = 1, d0 = n (`docs/segacd.md` "GRAPH2.BIN and
+     GTABLE.BIN", `tools/segacd_graph2.py`). The two packs (resources 0 and 1) are named piece by piece. Left:
+     resources 5-34, 64, 68-95, 97 (who loads them: PLAYER.BIN or MAIN.BIN?), and the sub CPU code that reads GTABLE.
   2. Names: STARTER's driver module (runtime `$C000`, dispatch at `$C542`), MAIN's start-up and the module at
-     `$77B8`, PLAYER's `playerinit` / `playercode`, and HOCKEY's header. (HOCKEY's graphics pointer table: 31 of 44 entries named, `--cdname` in `tools/segacd_hockey.sh`.)
+     `$77B8`, PLAYER's `playerinit` / `playercode`. HOCKEY's header and TeamList are source now; the graphics
+     pointer table has 34 of 44 entries named (`--cdname` in `tools/segacd_hockey.sh`), the rest have no cartridge
+     label (their comments say what they hold).
   3. Formats: STARTER's tiles and packed block, MAIN's Z80 program (a Z80 disassembly with asm80 like the
      cartridge driver).
 - Open questions:
@@ -43,8 +47,8 @@
 | STARTER.BIN | 120,248 | 120,248 (100%) | the older fragments and `src/segacd/starter/` (tiles, packed block, credits text incbin) |
 | HOCKEY.BIN | 184,842 | 184,842 (100%) | 94G twins (some in parts), team data, CD-only pads and pointer table, the older fragments; 43,120 bytes incbin |
 | PLAYER.BIN | 44,656 | 44,656 (100%) | the older fragments and `src/segacd/player/` (pictures incbin) |
-| GRAPH2.BIN | 3,051,520 | 3,051,520 (100%) | offset table in source, 23 blocks incbin |
-| GTABLE.BIN | 2,048 | 2,048 (100%) | 512 longs in source |
+| GRAPH2.BIN | 3,051,520 | 3,051,520 (100%) | 99 resources; pack tables, end marks and fill in source, graphics incbin |
+| GTABLE.BIN | 2,048 | 2,048 (100%) | the 99 index entries in source (`GRes size`) |
 | Total code | 410,162 | 410,162 (100%) | was 22,690 (5.5%) at the start of the session |
 
 ## Parked units
