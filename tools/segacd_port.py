@@ -593,7 +593,8 @@ def main():
     text = frag.emit()
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     open(a.out, "w", newline="\n").write(text)
-    frag.write_inc()
+    if not a.plain:
+        frag.write_inc()             # hockey.inc is the HOCKEY.BIN RAM map; other discs files leave it alone
     if not a.no_assemble:
         frag.fix_by_assembly(a.out)
     frag.report()
