@@ -506,7 +506,7 @@ ChangeOption						;add d2 to option d7 (d2 = 0: only limit it) and wrap it in it
 	move.w	(TmpOptPen).l,(OptPen).l
 	move.w	(TmpOptLine).l,(OptLine).l
 .2									;shootout options put back
-	movea.l	#(OptPlayMode-M68K_RAM),a2
+	movea.l	#$18BFA,a2	;CD: the cartridge has #(OptPlayMode-M68K_RAM)
 	movea.l	#OptionLimits,a3
 	tst.w	(FourWayPlay).l			;four way?
 	beq.w	.3

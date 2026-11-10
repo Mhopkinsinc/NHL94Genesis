@@ -530,7 +530,7 @@ ShootersBackground					;Shootout shooters background and "Shootout" title
 	jsr	(printbigz).l
 	String	CC_Font2Pri,$A,4,'  Shootout  ',CC_Font2Pri,$F,1	;Shootout title
 	clr.w	d0
-	cmpa.l	#(tmstruct-M68K_RAM),a2	;home team?
+	cmpa.l	#$1834C,a2	;home team? (CD: the cartridge has #(tmstruct-M68K_RAM))
 	beq.w	.0
 	move.w	#$2C,d0
 .0									;home team at 0, away at $2C

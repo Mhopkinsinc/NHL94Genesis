@@ -484,6 +484,8 @@ def main():
                     help="add the fragment to tools/segacd.json, tools/verifySegacd.js and the name map")
     ap.add_argument("--also", action="append", default=[], metavar="FILE",
                     help="another 94G file whose routines may have moved into this disc range")
+    ap.add_argument("--label", action="append", default=[], metavar="NAME=ADDR",
+                    help="a name for a CD-only routine at runtime address ADDR in the fragment")
     ap.add_argument("--name", action="append", default=[], metavar="NAME=ADDR",
                     help="a disc address checked by hand (a RAM name or a routine outside the fragment)")
     a = ap.parse_args()
@@ -695,6 +697,8 @@ def align(items, disc, start, end, nmain=None):
             idx[("i", it.norm)].append(j)
         elif it.kind in ("data", "macro") and it.len >= 4:
             idx[("d", bytes(it.cart[:4]))].append(j)
+        elif it.kind in ("data", "macro") and it.len >= 2:
+            idx[("d2", bytes(it.cart[:2]))].append(j)     # dc.w tables (frames94)
     used = set()
     walk = []
     cd_from = None
@@ -733,6 +737,7 @@ def align(items, disc, start, end, nmain=None):
         if d is not None:
             cands += idx.get(("i", norm(d)), [])
         cands += idx.get(("d", bytes(disc[p:p + 4])), [])
+        cands += idx.get(("d2", bytes(disc[p:p + 2])), [])
         best = None
         for j in cands:
             # a short skip forward needs K lines; any other jump (back, far, another file) needs more
@@ -789,7 +794,7 @@ def backfill(walk, items, disc, end, used):
                     pos += ln
                 while ents and ents[-1][1].kind == "dir":
                     pos -= ents.pop()[3]
-                if any(e[1].kind == "insn" for e in ents):
+                if any(e[1].kind in ("insn", "data", "macro") and e[3] for e in ents):   # byte-equal data counts too
                     got = (ents, pos)
                     break
             if got:
@@ -829,6 +834,7 @@ class Fragment:
         self.restored = set()
         self.targets = set()
         self.cd_pcs = set()
+        self.cdlabels = set()
         self.local_consts = set()
 
     # -- labels from aligned items
@@ -852,6 +858,12 @@ class Fragment:
                 if it.label:
                     self.add_label(it.label, rt, it.scope)
         self.restore_scopes()
+        for nv in getattr(self.a, "label", []) or []:      # --label: a name for a CD-only routine
+            n, v = nv.split("=")
+            rt = int(v, 0)
+            if rt in self.starts and n not in self.label_at:
+                self.add_label(n, rt, n)
+                self.cdlabels.add((rt, n))
 
     def restore_scopes(self):
         """A routine whose first lines were cut keeps its later lines: put its name at the first of
@@ -1312,7 +1324,7 @@ class Fragment:
     def find_targets(self):
         """Branch / pc-relative / absolute code targets inside the fragment (from every disc
         instruction the walk decodes), so CD blocks can be decoded in step with them."""
-        self.targets = set()
+        self.targets = {int(nv.split("=")[1], 0) for nv in (getattr(self.a, "label", []) or [])}   # --label routines are entered
         lo, hi = BASE + self.start, BASE + self.end
         for _ in range(3):
             found = set(self.targets)
@@ -1382,6 +1394,10 @@ class Fragment:
                 for rt, name in sorted(self.restored):
                     if rt == BASE + sp[0] and (rt, name) not in placed:
                         out.append(name + "\t\t\t\t\t\t;CD: its first lines have no twin; the rest of it starts here")
+                        placed.add((rt, name))
+                for rt, name in sorted(self.cdlabels):
+                    if rt == BASE + sp[0] and (rt, name) not in placed:
+                        out.append(name + "\t\t\t\t\t\t;CD-only routine (a name given here, not a cartridge name)")
                         placed.add((rt, name))
             if markers and sp is not None:
                 out.append(f".zzm{k}")

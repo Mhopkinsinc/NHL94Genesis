@@ -130,7 +130,7 @@ setupice							;set all variables, send non purgeable graphics, build sprite fra
 	move.w	d4,(ExtraChars).l		;char space for extra graphics
 	btst.b	#gmdir,(gmode).l		;gmdir: flip pfgoal for the 12 players
 	beq.w	.gok
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 	moveq	#$B,d0
 .loop								;flip each player's goal
 	bchg.b	#pfgoal,pflags(a3)
@@ -145,7 +145,7 @@ setupice							;set all variables, send non purgeable graphics, build sprite fra
 	clr.l	(padcont+8).l
 	st.b	(c1playernum).l				;no player for pad 1
 	st.b	(c2playernum).l				;no player for pad 2
-	movea.l	#(DMAList-M68K_RAM),a5	;dump pad sprites so numbers
+	movea.l	#$18D6A,a5	;dump pad sprites so numbers (CD: the cartridge has #(DMAList-M68K_RAM))
 	movea.l	#(Satt-M68K_RAM),a6		;aren't written over later.
 	moveq	#1,d6					;1 frame
 	movea.l	#(pads-M68K_RAM),a3
@@ -190,7 +190,7 @@ setupice_highlight					;Rebuild the rink sprites after a highlight replay withou
 	bsr.w	setupIceRinkPal
 	btst.b	#gmdir,(gmode).l
 	beq.w	.gok
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 	moveq	#$B,d0
 .loop								;flip each player's goal
 	bchg.b	#pfgoal,pflags(a3)
@@ -206,7 +206,7 @@ setupice_highlight					;Rebuild the rink sprites after a highlight replay withou
 	st.b	(c1playernum).l				;pad 1 controls no player
 	st.b	(c2playernum).l				;pad 2 controls no player
 	bsr.w	setupEASportsMap		;easn tiles at EASNcset again
-	movea.l	#(DMAList-M68K_RAM),a5	;dump pad sprites
+	movea.l	#$18D6A,a5	;dump pad sprites (CD: the cartridge has #(DMAList-M68K_RAM))
 	movea.l	#(Satt-M68K_RAM),a6		;sprite attribute table
 	moveq	#1,d6					;link counter
 	movea.l	#(pads-M68K_RAM),a3		;the 6 pad (scrolled) objects
@@ -238,7 +238,7 @@ setupIceRinkPal						;CD: placed where the disc branches to it
 	movea.l	$47D18.l,a0
 	adda.l	(a0),a0					;palette offset in the map header
 	moveq	#$F,d0
-	movea.l	#(palfadenew-M68K_RAM),a1
+	movea.l	#$BBCB0,a1	;CD: the cartridge has #(palfadenew-M68K_RAM)
 .ipal								;copy the rink palettes
 	move.l	(a0)+,(a1)+				;16 longs = palettes 0 and 1
 	dbf	d0,.ipal
@@ -348,7 +348,7 @@ defaultsprites						;allocate vram and assign char area for graphic structures. 
 	adda.w	#ssosize,a3
 	dbf	d0,.ssotop
 	movea.l	#.listffo,a2
-	movea.l	#pads,a3
+	movea.l	#$17D04,a3	;CD: the cartridge has #pads
 	move.l	#ffonum-1,d0
 .ffotop								;each scrolled object
 	st.b	oldframe(a3)				;objects tied to screen scrolling (not players/net/puck)
@@ -432,7 +432,7 @@ defaultsprites_0					;objects which are tied to screen scrolling and have veloci
 	clr.w	d6
 	movea.l	#(OOlist-M68K_RAM),a1	;object order list
 	lea	.list(pc),a2
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 	movea.l	#(OOlistpos-M68K_RAM),a4	;object order positions
 .0									;loop
 	moveq	#$1F,d0					;32 longs
@@ -631,8 +631,8 @@ defaultsprites_0					;objects which are tied to screen scrolling and have veloci
 SprSort								;sort objects in struct SortObj and set corresponding tables for keeping
 									;them sorted later (Ylist, OOlist, OOlistpos)
 	movem.l	d0-d4/a0-a2,-(sp)
-	movea.l	#OOlistpos,a2			;object order positions
-	movea.l	#Ylist,a1				;sort keys
+	movea.l	#$17CA0,a2			;object order positions (CD: the cartridge has #OOlistpos)
+	movea.l	#$17C80,a1				;sort keys (CD: the cartridge has #Ylist)
 	movea.l	#SortCords,a0
 	move.w	#$F,d3					;Sortobjs -1
 .loop0								;copy each object's Y (X on the horizontal rink)
@@ -644,10 +644,10 @@ SprSort								;sort objects in struct SortObj and set corresponding tables for 
 	move.w	d4,(a1)+
 	adda.w	#SCstruct,a0
 	dbf	d3,.loop0					;next object
-	movea.l	#Ylist,a1				;sort keys
+	movea.l	#$17C80,a1				;sort keys (CD: the cartridge has #Ylist)
 .loop								;loop
 	clr.w	d4						;one bubble pass over OOlist; d4 = swapped flag
-	movea.l	#OOlist,a0
+	movea.l	#$17CC0,a0	;CD: the cartridge has #OOlist
 	move.w	#$E,d3					;Sortobjs-2
 	clr.w	d0						;clear the high bytes
 	clr.w	d1
@@ -660,7 +660,7 @@ SprSort								;sort objects in struct SortObj and set corresponding tables for 
 	move.b	d0,(a0)					;swap the two entries
 	move.b	d1,-1(a0)
 	move.l	a0,d2					;d2 = position of the second entry
-	subi.l	#OOlist,d2
+	subi.l	#$17CC0,d2	;CD: the cartridge has #OOlist
 	move.w	d2,(a2,d0.w)			;store the new positions in OOlistpos
 	subq.w	#1,d2
 	move.w	d2,(a2,d1.w)
@@ -674,9 +674,9 @@ SprSort								;sort objects in struct SortObj and set corresponding tables for 
 resetplstuff						;reset team variables/and players on both teams. Called from puckfaceoff2,
 									;puckpenshot and StartHL2
 	movem.l	d0-d2/a0-a3,-(sp)
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	bsr.w	.top
-	movea.l	#(awtmstruct-M68K_RAM),a2
+	movea.l	#$186B2,a2	;CD: the cartridge has #(awtmstruct-M68K_RAM)
 	bsr.w	.top
 	movem.l	(sp)+,d0-d2/a0-a3
 	rts
@@ -717,11 +717,11 @@ clearTeamStats						;clear both team structs (2 x tmsize) but keep each hot / co
 	dbf	d0,.loop					;next byte
 	movem.l	(sp)+,a1-a3
 	move.l	#tmsize-1,d0
-	movea.l	#(tmstruct-M68K_RAM),a0
+	movea.l	#$1834C,a0	;CD: the cartridge has #(tmstruct-M68K_RAM)
 .loop2								;clear the home struct
 	clr.b	(a0)+
 	dbf	d0,.loop2					;next byte
-	movea.l	#(awtmstruct-M68K_RAM),a0
+	movea.l	#$186B2,a0	;CD: the cartridge has #(awtmstruct-M68K_RAM)
 	move.w	#tmsize-1,d0
 .loop3								;clear the away struct
 	clr.b	(a0)+
@@ -744,12 +744,12 @@ clearTeamStats						;clear both team structs (2 x tmsize) but keep each hot / co
 setteams							;Use hometeam/visteam to set team structures (InitTeamStructure for each).
 									;Falls in from clearTeamStats, also called from TeamIcons
 	movem.l	d0/a0-a2,-(sp)
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	move.w	(HomeTeam).l,d0
 ;CD: no cartridge twin
 	move.l	#SortCords,$22(a2)
 	bsr.w	InitTeamStructure
-	movea.l	#(awtmstruct-M68K_RAM),a2
+	movea.l	#$186B2,a2	;CD: the cartridge has #(awtmstruct-M68K_RAM)
 	move.w	(VisTeam).l,d0
 ;CD: no cartridge twin
 	move.l	#$17780,$22(a2)
@@ -804,7 +804,7 @@ setplayercolors						;Copy in correct color data for each team:.team for the hom
 .L3F26A
 	move.w	#$860,$BBCDC.l
 .L3F272
-	movea.l	#(tmstruct-M68K_RAM),a0
+	movea.l	#$1834C,a0	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	bsr.w	.team
 	moveq	#$20,d1					;visitors: palette offset $20
 	adda.w	#tmsize,a0
@@ -812,7 +812,7 @@ setplayercolors						;Copy in correct color data for each team:.team for the hom
 	movea.l	tmdata(a0),a2			;a0 = team struct, d1 = palette offset (0 home, $20 visitors)
 	adda.w	Palettedata(a2),a2
 	adda.w	d1,a2					;this team's palettes
-	movea.l	#(palfadenew+$40-M68K_RAM),a1	;palettes 2 and 3
+	movea.l	#$BBCF0,a1	;palettes 2 and 3 (CD: the cartridge has #(palfadenew+$40-M68K_RAM))
 	adda.w	d1,a1
 	moveq	#7,d0
 .loop								;copy 8 longs of palette
@@ -922,7 +922,7 @@ PlayoffScreen						;bring up playoff screen if in playoff mode. Called from Game
 	lea	jimtilecount(a1),a2
 	adda.l	(a1),a1
 	moveq	#7,d0					;8 longs
-	movea.l	#(palfadenew+$40-M68K_RAM),a0
+	movea.l	#$BBCF0,a0	;CD: the cartridge has #(palfadenew+$40-M68K_RAM)
 .pal								;copy 8 longs of palette
 	move.l	-$40(a0),$20(a0)		;pal 0 -> pal 3
 	move.l	(a1)+,-$40(a0)			;Titlemap2 palette -> pal 0
@@ -1091,7 +1091,7 @@ waitxc1								;Each time palcount runs out, eor the color
 	move.w	d0,(OldVcount).l
 	rts
 PlayoffScreen_doscores				;Print best of 7 wins "t-b" for game struct a2 at printx/printy
-	movea.l	#(mesarea-M68K_RAM),a1
+	movea.l	#$17EF2,a1	;CD: the cartridge has #(mesarea-M68K_RAM)
 	move.w	#6,(a1)+
 	move.w	gspotwins(a2),d0
 	addi.w	#$30,d0
@@ -1101,7 +1101,7 @@ PlayoffScreen_doscores				;Print best of 7 wins "t-b" for game struct a2 at prin
 	addi.w	#$30,d0
 	move.b	d0,(a1)+
 	clr.b	(a1)+
-	movea.l	#(mesarea-M68K_RAM),a1
+	movea.l	#$17EF2,a1	;CD: the cartridge has #(mesarea-M68K_RAM)
 	bra.w	print
 PlayoffScreen_doarrow				;Draw tree arrow d0 from the arrows map (Arrowsmap) at printx/printy
 	movem.l	d0-d7/a0-a3,-(sp)

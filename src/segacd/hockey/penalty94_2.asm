@@ -70,7 +70,7 @@ updatepwrplay						;show graphic and time remaining for power plays. Nothing whe
 									;and the team on the power play
 	btst.b	#1,(gmode2).l
 	bne.w	rtss2
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	lea	tmsize(a2),a3				;tmsize
 	move.w	tmap(a2),d0				;tmap
 	sub.w	tmap(a3),d0				;players on ice: team 1 minus team 2
@@ -91,7 +91,7 @@ updatepwrplay						;show graphic and time remaining for power plays. Nothing whe
 	bset.b	#sf2pwrplay,(sflags2).l	;sf2pwrplay
 	bne.w	.uppt					;already showing a power play
 	addi.w	#1,tmPwrPlays(a3)		;tmPwrPlays
-	cmpa.l	#(tmstruct-M68K_RAM),a3	;home team (93 played song $33 here)
+	cmpa.l	#$1834C,a3	;home team (93 played song $33 here) (CD: the cartridge has #(tmstruct-M68K_RAM))
 	bne.w	.away
 .home								;(the same code for both teams)
 	bra.w	.uppt
@@ -104,7 +104,7 @@ updatepwrplay						;show graphic and time remaining for power plays. Nothing whe
 	bsr.w	PushTime				;a1 = m:ss string
 	bsr.w	print
 	movea.l	tmdata(a3),a0			;tmdata
-	movea.l	#(mesarea-M68K_RAM),a3
+	movea.l	#$17EF2,a3	;CD: the cartridge has #(mesarea-M68K_RAM)
 	move.w	#2,(a3)					;empty string in mesarea, then append the position string and name
 	bsr.w	appendz
 	String	CC_Font1Pri,1,$19
@@ -224,7 +224,7 @@ printscores1						;Draw scoreboard. Vertical rink: period box and the score box 
 	bsr.w	Framer
 	bsr.w	printz
 	String	CC_Font1Pri,$18,$1A		;home team on the lower row
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	bsr.w	printscores1_ps
 	bsr.w	printz
 	String	CC_Font1Pri,$18,$18
@@ -249,7 +249,7 @@ printscores1						;Draw scoreboard. Vertical rink: period box and the score box 
 	bsr.w	print
 	bsr.w	printz
 	String	CC_Font2Pri,$17,2
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	clr.w	d0						;home logo data offset
 	bsr.w	PrintTeamLogoAndScore
 	bsr.w	printz
@@ -317,11 +317,11 @@ USBoard								;Update score board, including the players in the penalty box and
 	bsr.w	printscores1
 	bsr.w	printz
 	String	CC_Font2Pri,$14,8
-	movea.l	#(tmstruct-M68K_RAM),a2	;home team
+	movea.l	#$1834C,a2	;home team (CD: the cartridge has #(tmstruct-M68K_RAM))
 	bsr.w	.dispen
 	bsr.w	printz
 	String	CC_Font2Pri,5,8
-	movea.l	#(awtmstruct-M68K_RAM),a2	;visitors
+	movea.l	#$186B2,a2	;visitors (CD: the cartridge has #(awtmstruct-M68K_RAM))
 	bsr.w	.dispen
 	movem.l	(sp)+,d0-d7/a0-a3
 	rts
@@ -364,9 +364,9 @@ pplpen								;print one penalty box line: player number and time remaining. a2 
 	clr.w	d0
 	move.b	pldnum-pldsize(a1),d0	;player number (BCD)
 	move.w	(printx).l,-(sp)
-	movea.l	#(TextBuffer-M68K_RAM),a1	;mesarea+2
+	movea.l	#$17EF4,a1	;mesarea+2 (CD: the cartridge has #(TextBuffer-M68K_RAM))
 	bsr.w	ConvertByteToDigits		;two digits to TextBuffer
-	movea.l	#(mesarea-M68K_RAM),a1
+	movea.l	#$17EF2,a1	;CD: the cartridge has #(mesarea-M68K_RAM)
 	move.w	#4,(a1)					;string length: 2 digits
 	bsr.w	print					;print the number
 	move.w	d2,d0
@@ -471,7 +471,7 @@ ChkShotStat							;determine if shot taken, add to appropriate stats: crowd, tea
 .0									;3 was set
 	movem.l	d0-d1/a1-a3,-(sp)
 	move.l	a4,-(sp)
-	movea.l	#ScoreSum-6,a4			;ChkCnt. +ScoreSumbytes, then 2(a4) = the last ScoreSum entry
+	movea.l	#$180EC,a4			;ChkCnt. +ScoreSumbytes, then 2(a4) = the last ScoreSum entry (CD: the cartridge has #ScoreSum-6)
 	adda.w	(ScoreSumbytes).l,a4
 	movea.l	#tmstruct,a2			;home team
 	btst.b	#7,ssflags(a4)			;entry flag: visitors
@@ -500,7 +500,7 @@ ChkShotStat							;determine if shot taken, add to appropriate stats: crowd, tea
 	move.w	(shotplayer).l,d0
 .addShot							;credit the shot to player d0
 	asl.w	#scsize,d0				;scsize
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d0,a3
 	bsr.w	loadTeamStruct
 	addi.w	#1,0(a2)					;tmshots
@@ -536,7 +536,7 @@ ChkShotStat							;determine if shot taken, add to appropriate stats: crowd, tea
 	rts
 loadTeamStruct						;return a2 = team struct of player a3, a1 = the other team's struct.
 									;Called from ChkShotStat and updateplayers
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	lea	tmsize(a2),a1				;tmsize
 	btst.b	#pfteam,pflags(a3)		;pfteam
 	beq.w	rtss2
@@ -546,7 +546,7 @@ SetupTeamForIntermission			;Reset the bench, then for each team refill energy an
 									;line: power play 1 (3) for the team with more players on ice, PK1 (5) for
 									;the team with fewer, else 0. Called from Intermission
 	bsr.w	ResetBench
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	lea	tmsize(a2),a3
 	bsr.w	.r
 	exg	a2,a3						;falls in for the other team
@@ -608,7 +608,7 @@ Intermission						;end of period junk (zamboni/stats). Opens the pause menu scre
 .1									;records updated after the last period
 	bsr.w	SetupTeamForIntermission
 	moveq	#$F,d0
-	movea.l	#(SortCords-M68K_RAM),a0
+	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
 .clr								;clear the Xpos of each sort object
 	clr.w	0(a0)					;Xpos
 	adda.w	#SCstruct,a0			;SCstruct
@@ -757,8 +757,8 @@ SetScore							;add to score for game in a0. After period 3 a game within one go
 	andi.w	#$70,d0
 	lsr.w	#1,d0					;row * 8
 	lea	sctab(pc),a1
-	move.l	(a1,d0.w),(nibblebuffer).l
-	move.l	$4(a1,d0.w),(nibblebuffer+4).l
+	move.l	(a1,d0.w),$18BE8.l	;CD: the cartridge has (nibblebuffer).w
+	move.l	$4(a1,d0.w),$18BEC.l	;CD: the cartridge has (nibblebuffer+4).w
 	asl.w	#2,d1
 	movea.l	#TeamList,a1
 	movea.l	(a1,d1.w),a1
@@ -768,9 +768,9 @@ SetScore							;add to score for game in a0. After period 3 a game within one go
 	asl.w	#3,d0
 	lea	sctab(pc),a1
 	move.l	(a1,d0.w),d1
-	add.l	d1,(nibblebuffer).l
+	add.l	d1,$18BE8.l	;CD: the cartridge has (nibblebuffer).w
 	move.l	$4(a1,d0.w),d1
-	add.l	d1,(nibblebuffer+4).l
+	add.l	d1,$18BEC.l	;CD: the cartridge has (nibblebuffer+4).w
 	moveq	#4,d0					;4 weights
 	bra.w	WeightedRandomSelect
 sctab								;weights for 0, 1, 2, 3 goals, 8 rows (92 had 4 percent bytes per row)
@@ -1020,14 +1020,14 @@ StartHL2							;Play hilite for game a0. Start skips it with a random result. A 
 	clr.w	(Vpos).l
 	clr.w	(Hpos).l
 	bsr.w	ResetBench
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	bsr.w	.setteam
 	adda.w	#tmsize,a2				;tmsize
 	bsr.w	.setteam
 	bsr.w	resetplstuff
 	moveq	#$B,d0					;12 players: put each on his face off spot
 	movea.l	#.postab,a0
-	movea.l	#(SortCords-M68K_RAM),a1
+	movea.l	#$17480,a1	;CD: the cartridge has #(SortCords-M68K_RAM)
 .loop								;put each player on his face off spot
 	move.w	position(a1),d1			;position
 	btst.b	#pfgoal,pflags(a1)		;pfgoal
@@ -1093,7 +1093,7 @@ StartHL2							;Play hilite for game a0. Start skips it with a random result. A 
 	move.w	(AwGoals).l,gss2(a0)	;gss2
 	bsr.w	forceblack
 	moveq	#$F,d0					;clear Xpos of the 16 sort objects
-	movea.l	#(SortCords-M68K_RAM),a0
+	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
 .clr								;clear the Xpos of each sort object
 	clr.w	0(a0)					;Xpos
 	adda.w	#SCstruct,a0
@@ -1175,7 +1175,7 @@ StartHL2							;Play hilite for game a0. Start skips it with a random result. A 
 	rts
 .sv									;save $5BE words from gmode to M68K_RAM, then ScoreSumbytes
 	move.w	#$557,d0	;CD: the cartridge has #$5BD
-	movea.l	#(gmode-M68K_RAM),a1
+	movea.l	#$17F68,a1	;CD: the cartridge has #(gmode-M68K_RAM)
 	movea.l	#$C45C,a2	;CD: the cartridge has #M68K_RAM
 .sv1								;copy each word
 	move.w	(a1)+,(a2)+				;copy words from gmode to ReplayStart
@@ -1184,7 +1184,7 @@ StartHL2							;Play hilite for game a0. Start skips it with a random result. A 
 	rts
 .lo									;restore what .sv saved
 	move.w	#$557,d0	;CD: the cartridge has #$5BD
-	movea.l	#(gmode-M68K_RAM),a2
+	movea.l	#$17F68,a2	;CD: the cartridge has #(gmode-M68K_RAM)
 	movea.l	#$C45C,a1	;CD: the cartridge has #M68K_RAM
 .lo1								;copy each word back
 	move.w	(a1)+,(a2)+				;copy the saved words back

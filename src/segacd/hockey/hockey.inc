@@ -4,12 +4,8 @@
 ;	value does not show (a difference, a copied line); a disc operand may still change it.
 
 ; RAM
-M68K_RAM	equ	$0
-statsbuffer	equ	$B000
-Stack	equ	$C458
 replaystart	equ	$C45C
 replayend	equ	$173B0
-GoalieStruct	equ	$17400
 fodropx	equ	$1746C
 fodropy	equ	$1746E
 recbpr	equ	$17470
@@ -29,9 +25,6 @@ puckvz	equ	$17BAC
 puckx_nopuck	equ	$17BDE
 puckc	equ	$17BE0
 puck_pflags2	equ	$17BE3
-Ylist	equ	$17C80
-OOlistpos	equ	$17CA0
-OOlist	equ	$17CC0
 Crowdframe	equ	$17CD0
 Crowdlevel	equ	$17CD2
 CwdExciteLvl	equ	$17CD8
@@ -51,17 +44,10 @@ wcradiusx	equ	$17CF4
 wcradiusy	equ	$17CF6
 fofdata2	equ	$17CF8
 fofdata	equ	$17D00
-pads	equ	$17D04
-Joy1Struct	equ	$17D20
-CameraPosStruct	equ	$17D58
 replayactive	equ	$17D6E
-Joy3Struct	equ	$17D74
-Joy4Struct	equ	$17D90
-glovestruct	equ	$17DAC
 PadControlBits	equ	$17DC8
 padcont	equ	$17DCA
 PadControlBits34	equ	$17DD6
-sso	equ	$17DD8
 shotplayer	equ	$17E28
 lastplayer	equ	$17E2A
 passdir	equ	$17E2C
@@ -118,22 +104,17 @@ ltx	equ	$17ECA
 lty	equ	$17ECC
 iflags	equ	$17ECE
 icingPlayer	equ	$17ECF
-clockram	equ	$17ED4
 xc1	equ	$17EDC
 yc1	equ	$17EDE
 yleader	equ	$17EE0
 fox	equ	$17EE2
 foy	equ	$17EE4
-fodir1	equ	$17EE6
-fodir2	equ	$17EE8
 deltax	equ	$17EEA
 deltay	equ	$17EEC
 collflag	equ	$17EEE
 evalue	equ	$17EF0
 mesarea	equ	$17EF2
 TextBuffer	equ	$17EF4
-PushWidthBuf	equ	$17F56
-PushNumberBuf	equ	$17F5E
 redrawicons	equ	$17F60
 ltack	equ	$17F62
 lastsfx	equ	$17F64
@@ -172,7 +153,6 @@ cont3team	equ	$17FAA
 cont4team	equ	$17FAC
 HomeTeam	equ	$17FAE
 VisTeam	equ	$17FB0
-TeamBlockMap	equ	$17FB2
 PenBuf	equ	$18022
 PenCntDwn	equ	$18064
 Penaltytimer	equ	$18066
@@ -182,21 +162,17 @@ penmsgtimer	equ	$1806C
 RefCnt	equ	$1806E
 RefStep	equ	$18070
 RefPen	equ	$18072
-RefRamMap	equ	$18074
 gsp	equ	$180E4
 gameclock	equ	$180E6
 PerTimeTotal	equ	$180EA
 ChkCnt	equ	$180EC
 TempPlOffset	equ	$180EE
 ScoreSumbytes	equ	$180F0
-ScoreSum	equ	$180F2
 PenSumLength	equ	$1825A
-PenSum	equ	$1825C
 tmstruct	equ	$1834C
 HmGoals	equ	$18358
 awtmstruct	equ	$186B2
 AwGoals	equ	$186BE
-gstruct	equ	$18A18
 gamenum	equ	$18A98
 postarts	equ	$18A9A
 bosgames	equ	$18A9C
@@ -204,8 +180,6 @@ gamelevel	equ	$18A9E
 potreeteam	equ	$18AA0
 pojoy	equ	$18AA2
 WinBits	equ	$18AA4
-potree	equ	$18AA6
-PlList	equ	$18AC6
 menuitem	equ	$18AD2
 menulist	equ	$18AD6
 menudraw	equ	$18ADA
@@ -215,8 +189,6 @@ PKBonus	equ	$18AE1
 ThirdPBonus	equ	$18AE2
 HmAwBonus	equ	$18AE3
 remapTablePtr	equ	$18AE4
-nibblebuffer	equ	$18BE8
-varend	equ	$18BF0
 homeuser	equ	$18BF4
 awayuser	equ	$18BF6
 FourWayPlay	equ	$18BF8
@@ -241,8 +213,6 @@ TmpOptLine2	equ	$18C22
 TempOptPlayMode	equ	$18C24
 databuffer	equ	$18C26
 passbits	equ	$18C38
-outputbuffer	equ	$18C42
-tpassbits	equ	$18D26
 VSCRLPM	equ	$18D30
 VSPRITES	equ	$18D32
 VmMAP1	equ	$18D34
@@ -315,6 +285,7 @@ awayplayers	equ	$193B0
 shootoutclock	equ	$193B6
 shootoutjiffy	equ	$193B8
 ValidSRAM	equ	$193BA
+M68K_RAM	equ	$193BC
 namelog	equ	$1A2FC
 nameentrybuf	equ	$1A37C
 namelength	equ	$1A38A
@@ -401,14 +372,43 @@ iconplayer	equ	$1AD8A
 iconx	equ	$1AD8C
 scoutwait	equ	$1AD8E
 replaydelay	equ	$1AD92
+statsbuffer	equ	$243BC
+Stack	equ	$25814
+GoalieStruct	equ	$307BC
+Ylist	equ	$3103C
+OOlistpos	equ	$3105C
+OOlist	equ	$3107C
+pads	equ	$310C0
+Joy1Struct	equ	$310DC
+CameraPosStruct	equ	$31114
+Joy3Struct	equ	$31130
+Joy4Struct	equ	$3114C
+glovestruct	equ	$31168
+sso	equ	$31194
+clockram	equ	$31290
+fodir1	equ	$312A2
+fodir2	equ	$312A4
+PushWidthBuf	equ	$31312
+PushNumberBuf	equ	$3131A
+TeamBlockMap	equ	$3136E
+RefRamMap	equ	$31430
+ScoreSum	equ	$314AE
+PenSum	equ	$31618
+gstruct	equ	$31DD4
+potree	equ	$31E62
+PlList	equ	$31E82
+nibblebuffer	equ	$31FA4
+varend	equ	$31FAC
+outputbuffer	equ	$31FFE
+tpassbits	equ	$320E2
 dmaram	equ	$BBC9E
 palfadenew	equ	$BBCB0
-Satt	equ	$BBD30
 ThreeStars	equ	$BC000
-decompbuffer	equ	$BC000
 recordbuf	equ	$BC000
-starscores	equ	$BC000
 teamrecbuf	equ	$BC0C8
+Satt	equ	$D50EC
+decompbuffer	equ	$D53BC
+starscores	equ	$D53BC
 
 ; constants
 abut	equ	$6
@@ -521,6 +521,8 @@ mapheight	equ	$2
 mapwords	equ	$4
 maxros	equ	$1A		;not checked on the disc yet
 MaxSprites	equ	$40
+NameLogBase	equ	$DA0
+NameLogBytes	equ	$80
 newpnum	equ	$61
 newpos	equ	$60
 nopuck	equ	$5E

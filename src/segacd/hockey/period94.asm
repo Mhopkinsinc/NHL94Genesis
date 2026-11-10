@@ -764,7 +764,7 @@ DisplayStats						;Team logos (PutTeamBlock), then each
 	jsr	(print).l
 	movea.l	a1,a0					;a0 = stat offsets
 	move.w	#$22,(printx).l
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	bsr.w	PrintStatValue
 	move.w	#9,(printx).l
 	lea	tmsize(a2),a2
@@ -777,7 +777,7 @@ PrintStatValue						;Print TeamStatTextTbl entry a0 for team a2 centred at print
 									;(tmATOP and tmPwrPlayTime are times
 									;PushTime), "/second" if any, " (pct%)" for passing. Offset $FFFF is the
 									;shooting percentage (tmscore * 100 / tmshots), printed with a "%"
-	movea.l	#(mesarea-M68K_RAM),a3
+	movea.l	#$17EF2,a3	;CD: the cartridge has #(mesarea-M68K_RAM)
 	move.w	#2,(a3)					;empty string
 	cmpi.w	#$FFFF,(a0)				;shooting percentage row
 	bne.w	.1

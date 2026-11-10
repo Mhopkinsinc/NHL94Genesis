@@ -182,7 +182,7 @@ setvideo							;this is not vblank code but sets up ram for vblank transfers. Ca
 .p									;loop
 	btst.b	#dfok,(disflags).l		;dfok: wait for vblank to take the last frame
 	bne.w	.p						;(VBlank clears dfok after DumpSprites)
-	movea.l	#(DMAList-M68K_RAM),a5	;dma transfer list
+	movea.l	#$18D6A,a5	;dma transfer list (CD: the cartridge has #(DMAList-M68K_RAM))
 	bsr.w	updatescroll			;after a5 is set
 	movea.l	#(Satt-M68K_RAM),a6		;sprite attribute table area
 	moveq	#1,d6					;link counter
@@ -203,7 +203,7 @@ setvideo							;this is not vblank code but sets up ram for vblank transfers. Ca
 .n									;sprite list ended
 	clr.b	satLink-satLen(a6)		;end sprite list
 	move.l	a6,d0
-	subi.l	#Satt,d0
+	subi.l	#$BBD30,d0	;CD: the cartridge has #Satt
 	lsr.w	#1,d0					;words
 	move.w	d0,(Sattsize).l
 	move.l	a5,(DMAlistend).l
@@ -286,7 +286,7 @@ showref								;draw ref graphics. a5 = dma list, a6 = sprite table, d6 = link c
 	bclr.b	#sf2refref,(sflags2).l	;sf2refref
 	beq.w	rtss2
 	movea.l	#(RefRamMap-M68K_RAM),a0
-	movea.l	#(VmMAP1-M68K_RAM),a1
+	movea.l	#$18D34,a1	;CD: the cartridge has #(VmMAP1-M68K_RAM)
 	move.w	2(a1),d2
 	moveq	#2,d0					;refy: Xpos on ice screen
 	btst.b	#sfhor,(sflags).l
@@ -318,7 +318,7 @@ checkfo								;check for face off sprites. 3 entries of fofdata2: word frame, w
 	bne.w	rtss2
 	btst.b	#dffaceoff,(disflags).l	;face off flag
 	beq.w	rtss2
-	movea.l	#(fofdata2-M68K_RAM),a3
+	movea.l	#$17CF8,a3	;CD: the cartridge has #(fofdata2-M68K_RAM)
 	moveq	#2,d0
 .loop								;each faceoff object
 	move.w	(a3),d4
@@ -633,7 +633,7 @@ showclock							;put the game clock on screen. Called from setvideo and PauseMod
 	move.w	$78(a1),d0				;4+(':'*2)
 	add.w	(smallfontchars).l,d0
 	ori.w	#$8000,d0
-	move.w	d0,(clockram).l			;colon
+	move.w	d0,$17ED4.l			;colon (CD: the cartridge has (clockram).w)
 	move.w	(gameclock).l,d0
 	btst.b	#1,(gmode2).l			;penalty shot / shootout clock
 	beq.w	.4
@@ -657,12 +657,12 @@ showclock							;put the game clock on screen. Called from setvideo and PauseMod
 	bsr.w	.char					;minutes tens
 	move.l	a0,(a5)+
 	move.w	#5,(a5)+				;words to transfer
-	movea.l	#(VmMAP1-M68K_RAM),a1
+	movea.l	#$18D34,a1	;CD: the cartridge has #(VmMAP1-M68K_RAM)
 	moveq	#$18,d0					;.clocky = 24
 	moveq	#3,d2					;.clockx = 3
 	btst.b	#sfhor,(sflags).l		;sfhor (always clear here: the horizontal rink prints the clock above)
 	beq.w	.cv
-	movea.l	#(VmMAP2-M68K_RAM),a1
+	movea.l	#$18D38,a1	;CD: the cartridge has #(VmMAP2-M68K_RAM)
 	moveq	#5,d0					;clock y (93 used 4)
 	moveq	#$D,d2					;.clockx2 = 13
 .cv									;map position set
@@ -805,7 +805,7 @@ setsortcords						;setup sort cord graphics: addframe for the 16 objects in OOli
 	clr.w	d1
 	move.b	(a4)+,d1				;move next sortcord into d1
 	asl.w	#6,d1					;mult by 64
-	movea.l	#(SortCords-M68K_RAM),a3	;SortCords into a3
+	movea.l	#$17480,a3	;SortCords into a3 (CD: the cartridge has #(SortCords-M68K_RAM))
 	adda.w	d1,a3					;add offset to next struct
 	bsr.w	addframe
 	dbf	d0,.top						;loop until done
@@ -847,8 +847,8 @@ uppads								;update the gloves object and the 6 pad objects, and queue new pad
 .0									;pads set up
 	move.w	#5,d4
 	movea.l	#(pads-M68K_RAM),a0
-	movea.l	#(padcont-M68K_RAM),a1	;last label code per pad
-	movea.l	#(SortCords-M68K_RAM),a2
+	movea.l	#$17DCA,a1	;last label code per pad (CD: the cartridge has #(padcont-M68K_RAM))
+	movea.l	#$17480,a2	;CD: the cartridge has #(SortCords-M68K_RAM)
 	move.w	(PadControlBits).l,d3
 .top								;each pad
 	cmpi.w	#1,d4

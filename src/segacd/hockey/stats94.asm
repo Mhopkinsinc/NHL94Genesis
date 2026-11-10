@@ -586,7 +586,7 @@ DrawTeamScreen						;Line editor background: bitmap (EASportsBGMap), frame, "Lin
 	dc.w	$BE0E
 	btst	d0,d0
 	clr.w	d0						;map offset: home 0, away $2C
-	cmpa.l	#(tmstruct-M68K_RAM),a2	;home team?
+	cmpa.l	#$1834C,a2	;home team? (CD: the cartridge has #(tmstruct-M68K_RAM))
 	beq.w	PutTeamBlock
 ;CD: no cartridge twin
 	moveq	#$2C,d0
@@ -638,7 +638,7 @@ LineEditorExit						;Line editor: start pressed. Run the exit menu
 	move.l	(menudraw).l,-(sp)
 	movea.l	#rtss2,a1
 	movea.l	#LineEditorMenuText,a0
-	movea.l	#(databuffer-M68K_RAM),a3	;saved line data
+	movea.l	#$18C26,a3	;saved line data (CD: the cartridge has #(databuffer-M68K_RAM))
 	move.w	tmteam(a2),d0			;team number + 1 = first databuffer byte?
 	addi.w	#1,d0
 	cmp.b	(a3),d0					;this team's data?
@@ -687,7 +687,7 @@ DecodeTeamLines						;Load team a2's lines from databuffer: byte 0 = team + 1, t
 									;per slot in AttributeOffsetTbl order, relative to the first forward (or
 									;defenseman for slots 1-2). Menu item handler
 	movem.l	d0-d4/a0/a3,-(sp)
-	movea.l	#(databuffer-M68K_RAM),a0	;saved line data
+	movea.l	#$18C26,a0	;saved line data (CD: the cartridge has #(databuffer-M68K_RAM))
 ;CD: no cartridge twin
 	adda.w	#$1,a0
 	bsr.w	GetGoalieCount
@@ -726,7 +726,7 @@ DecodeTeamLines						;Load team a2's lines from databuffer: byte 0 = team + 1, t
 EncodeTeamLines						;Reverse of DecodeTeamLines: pack team a2's lines into databuffer and
 									;convert it (WriteLineData, high ROM). Menu item handler
 	movem.l	d0-d4/a0-a3,-(sp)
-	movea.l	#(databuffer-M68K_RAM),a0	;saved line data
+	movea.l	#$18C26,a0	;saved line data (CD: the cartridge has #(databuffer-M68K_RAM))
 	move.w	tmteam(a2),d0
 	addi.w	#1,d0
 	move.b	d0,(a0)+
@@ -787,7 +787,7 @@ TeamRosterScreen					;"Team Roster" screen for team a2: pages of players (Displa
 	jsr	(printbigz).l
 	String	CC_Font3Pri,9,4,'Team  Roster',CC_Font3Pri,$E,1
 	clr.w	d0						;logo map offset: home 0, away $2C
-	cmpa.l	#(tmstruct-M68K_RAM),a2	;home team?
+	cmpa.l	#$1834C,a2	;home team? (CD: the cartridge has #(tmstruct-M68K_RAM))
 	beq.w	.home
 ;CD: no cartridge twin
 	moveq	#$2C,d0
@@ -855,9 +855,9 @@ TeamRosterScreen					;"Team Roster" screen for team a2: pages of players (Displa
 	bra.w	.scroll
 .team								;A: the other team
 	lea	tmsize(a2),a2
-	cmpa.l	#(awtmstruct-M68K_RAM),a2	;was the home team?
+	cmpa.l	#$186B2,a2	;was the home team? (CD: the cartridge has #(awtmstruct-M68K_RAM))
 	beq.w	.redraw					;yes: show the away team
-	movea.l	#(tmstruct-M68K_RAM),a2	;away -> back to home
+	movea.l	#$1834C,a2	;away -> back to home (CD: the cartridge has #(tmstruct-M68K_RAM))
 	bra.w	.redraw
 CheckPlayerListScroll				;TeamRosterScreen per frame: add PlayerScrollCtr to VertLineScrolling (0
 									;... $380)
@@ -1302,7 +1302,7 @@ DrawScoringRow						;Print ScoreSum entry d3: time, team (bit 7 of byte 2 = away
 	move.w	(a0,d3.w),d0			;goal time
 	move.w	#1,(printx).l
 	jsr	(FormatAndPrintTime).l		;print it
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	btst.b	#7,ssflags(a0,d3.w)
 	beq.w	.0
 	adda.w	#tmsize,a2
@@ -1512,7 +1512,7 @@ DisplayPenaltyEntry					;Print PenSum entry d3: time, team (bit 7 of byte 2 = aw
 	move.w	(a0,d3.w),d0			;penalty time
 	move.w	#1,(printx).l
 	jsr	(FormatAndPrintTime).l		;print it
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	btst.b	#7,pspen(a0,d3.w)		;away penalty?
 	beq.w	.0
 	adda.w	#tmsize,a2
@@ -1572,7 +1572,7 @@ PlayoffStatsScreen					;"Playoff Stats": the playoff totals (ReadTeamStats) of t
 	movea.l	#(potree-M68K_RAM),a0
 	move.w	(potreeteam).l,d0		;user tree position
 	move.b	(a0,d0.w),d0			;his team
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	cmp.w	tmteam(a2),d0			;is it home?
 	beq.w	.0
 	adda.w	#tmsize,a2
@@ -1611,7 +1611,7 @@ PlayerStatsList						;Stats screen for team a2, d7 = 0 game / 1 playoff: the col
 	String	CC_Font3Pri,8,4,'Player  Stats',CC_Font3Pri,$E,1
 .team								;print the team
 	clr.w	d0						;TeamBlockMap offset: 0 for the home struct, $30 for the away struct
-	cmpa.l	#(tmstruct-M68K_RAM),a2	;home team?
+	cmpa.l	#$1834C,a2	;home team? (CD: the cartridge has #(tmstruct-M68K_RAM))
 	beq.w	.home
 ;CD: no cartridge twin
 	moveq	#$2C,d0
@@ -1661,9 +1661,9 @@ PlayerStatsList						;Stats screen for team a2, d7 = 0 game / 1 playoff: the col
 	tst.w	d7						;No team switch in playoff stats
 	bne.w	.scroll
 	lea	tmsize(a2),a2
-	cmpa.l	#(awtmstruct-M68K_RAM),a2	;was the home team?
+	cmpa.l	#$186B2,a2	;was the home team? (CD: the cartridge has #(awtmstruct-M68K_RAM))
 	beq.w	.redraw					;was home, now away
-	movea.l	#(tmstruct-M68K_RAM),a2	;was away, back to home
+	movea.l	#$1834C,a2	;was away, back to home (CD: the cartridge has #(tmstruct-M68K_RAM))
 	bra.w	.redraw
 UpdateStatsListScroll				;Stats screen per frame: scroll 0 ... SelectedPlayerIdx, stop on a 16 line
 									;boundary, draw the row coming into view
@@ -2397,7 +2397,7 @@ TimeoutMenu							;Pause menu "Timeout" for team a2: switch the menu to PauseTex
 	sub.w	d0,(printx).l
 ;CD: no cartridge twin
 	jsr	(print).l
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	jsr	(RestoreTeamEnergy).l
 	adda.l	#tmsize,a2
 	jsr	(RestoreTeamEnergy).l
@@ -2504,7 +2504,7 @@ Pausemode_gnum						;Draw the goalie list, row menuitem highlighted, each goalie
 	andi.b	#$F,d2					;ones
 	addi.b	#$30,d2
 	move.b	d2,(TextBuffer+1).l
-	movea.l	#(mesarea-M68K_RAM),a1
+	movea.l	#$17EF2,a1	;CD: the cartridge has #(mesarea-M68K_RAM)
 	move.w	#4,(a1)					;string length word (2 chars + 2)
 	move.w	#5,(printx).l
 ;CD: no cartridge twin

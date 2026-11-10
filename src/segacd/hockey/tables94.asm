@@ -69,24 +69,80 @@ CopyTeamLines	equ	$3F208
 	dc.w	$0003,$3418
 	dc.w	$0003,$3DDC
 	dc.w	$0002,$2926
-	ori.b	#$3E,d0
-	ori.w	#$94,(a0)
-	ori.l	#$C20072,(a4)
-	ori.w	#$82,-(a2)
-	bclr.b	d0,(a0)
-	ori.w	#$C8,$10C(a2)
-	dc.w	$01B0,$0234
-	dc.w	$01F0
-	bchg.b	d0,(a0)
-	andi.l	#$2B002C4,d0
-	dc.w	$02E4
-	btst	d1,d6
-	ori.l	#$2120170,-$5E(a0,d0.w)
-	andi.l	#$1D000EA,(a0)+
-	andi.w	#$12E,(a2)+
-	btst	d0,d0
+
+Penaltylist							;Penalty number = word offset into this table. Entries $2E-$3C are the
+									;penalty shot additions (the penalty shot
+									;versions of 7 penalties, minutes byte $FF, and a second Face Off). Used
+									;by AddPenalty, SetPA2, PenaltyShotBox, ...
+	dc.w	$0000
+PenEOP	equ	(*-Penaltylist)			;2 period over
+	dc.w	PenDataEOP-Penaltylist
+PenEOG	equ	(*-Penaltylist)			;4 game over
+	dc.w	PenDataEOG-Penaltylist
+PenOOP	equ	(*-Penaltylist)			;6
+	dc.w	PenDataGhold-Penaltylist
+PenGhold	equ	(*-Penaltylist)		;8
+	dc.w	PenDataGhold-Penaltylist
+PenWhistle	equ	(*-Penaltylist)		;$A whistle
+	dc.w	PenDatawhistle-Penaltylist
+PenIcing	equ	(*-Penaltylist)		;$C icing
+	dc.w	PenDataice-Penaltylist
+PenGoal	equ	(*-Penaltylist)			;$E goal
+	dc.w	PenDataGoal-Penaltylist
+PenOffsides	equ	(*-Penaltylist)		;$10 offsides
+	dc.w	PenDataoffsides-Penaltylist
+PenRoughing2	equ	(*-Penaltylist)	;$12 roughing, slow down time $A
+	dc.w	PenDatarough2-Penaltylist
+PenNoText	equ	(*-Penaltylist)		;$14 no text
+	dc.w	PenDataNoText-Penaltylist
+PenCharging	equ	(*-Penaltylist)		;$16
+	dc.w	PenDatacharge-Penaltylist
+PenSlashing	equ	(*-Penaltylist)		;$18
+	dc.w	PenDataslash-Penaltylist
+PenRoughing	equ	(*-Penaltylist)		;$1A
+	dc.w	PenDatarough-Penaltylist
+PenCrossChk	equ	(*-Penaltylist)		;$1C
+	dc.w	PenDatacross-Penaltylist
+PenHooking	equ	(*-Penaltylist)		;$1E
+	dc.w	PenDatahook-Penaltylist
+PenTripping	equ	(*-Penaltylist)		;$20
+	dc.w	PenDatatrip-Penaltylist
+PenInterference	equ	(*-Penaltylist)	;$22
+	dc.w	PenDataint-Penaltylist
+PenHolding	equ	(*-Penaltylist)		;$24
+	dc.w	PenDataHold-Penaltylist
+PenFighting	equ	(*-Penaltylist)		;$26
+	dc.w	PenDatafight-Penaltylist
+PenFighting2	equ	(*-Penaltylist)	;$28
+	dc.w	PenDatafight2-Penaltylist
+PenInst	equ	(*-Penaltylist)			;$2A
+	dc.w	PenDataInst-Penaltylist
+PenDelay	equ	(*-Penaltylist)		;$2C delay
+	dc.w	PenDatadelay-Penaltylist
+PenHookingPS	equ	(*-Penaltylist)	;$2E penalty shot
+	dc.w	PenDatahookps-Penaltylist
+PenTrippingPS	equ	(*-Penaltylist)	;$30 penalty shot
+	dc.w	PenDatatripps-Penaltylist
+PenGhold2	equ	(*-Penaltylist)		;$32 face off, no slow down
+	dc.w	PenDataGhold2-Penaltylist
+PenInterferencePS	equ	(*-Penaltylist)	;$34 penalty shot
+	dc.w	PenDataintps-Penaltylist
+PenRoughingPS	equ	(*-Penaltylist)	;$36 penalty shot
+	dc.w	PenDataroughps-Penaltylist
+PenChargingPS	equ	(*-Penaltylist)	;$38 penalty shot
+	dc.w	PenDatachargeps-Penaltylist
+PenCrossChkPS	equ	(*-Penaltylist)	;$3A penalty shot
+	dc.w	PenDatacrossps-Penaltylist
+PenSlashingPS	equ	(*-Penaltylist)	;$3C penalty shot
+	dc.w	PenDataslashps-Penaltylist
+
+;format
+;	dc.w	$ttmm	;tt=slow dnw time in half secs,mm=penalty min.
+;	String  'penalty text' dc.w     $ffdd,$ffdd,$ffdd,... ;ff =
+;	frame,dd=delay (neg for end)
+
+PenDataEOP	dc.w	$0100			;ttmm: slow down 1 half sec, 0 minutes; then the text and frame/delay
 									;words
-PenDataEOP						;CD: its first lines have no twin; the rest of it starts here
 	String	'Period Over'
 	dc.w	-$0510
 PenDataEOG	dc.w	$0100			;ttmm: slow down 1, 0 minutes
@@ -266,24 +322,21 @@ sublist								;substitution lists by position (goalie, LD, RD, LW, C, RW, extra
 priolist	dc.b	0,1,2,4,3,5,6	;positions in order of importance. Used by
 ;CD: no cartridge twin
 	dc.b	$00
-	dc.w	$000A
-	ori.w	#$84,d1
-	dc.w	$00CF
-	btst.b	d0,(a4)+
-	btst.b	d7,$22E(a6)
-	btst.b	d2,$82E(a6)
-	btst.b	d5,$E2E(a6)
-	move.b	$142E(a6),-(a0)
-	move.b	d7,$247(a3)
-	bchg	d2,d7
-	dc.w	$0847
-	bchg	d5,d7
-	dc.w	$0E47
-	move.b	d7,$1447(a0)
-	move.b	d1,-(a3)
-	move.w	d0,-(a4)
-	dc.w	$450A
-PlayoffScreen_setup						;CD: its first lines have no twin; the rest of it starts here
+
+PlayoffScreen_setup					;Playoff tree layout by gamelevel, one column per round. Used by
+									;PlayoffScreen
+	dc.w	.l0-PlayoffScreen_setup
+	dc.w	.l1-PlayoffScreen_setup
+	dc.w	.l2-PlayoffScreen_setup
+	dc.w	.l3-PlayoffScreen_setup
+	dc.w	.l4-PlayoffScreen_setup
+
+	;tree graphics for level 0: teams-1 then x,y per team (PlayoffScreen_doteam), arrows-1 then x,d0 per arrow
+	;(PlayoffScreen_doarrow), scores-1 then x,y per score (PlayoffScreen_doscores, negative: none)
+.l0	dc.b	16-1					;level 0: 16 team blocks, then arrows and series scores
+	dc.b	46,2,46,5,46,8,46,11,46,14,46,17,46,20,46,23
+	dc.b	71,2,71,5,71,8,71,11,71,14,71,17,71,20,71,23
+	dc.b	1,57,0,69,10
 	dc.b	7,50,4,50,10,50,16,50,22,75,4,75,10,75,16,75,22
 
 	;tree graphics for level 1

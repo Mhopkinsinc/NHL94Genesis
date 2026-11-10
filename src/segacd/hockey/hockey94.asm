@@ -217,7 +217,7 @@ ClearShotData						;CD: placed where the disc branches to it
 	rts
 
 restoreteams						;Put both teams' rosters on the bench
-	movea.l	#(tmstruct-M68K_RAM),a2	;team 1
+	movea.l	#$1834C,a2	;team 1 (CD: the cartridge has #(tmstruct-M68K_RAM))
 	bsr.w	.r
 	adda.w	#tmsize,a2				;team 2
 .r									;reset one team struct (a2), falls in for team 2
@@ -270,7 +270,7 @@ StartPer							;start a period: reset stack, rink and clock, face off, run the g
 	ori.w	#$F000,(PadControlBits).l
 	st.b	(c1playernum).l				;no controlled player yet
 	st.b	(c2playernum).l
-	movea.l	#(puckx-M68K_RAM),a3	;puck
+	movea.l	#$17B80,a3	;puck (CD: the cartridge has #(puckx-M68K_RAM))
 	clr.w	(fox).l					;face off at center ice
 	clr.w	(foy).l
 	btst.b	#0,(gmode2).l

@@ -136,7 +136,7 @@ remap								;a0 = data (char set), d0 = size in words, d1 = vram dest, a1 = map
 ; fade all colors to black but don't upset palfadenew
 forceblack							;fade all colors to black but don't upset palfadenew
 	movem.l	d0/a0,-(sp)
-	movea.l	#(palfadenew-M68K_RAM),a0
+	movea.l	#$BBCB0,a0	;CD: the cartridge has #(palfadenew-M68K_RAM)
 	moveq	#$1F,d0
 .0									;black out each target color, saving it
 	move.l	(a0),-(sp)				;save the target palette while blacking it
@@ -152,7 +152,7 @@ forceblack							;fade all colors to black but don't upset palfadenew
 	rts
 forceblack2							;fade to black, keeping palfadenew (saved on the stack and restored)
 	movem.l	d0/a0,-(sp)
-	movea.l	#(palfadenew-M68K_RAM),a0
+	movea.l	#$BBCB0,a0	;CD: the cartridge has #(palfadenew-M68K_RAM)
 	moveq	#$1F,d0					;32 longs
 .loop								;black out each target color, saving it
 	move.l	(a0),-(sp)
@@ -251,7 +251,7 @@ CopyPaletteToCRAM					;Copy all 64 palfadenew colours to colour ram, protected f
 	movem.l	d0/a0-a1,-(sp)
 	move.w	(disflags).l,-(sp)
 	bset.b	#dfng,(disflags).l
-	movea.l	#(palfadenew-M68K_RAM),a1
+	movea.l	#$BBCB0,a1	;CD: the cartridge has #(palfadenew-M68K_RAM)
 	movea.l	#Vdata,a0
 ;CD: no cartridge twin
 .L36EBE

@@ -144,3 +144,9 @@ compareAt('output/segacd/hockey/setup94_2.bin', 'cdbin/HOCKEY.BIN', 0x24C0A, 0x8
 compareAt('output/segacd/hockey/setup94_3.bin', 'cdbin/HOCKEY.BIN', 0x24DE8, 0x1764);
 compareAt('output/segacd/hockey/tables94.bin', 'cdbin/HOCKEY.BIN', 0x265CC, 0x12D4);
 compareAt('output/segacd/hockey/graphics94.bin', 'cdbin/HOCKEY.BIN', 0x278A0, 0x11DE);
+compareAt('output/segacd/hockey/frames94.bin', 'cdbin/HOCKEY.BIN', 0x5432, 0x1B96);
+compareAt('output/segacd/hockey/sram94.bin', 'cdbin/HOCKEY.BIN', 0x6FC8, 0x56C);
+compareAt('output/segacd/hockey/cards94_2.bin', 'cdbin/HOCKEY.BIN', 0x7534, 0x174);
+compareAt('output/segacd/hockey/graphics94_2.bin', 'cdbin/HOCKEY.BIN', 0x28A7E, 0x427E);
+compareAt('output/segacd/hockey/cdgfxptrs.bin', 'cdbin/HOCKEY.BIN', 0x2CCFC, 0xB0);
+compareAt('output/segacd/hockey/cdpads.bin', 'cdbin/HOCKEY.BIN', 0x2CDAC, 0x45E);

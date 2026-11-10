@@ -35,13 +35,13 @@ chgplayer							;The pad d4 takes the nearest free skater to where the puck is g
 	move.w	d4,d3
 	eori.w	#2,d3					;other controller
 	moveq	#-1,d5
-	movea.l	#(SortCords-M68K_RAM),a0
-	movea.l	#(cont1team-M68K_RAM),a1
+	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
+	movea.l	#$17FA6,a1	;CD: the cartridge has #(cont1team-M68K_RAM)
 	cmpi.w	#1,(a1,d4.w)			;team 1 starts at the first struct
 	beq.w	.t1
 	adda.w	#$300,a0				;controller is on other team
 .t1									;this controller's team
-	movea.l	#(c1playernum-M68K_RAM),a1
+	movea.l	#$17F9E,a1	;CD: the cartridge has #(c1playernum-M68K_RAM)
 .top								;each player
 	tst.w	position(a0)
 	ble.w	.next					;cant switch to goalie

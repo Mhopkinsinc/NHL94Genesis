@@ -383,7 +383,7 @@ NameLetterGrid						;Name entry: the letter grid ("D-Pad to a letter.", "C to se
 	move.b	(a0)+,(a1)+
 	move.b	#$20,(a1)+
 	dbf	d1,.loop2					;next letter
-	movea.l	#(mesarea-M68K_RAM),a1
+	movea.l	#$17EF2,a1	;CD: the cartridge has #(mesarea-M68K_RAM)
 	jsr	(print).l
 	addi.w	#2,(printy).l			;two rows down
 	subi.w	#$C,(printx).l			;back to the row start

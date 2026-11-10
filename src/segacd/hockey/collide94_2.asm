@@ -262,7 +262,7 @@ ResetBench							;remove all players from penalty box / put all players on their
 									;H = home players in PB
 									;V = away players in PB
 	moveq	#$10,d1
-	movea.l	#(tmstruct-M68K_RAM),a0
+	movea.l	#$1834C,a0	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	bsr.w	.rb
 	moveq	#1,d1
 	adda.w	#tmsize,a0				;change to Away Team
@@ -316,7 +316,7 @@ setplayer							;bring player onto the ice and set his attributes. d3 = offset o
 									;and clamps them with ClampNibble
 	bclr.b	#pf2inj,pflags2(a3)		;clear line change mode? (I believe pflags2 are 1 off because of fighting
 									;missing)
-	movea.l	#(tmstruct-M68K_RAM),a0	;Start of Team Struct
+	movea.l	#$1834C,a0	;Start of Team Struct (CD: the cartridge has #(tmstruct-M68K_RAM))
 	btst.b	#pfteam,pflags(a3)		;checks if home or away (if 0, home)
 	beq.w	.0
 .AwayTeam							;(entry point inside setplayer)

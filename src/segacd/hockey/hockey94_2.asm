@@ -92,7 +92,7 @@ CheckInjury							;Called once per second. Count down InjCntDown, act on it at z
 RestoreBenchEnergy					;Called once per second. Restore energy for players on the bench
 	tst.w	(OptLine).l
 	bne.w	.ex						;exit if line changes are off
-	movea.l	#(tmstruct-M68K_RAM),a2	;team 1
+	movea.l	#$1834C,a2	;team 1 (CD: the cartridge has #(tmstruct-M68K_RAM))
 	bsr.w	.notinprog
 	lea	tmsize(a2),a2				;team 2 (tmsize)
 .notinprog							;local subroutine

@@ -192,7 +192,7 @@ updateplayers						;this routine calls all collision/animation/assignment code f
 	beq.w	.scload					;branch if no breakaway
 	bclr.b	#4,(gmode2).l			;clear if breakaway
 .scload								;breakaway flag handled
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 .top								;loop
 	move.l	0(a3),OldXpos(a3)		;Xpos, oldXpos
 	move.l	Ypos(a3),OldYpos(a3)
@@ -574,11 +574,11 @@ checkwindow							;set Hpos and Vpos according to how the screen should follow t
 	move.w	(xc1).l,d3				;if locked, use these cordinates
 	btst.b	#sfslock,(sflags).l		;locked?
 	bne.w	.dd
-	movea.l	#(puckx-M68K_RAM),a3
+	movea.l	#$17B80,a3	;CD: the cartridge has #(puckx-M68K_RAM)
 	move.w	(puckc).l,d0
 	bmi.w	.0
 	asl.w	#7,d0					;* SCstruct
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d0,a3
 	move.w	d7,d0
 	add.w	d0,d0
@@ -1311,7 +1311,7 @@ SetLCmode2							;a2 = team struct. Draw the line change box
 	bne.w	.up
 	move.w	tmline(a2),d0
 .pr									;print the row
-	movea.l	#(mesarea-M68K_RAM),a1	;a1 = message area; row letter string
+	movea.l	#$17EF2,a1	;a1 = message area; row letter string (CD: the cartridge has #(mesarea-M68K_RAM))
 	move.l	#$44120,(a1)			;String length 4, 'A '
 	add.b	d4,2(a1)				;'A'-'C'
 ;CD: no cartridge twin
@@ -1334,7 +1334,7 @@ SetLCmode2							;a2 = team struct. Draw the line change box
 	jmp	$38F80.l
 setlccords							;set printx/y to cords for lc box on team a2
 	clr.w	d0
-	cmpa.l	#(tmstruct-M68K_RAM),a2
+	cmpa.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	bne.w	.0
 	eori.w	#$16,d0
 .0									;side chosen
@@ -1359,7 +1359,7 @@ setlccords							;set printx/y to cords for lc box on team a2
 getlchoice							;d0 = 0-2 (a2 = team)
 	movem.l	d1-d2,-(sp)
 	move.w	tmsize+tmap(a2),d2
-	cmpa.l	#(tmstruct-M68K_RAM),a2
+	cmpa.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	beq.w	getlchoice2
 	move.w	tmap-tmsize(a2),d2
 getlchoice2							;add $15 to d0 for each player more or fewer than the other team has on
@@ -1403,7 +1403,7 @@ lineinput							;process input for line changes
 	movem.l	(sp)+,d0-d7/a0-a6
 .0									;line change check
 	move.w	d1,-(sp)
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	btst.b	#pfteam,pflags(a3)
 	beq.w	.2
 	adda.w	#tmsize,a2
@@ -1496,7 +1496,7 @@ Holdplayer							;abut press hold. a0 = the player this one is
 	move.w	#SPAhook,d1				;move anim into d1 - normal hold check
 	tst.w	impact(a3)				;check if impact = 0
 	beq.w	SetSPA					;set anim if 0
-	movea.l	#(SortCords-M68K_RAM),a0	;move SortCord into a0
+	movea.l	#$17480,a0	;move SortCord into a0 (CD: the cartridge has #(SortCords-M68K_RAM))
 	move.w	impactp(a3),d0			;move last impact player into d0
 	asl.w	#7,d0					;calc offset
 	adda.w	d0,a0					;add offset to a0
@@ -1577,7 +1577,7 @@ dopass								;pass the puck in passdir, to the best teammate there if any
 .findplayer							;odd passacc: speed + 1/16
 	moveq	#-1,d4					;look for closest and best player to pass to
 	moveq	#5,d3					;Set total number of players (6 total, set to 5)
-	movea.l	#(SortCords-M68K_RAM),a1	;start of the home players' sort objects
+	movea.l	#$17480,a1	;start of the home players' sort objects (CD: the cartridge has #(SortCords-M68K_RAM))
 	cmpi.w	#6,SCnum(a3)			;compares 6 to SCnum(a3) (current player with puck) to check if
 									;player is away team or home team
 	blt.w	.0						;Jump if player is Home, continue if Away
@@ -1851,7 +1851,7 @@ setc2player							;restore old player and switch to new d0 player on cont. 2
 ; d1 = old player
 restorepl							;restore old joy controlled player d1, give d0 the joystick; a d1 in line
 									;change mode keeps control
-	movea.l	#(SortCords-M68K_RAM),a0
+	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
 	tst.w	d1
 	blt.w	.spd
 	cmpi.w	#$B,d1
@@ -2928,7 +2928,7 @@ assdefd								;player a3 is defensive player on defense
 	beq.w	.de1					;branch if RD
 	neg.w	temp3(a3)				;negate temp3 if LD
 .de1								;a0 = the opposing team's players (home 0-5, away 6-11)
-	movea.l	#(SortCords-M68K_RAM),a0	;move SC struct start into a0
+	movea.l	#$17480,a0	;move SC struct start into a0 (CD: the cartridge has #(SortCords-M68K_RAM))
 	cmpi.w	#6,SCnum(a3)			;compare 6 with player SCnum
 	bge.w	.de2					;branch if away team
 	adda.w	#6*SCstruct,a0			;add 300 to a0 (start at away SC Struct)
@@ -3649,7 +3649,7 @@ checkanim							;Goalie animation check; assgoaliectrl branches here too
 	andi.w	#3,d0					;pass first 2 bits
 	bne.w	.de1					;branch if not 0
 	moveq	#5,d0
-	movea.l	#(SortCords-M68K_RAM),a0
+	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
 	btst.b	#pfteam,pflags(a3)		;check home or away
 	bne.w	.opploop				;branch if away
 	adda.w	#$300,a0
@@ -3717,7 +3717,7 @@ checkanim							;Goalie animation check; assgoaliectrl branches here too
 	addi.w	#$96,(Crowdlevel).l
 	rts
 .de1								;not holding the puck: play the shot (puckcross at the goal line)
-	movea.l	#(puckcross-M68K_RAM),a0	;puckcross = xcord/frames top to bottom for goalies to react to
+	movea.l	#$17E36,a0	;puckcross = xcord/frames top to bottom for goalies to react to (CD: the cartridge has #(puckcross-M68K_RAM))
 	move.w	#$104,d3
 	btst.b	#pfgoal,pflags(a3)		;check what net shooting at
 	beq.w	.8						;branch if bottom
@@ -3893,7 +3893,7 @@ checkanim							;Goalie animation check; assgoaliectrl branches here too
 	bpl.w	.de5
 	btst.b	#ifok,(iflags).l
 	bne.w	.de5
-	movea.l	#(tmstruct-M68K_RAM),a1
+	movea.l	#$1834C,a1	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	lea	tmsize(a1),a2
 	btst.b	#pfteam,pflags(a3)
 	beq.w	.23
@@ -4122,7 +4122,7 @@ assgoalietopuck						;goalie skates out to a loose puck (inserted by
 	eori.b	#8,ccr					;flip N for the other goal end
 .dir								;direction for his end
 	bmi.w	assexit					;puck moving away from this goalie
-	movea.l	#(tmstruct-M68K_RAM),a1	;load home team struct into a1
+	movea.l	#$1834C,a1	;load home team struct into a1 (CD: the cartridge has #(tmstruct-M68K_RAM))
 	lea	tmsize(a1),a2				;load away team struct into a2
 	btst.b	#pfteam,pflags(a3)		;check if player is home or away
 	beq.w	.t0						;branch if home
@@ -4403,7 +4403,7 @@ asspuckc							;player a3 is puck handler
 	add.w	(pucky).l,d3
 	clr.w	(threat).l
 	moveq	#5,d4
-	movea.l	#(SortCords-M68K_RAM),a0
+	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
 	cmpi.w	#6,SCnum(a3)
 	bge.w	.loop
 	adda.w	#6*SCstruct,a0			;away team SCstruct start
@@ -4510,7 +4510,7 @@ chk4lc								;see if computer should call line change
 	bne.w	rtss2
 	btst.b	#pf2lcm,pflags2(a3)
 	bne.w	rtss2
-	movea.l	#(tmstruct-M68K_RAM),a2	;a2 = own team struct, a1 = the other one
+	movea.l	#$1834C,a2	;a2 = own team struct, a1 = the other one (CD: the cartridge has #(tmstruct-M68K_RAM))
 	lea	tmsize(a2),a1
 	btst.b	#pfteam,pflags(a3)
 	beq.w	.1
@@ -4634,7 +4634,7 @@ chk4shot							;player a3 looks for shot (computer controlled)
 	bsr.w	vtoa					;d0 = direction to the goal
 	move.w	d0,d5					;d5 = shot direction
 	moveq	#5,d3					;check the 6 opposing sort objects
-	movea.l	#(SortCords-M68K_RAM),a1
+	movea.l	#$17480,a1	;CD: the cartridge has #(SortCords-M68K_RAM)
 	cmpi.w	#6,SCnum(a3)
 	bge.w	.loop
 	adda.w	#6*SCstruct,a1
@@ -4729,7 +4729,7 @@ chk4pass							;player a3 looks for good pass (computer controlled)
 	cmp.w	SCnum(a3),d0
 	beq.w	rtss2
 	asl.w	#7,d0					;d0 * SCstruct ($80)
-	movea.l	#(SortCords-M68K_RAM),a0
+	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d0,a0					;a0 = receiver sort object
 	tst.w	position(a0)
 	ble.w	rtss2
@@ -4771,7 +4771,7 @@ chk4pass							;player a3 looks for good pass (computer controlled)
 	muls.w	d2,d2
 	add.l	d1,d2					;d2 = squared distance to the receiver
 	moveq	#5,d3
-	movea.l	#(SortCords-M68K_RAM),a1
+	movea.l	#$17480,a1	;CD: the cartridge has #(SortCords-M68K_RAM)
 	cmpi.w	#6,SCnum(a3)
 	bge.w	.co0
 	adda.w	#6*SCstruct,a1			;loop over the 6 opponents
@@ -4863,7 +4863,7 @@ checkob								;bring up little warning ref if a player on your team is over blu
 	bne.w	.L33D94	;CD: the cartridge has rtss2
 	movem.l	d0-d1/a0,-(sp)
 	moveq	#5,d0					;6 players of a3's team
-	movea.l	#(SortCords-M68K_RAM),a0
+	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
 	cmpi.w	#6,SCnum(a3)
 	blt.w	.0
 	adda.w	#6*SCstruct,a0			;a0 = first sort object of a3's team
@@ -5017,7 +5017,7 @@ assnearest							;this is a special assignment used for the player who is neares
 	move.w	(puckc).l,d1			;move puck carrier SCnum into d1
 	bmi.w	.np						;branch if no puck carrier
 	asl.w	#scsize,d1				;scsize
-	movea.l	#(SortCords-M68K_RAM),a1	;Move SortCords into a1
+	movea.l	#$17480,a1	;Move SortCords into a1 (CD: the cartridge has #(SortCords-M68K_RAM))
 	adda.w	d1,a1					;use d1 as offset
 	move.b	pflags(a1),d0			;pflags of puck carrier
 	move.b	pflags(a3),d1			;pflags of current player
@@ -5235,7 +5235,7 @@ check4check							;look for good opportunity for checking opponent. Falls in fro
 	cmpi.w	#6,d0					;compare 6 to d0
 	bhi.w	rtss2					;exit if d0 higher than 6
 	moveq	#5,d2					;move 5 into d2
-	movea.l	#(SortCords-M68K_RAM),a0
+	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
 	cmpi.w	#6,SCnum(a3)			;check if player on home team
 	bge.w	.0						;branch if away
 	adda.w	#6*SCstruct,a0			;add if home (checks opposite team in loop)
@@ -5481,7 +5481,7 @@ puckshootout						;puck logic for the shootout: on a new assignment clear the pa
 	move.w	d0,(BA_Goalie_SCnum).l
 .startpenshot						;pop the d1-d2 saved above
 	movem.w	(sp)+,d1-d2
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	move.w	#$1F,d0					;puckpenshot
 	bra.w	assreplace
 SelectPenaltyShotSkater				;pick the skater for the penalty shot from team BA_Team
@@ -5624,7 +5624,7 @@ puckpenshot							;puck start for a penalty shot or shootout: on the first call 
 	clr.w	(puckvy).l
 	clr.w	(puckvz).l
 	st.b	(puckc).l
-	movea.l	#(SortCords+(12*SCstruct)-M68K_RAM),a0	;goal net SCstruct
+	movea.l	#$17A80,a0	;goal net SCstruct (CD: the cartridge has #(SortCords+(12*SCstruct)-M68K_RAM))
 	clr.w	Xvel(a0)
 	clr.w	Yvel(a0)
 	clr.w	0(a0)
@@ -5634,7 +5634,7 @@ puckpenshot							;puck start for a penalty shot or shootout: on the first call 
 	clr.w	Yvel(a0)
 	clr.w	0(a0)
 	move.w	#$FEF4,Ypos(a0)
-	movea.l	#(SortCords+((puckscnum+1)*SCstruct)-M68K_RAM),a0	;puck shadow SCstruct
+	movea.l	#$17C00,a0	;puck shadow SCstruct (CD: the cartridge has #(SortCords+((puckscnum+1)*SCstruct)-M68K_RAM))
 	move.w	#SPFpuck,frame(a0)
 	clr.w	SPA(a0)
 	clr.w	attribute(a0)
@@ -5760,7 +5760,7 @@ puckpenshot							;puck start for a penalty shot or shootout: on the first call 
 	bsr.w	ResetAndSelectPlayers
 	move.w	(BA_Goalie_SCnum).l,d0
 	asl.w	#7,d0
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d0,a3
 	move.w	#0,0(a3)
 	move.w	#$FF06,Ypos(a3)
@@ -5952,7 +5952,7 @@ puckfaceoff							;puck controller for the face off: a3 = the face off controlle
 	bne.w	WaitForFaceoffLineChanges
 	bclr.b	#tmflcm,(tmstruct+tmflags).l
 	bclr.b	#tmflcm,(awtmstruct+tmflags).l
-	movea.l	#(SortCords-M68K_RAM),a0
+	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
 	moveq	#$B,d0
 .clearlcmloop						;loop: clear the line change mode of all 12 players
 	bclr.b	#pf2lcm,pflags2(a0)
@@ -5981,7 +5981,7 @@ puckfaceoff							;puck controller for the face off: a3 = the face off controlle
 	bmi.w	.checkcomputerline
 	bsr.w	StartFaceoffLineChange
 .checkcomputerline					;computer line change
-	movea.l	#(tmstruct-M68K_RAM),a1
+	movea.l	#$1834C,a1	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	lea	tmsize(a1),a2
 	moveq	#2,d0
 	bsr.w	SetFaceoffComputerLine
@@ -6006,7 +6006,7 @@ SetFaceoffComputerLine				;faceoff: start a line change for team d0 when the com
 StartFaceoffLineChange				;start the line change box for team d0's sort object before a faceoff
 	exg	a2,a3
 	asl.w	#7,d0
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d0,a3
 	bclr.b	#3,pflags2(a3)
 	move.l	a2,-(sp)
@@ -6035,7 +6035,7 @@ WaitForFaceoffLineChanges			;run both teams' faceoff line change timers (temp1 /
 	bpl.w	X_3C000	;CD: the cartridge has rtss2
 	tst.w	temp2(a3)
 	bpl.w	X_3C000	;CD: the cartridge has rtss2
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	lea	tmsize(a2),a1
 	moveq	#1,d0
 	bsr.w	SetFaceoffComputerLine
@@ -6047,8 +6047,8 @@ UpdateFaceoffLineChangeTimer		;count down one team's faceoff line change timer a
 	bmi.w	X_3C000	;CD: the cartridge has rtss2
 	move.w	$4(a3,d0.w),d1
 	asl.w	#7,d1
-	movea.l	#(SortCords-M68K_RAM),a0
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	btst.b	#6,pflags(a0,d1.w)
 	beq.w	.checkactive
 	adda.w	#tmsize,a2
@@ -6077,7 +6077,7 @@ clockcont_0						;CD: placed where the disc branches to it
 ChkGoalies							;computer pulls goalie on delayed penalty. Called from periodicevents
 	btst.b	#gmclock,(gmode).l		;check if clock running
 	bne.w	X_3C000	;CD: the cartridge has rtss2
-	movea.l	#(tmstruct-M68K_RAM),a2	;a2 = team being tested, a1 = the other team
+	movea.l	#$1834C,a2	;a2 = team being tested, a1 = the other team (CD: the cartridge has #(tmstruct-M68K_RAM))
 	lea	tmsize(a2),a1
 	moveq	#1,d0					;d0 = team number (1 home, 2 visitors)
 	bsr.w	.chkgoalie
@@ -6089,7 +6089,7 @@ ChkGoalies							;computer pulls goalie on delayed penalty. Called from periodic
 	move.w	(puckc).l,d1			;move puck carrier SCnum into d1
 	bmi.w	X_3C000	;CD: the cartridge has rtss2
 	subi.w	#6,d1
-	cmpa.l	#(tmstruct-M68K_RAM),a2
+	cmpa.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	beq.w	.chkpen
 	not.w	d1						;makes d1 negative if away team
 .chkpen								;penalty check
@@ -6110,7 +6110,7 @@ ChkGoalies							;computer pulls goalie on delayed penalty. Called from periodic
 ; if computer pulled goalie, look to see if computer should return him
 ReturnGoalies						;if computer pulled goalie, look to see if computer should return him.
 									;Called from puckfaceoff
-	movea.l	#(tmstruct-M68K_RAM),a2	;a2 = team being tested, a1 = the other team
+	movea.l	#$1834C,a2	;a2 = team being tested, a1 = the other team (CD: the cartridge has #(tmstruct-M68K_RAM))
 	lea	tmsize(a2),a1
 	moveq	#1,d0					;d0 = team number
 	bsr.w	.r						;home team first ...
@@ -6177,7 +6177,7 @@ CompLine							;find good line for comp to switch to. a2 = team, a1 = other team
 	movem.l	(sp)+,d0-d2/a0
 	rts
 .nopwr								;d1 = 0
-	cmpa.l	#(tmstruct-M68K_RAM),a2	;find normal line
+	cmpa.l	#$1834C,a2	;find normal line (CD: the cartridge has #(tmstruct-M68K_RAM))
 	bne.w	.away					;visitors use the other table
 	moveq	#2,d1
 	lea	.hl1(pc),a0					;a0 = row of .hl1 (7 words, indexed by the other team's line)
@@ -6307,7 +6307,7 @@ puckfaceoff2						;face off control logic and general setup for action a3 = the 
 	clr.w	(puckvy).l
 	clr.w	(puckvz).l
 	st.b	(puckc).l					;nobody carries it
-	movea.l	#(SortCords+(12*SCstruct)-M68K_RAM),a0	;reposition goal nets
+	movea.l	#$17A80,a0	;reposition goal nets (CD: the cartridge has #(SortCords+(12*SCstruct)-M68K_RAM))
 	clr.w	Xvel(a0)				;Xvel
 	clr.w	Yvel(a0)				;Yvel
 	clr.w	0(a0)					;Xpos
@@ -6318,7 +6318,7 @@ puckfaceoff2						;face off control logic and general setup for action a3 = the 
 	clr.w	Yvel(a0)
 	clr.w	0(a0)
 	move.w	#$FEF4,Ypos(a0)			;Ypos
-	movea.l	#(SortCords+((puckscnum+1)*SCstruct)-M68K_RAM),a0	;move to puck shadow SCnum
+	movea.l	#$17C00,a0	;move to puck shadow SCnum (CD: the cartridge has #(SortCords+((puckscnum+1)*SCstruct)-M68K_RAM))
 	move.w	#SPFpuck,frame(a0)
 	clr.w	SPA(a0)					;SPA
 	clr.w	attribute(a0)			;attribute
@@ -6339,7 +6339,7 @@ puckfaceoff2						;face off control logic and general setup for action a3 = the 
 	jsr	$3D668.l
 	jsr	(resetplstuff).l
 	move.l	a3,-(sp)				;keep the puck pointer
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 	moveq	#$B,d2					;loop over the 12 players
 .10									;loop over the 12 players: park them off ice, then set the faceoff spots
 	move.w	#$FF10,0(a3)				;-240, Xpos
@@ -6351,7 +6351,7 @@ puckfaceoff2						;face off control logic and general setup for action a3 = the 
 	moveq	#$16,d0					;#afaceoff - assignment faceoff
 	cmpi.w	#4,d1					;find the center (position 4)
 	bne.w	.11
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	btst.b	#pfteam,pflags(a3)		;#pfgoal - what goal to score on
 	beq.w	.clr
 	adda.w	#tmsize,a2
@@ -6526,8 +6526,8 @@ puckfaceoff2						;face off control logic and general setup for action a3 = the 
 	eori.w	#$800,foattr(a0)		;flip attribute bit $800 (two of the sprites) when gmdir is clear
 	eori.w	#$800,fosize+foattr(a0)
 .nfl								;draw the faceoff sprites
-	move.w	#$FFFF,(fodir1).l		;-1
-	move.w	#$FFFF,(fodir2).l		;-1
+	move.w	#$FFFF,$17EE6.l		;-1 (CD: the cartridge has (fodir1).w)
+	move.w	#$FFFF,$17EE8.l		;-1 (CD: the cartridge has (fodir2).w)
 	jsr	(LeadSong).l
 	bclr.b	#6,(sflags8).l
 	bne.w	.playqueuedsong
@@ -6635,7 +6635,7 @@ updatefaceoff						;a3 = puck. Drop animation frame from temp1; at 0 erases the 
 	move.w	#$7FF,d2
 	bra.w	eraser
 ;CD: no cartridge twin
-	movea.l	#Satt,a0
+	movea.l	#$BBD30,a0
 	move.w	(Sattsize).l,d0
 	move.w	(VSPRITES).l,d1
 	jsr	$3777C.l
@@ -6654,10 +6654,10 @@ Endfaceoff							;drop the puck: pick the faceoff winner and send the puck off
 	bclr.b	#pf2fight,pflags2(a3)
 	clr.w	(crowdnoisedelay).l
 	bset.b	#sf3fo,(sflags3).l		;flag the faceoff drop
-	move.w	(fodir1).l,d3			;figure out who won face off
+	move.w	$17EE6.l,d3			;figure out who won face off (CD: the cartridge has (fodir1).w)
 	move.w	#$800,d4				;d4 = y velocity added to the puck: +$800 ...
 	movea.l	#.ftab,a0
-	movea.l	#(fofdata2-M68K_RAM),a1	;a1 = the two face off sprite records
+	movea.l	#$17CF8,a1	;a1 = the two face off sprite records (CD: the cartridge has #(fofdata2-M68K_RAM))
 	moveq	#$10,d2
 	move.w	(a1),d1					;first record's word 0 (index into .ftab, 1-based)
 	sub.b	-$1(a0,d1.w),d2			;d2 = $10 - .ftab[first] ...
@@ -6672,7 +6672,7 @@ Endfaceoff							;drop the puck: pick the faceoff winner and send the puck off
 .p1won								;faceoff record chosen
 	btst.b	#3,foattr(a1)			;bit 3 of the winner's attribute word ($800 flips)
 	beq.w	.pos
-	move.w	(fodir2).l,d3			;visiting player won: use his pull direction ...
+	move.w	$17EE8.l,d3			;visiting player won: use his pull direction ... (CD: the cartridge has (fodir2).w)
 	neg.w	d4						;... and push the puck the other way (-$800)
 .pos								;d0 = the winner's pull direction (bit 3 = none: random)
 	move.w	d3,d0					;d0 = winner's pull direction; bit 3 set = no joystick
@@ -6771,7 +6771,7 @@ pucknorm							;assignment for puck most of the time. a3 = puck, d7 = elapse fra
 	clr.w	temp1(a3)				;temp1
 	move.w	#$78,temp2(a3)			;temp2
 .nna								;count down the timer
-	movea.l	#(puckcross-M68K_RAM),a1	;table for puck crossing lines
+	movea.l	#$17E36,a1	;table for puck crossing lines (CD: the cartridge has #(puckcross-M68K_RAM))
 	sub.w	d7,pcframes(a1)			;sub elapse frames from time til crossing
 	sub.w	d7,pcsize+pcframes(a1)
 	sub.w	d7,temp1(a3)			;temp1
@@ -6782,7 +6782,7 @@ pucknorm							;assignment for puck most of the time. a3 = puck, d7 = elapse fra
 	move.w	(puckc).l,d0			;is the puck carried?
 	bmi.w	.nothandled				;loose puck
 	asl.w	#scsize,d0				;#scsize
-	movea.l	#(SortCords-M68K_RAM),a2
+	movea.l	#$17480,a2	;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d0,a2					;a2 = the puck carrier
 	bsr.w	a2touchpuck
 	move.l	a2,-(sp)				;GetHot takes the structure address on the stack
@@ -6840,7 +6840,7 @@ ChkOffsides							;check for offsides penalty. a3 = puck. Flags the whole team
 	beq.w	X_3C000	;CD: the cartridge has rtss2
 	btst.b	#2,(BA_PS_flags).l
 	bne.w	X_3C000	;CD: the cartridge has rtss2
-	movea.l	#(tmstruct-M68K_RAM),a1
+	movea.l	#$1834C,a1	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	lea	tmsize(a1),a2				;team 2 (tmsize)
 	bsr.w	ClearOffsidesIfAllPlayers	;first drop the flag of any team with no one over the line
 	exg	a1,a2
@@ -6926,7 +6926,7 @@ a2offsides							;player a2 touched the puck: offsides penalty if his team is fl
 .0									;Y for his end
 	cmpi.w	#$68,d0
 	blt.w	X_3C000	;CD: the cartridge has rtss2
-	movea.l	#(tmstruct-M68K_RAM),a0	;a0 = a2's team struct
+	movea.l	#$1834C,a0	;a0 = a2's team struct (CD: the cartridge has #(tmstruct-M68K_RAM))
 	btst.b	#pfteam,pflags(a2)
 	beq.w	.1
 	adda.w	#tmsize,a0
@@ -6947,7 +6947,7 @@ a2touchpuck							;player a2 touches puck. Look for penalties/offsides/other jun
 	move.w	0(a2),(ltx).l			;move Xpos to last touch X
 	move.w	Ypos(a2),(lty).l		;move Ypos to last touch Y
 	move.w	SCnum(a2),(ltplayer).l	;move SCnum to last touch player
-	movea.l	#(tmstruct-M68K_RAM),a0	;move Home Shots into a0
+	movea.l	#$1834C,a0	;move Home Shots into a0 (CD: the cartridge has #(tmstruct-M68K_RAM))
 	btst.b	#pfteam,pflags(a2)		;check if home or away
 	beq.w	.t						;branch if home
 	lea	tmsize(a0),a0				;add to a0 if away
@@ -6987,7 +6987,7 @@ a2touchpuck							;player a2 touches puck. Look for penalties/offsides/other jun
 	move.b	(icingPlayer).l,d0		;move iflags+1 into d0
 	asl.w	#7,d0
 	move.l	a3,-(sp)				;push on stack
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d0,a3					;a3 now player struct
 	move.w	#PenIcing,d0
 	bsr.w	AddPenalty
@@ -7101,7 +7101,7 @@ findpc								;find puck crossing lines: calculate when puck will cross goalline
 									;all). Called from pucknorm fills puckcross (2 entries of x word, time
 									;word): top goal line first, then bottom
 	movem.l	d0-d4/a1-a2,-(sp)
-	movea.l	#(puckcross-M68K_RAM),a1
+	movea.l	#$17E36,a1	;CD: the cartridge has #(puckcross-M68K_RAM)
 	move.w	#Sideline,d1			;sideline - distance from center to side boards
 	move.w	#$108,d4				;goaline
 	bsr.w	.calc					;top goal line (y = d4)

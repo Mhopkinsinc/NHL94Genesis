@@ -814,7 +814,7 @@ FallDown							;player a2 falls down, player a3 is the hitting player. Skips a2 
 .cont2								;not toppled: count the check for the hitter's team stats
 	tst.w	position(a3)
 	beq.w	.chkpos
-	movea.l	#(tmstruct-M68K_RAM),a0	;Start of Home Team Stats Struct
+	movea.l	#$1834C,a0	;Start of Home Team Stats Struct (CD: the cartridge has #(tmstruct-M68K_RAM))
 	btst.b	#pfteam,pflags(a3)
 	beq.w	.AddChktoPlayerStats
 	adda.w	#tmsize,a0				;Change to Away Team Stats
@@ -1089,7 +1089,7 @@ setInjuryType						;determines if injury will be for period or game. a2 = player
 	move.w	Ypos(a2),(yc1).l		;move Ypos to scroll center
 	bset.b	#sfslock,(sflags).l		;set sfslock (scroll lock)
 	clr.w	d1
-	movea.l	#(tmstruct-M68K_RAM),a0	;move Home team Struct to a0
+	movea.l	#$1834C,a0	;move Home team Struct to a0 (CD: the cartridge has #(tmstruct-M68K_RAM))
 	btst.b	#pfteam,pflags(a2)		;check if player home or away
 	beq.w	.0
 	move.w	#$8000,d1				;move $8000 into d1
@@ -1154,7 +1154,7 @@ checkwallcoll						;d2/d3 = x/y to test, a3 = object, wcradiusx/wcradiusy = radi
 	neg.w	d4
 	cmp.w	d4,d2
 	bgt.w	.1
-	movea.l	#(SortCords+(13*SCstruct)-M68K_RAM),a2
+	movea.l	#$17B00,a2	;CD: the cartridge has #(SortCords+(13*SCstruct)-M68K_RAM)
 	bsr.w	checkgoal
 	bra.w	.2
 .0									;d3 > d5
@@ -1166,7 +1166,7 @@ checkwallcoll						;d2/d3 = x/y to test, a3 = object, wcradiusx/wcradiusy = radi
 	neg.w	d4
 	cmp.w	d4,d2
 	bgt.w	.1
-	movea.l	#(SortCords+(12*SCstruct)-M68K_RAM),a2
+	movea.l	#$17A80,a2	;CD: the cartridge has #(SortCords+(12*SCstruct)-M68K_RAM)
 	bsr.w	checkgoal
 	bra.w	.2
 .1									;d2 < d4 or d2 > d4
@@ -1246,7 +1246,7 @@ checkgoal							;look for coll with goal/net. a2 = goal struct, a3 = object, d2/
 	bmi.w	.nocon					;no puck carrier
 	st.b	(puckc).l
 	asl.w	#7,d0
-	movea.l	#(SortCords-M68K_RAM),a0
+	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
 	move.b	#8,nopuck(a0,d0.w)		;92 wrote a word
 	move.w	(pucky).l,d1
 	btst.b	#pfgoal,pflags(a0,d0.w)
@@ -1389,7 +1389,7 @@ Goal								;puck in goal. First: in a penalty shot or shootout (BA_PS_flags bit
 	bsr.w	sfx
 	jsr	(freezewindow).l
 	addi.w	#$1F4,(Crowdlevel).l	;add 500 (92 800)
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	lea	tmsize(a2),a1
 	tst.w	Ypos(a3)
 	bpl.w	.9
@@ -1434,7 +1434,7 @@ Goal								;puck in goal. First: in a penalty shot or shootout (BA_PS_flags bit
 	beq.w	.15
 	addi.w	#1,tmOneTimerGoals(a2)	;one-timer goal (sflags8 bit 7)
 .15									;home goal song
-	cmpa.l	#(tmstruct-M68K_RAM),a2	;home goal: ChooseSong
+	cmpa.l	#$1834C,a2	;home goal: ChooseSong (CD: the cartridge has #(tmstruct-M68K_RAM))
 	bne.w	.16
 	move.w	(HomeTeam).l,(HmTeam).l
 	move.w	#SngGoal,(SongIndex).l
@@ -1457,7 +1457,7 @@ Goal								;puck in goal. First: in a penalty shot or shootout (BA_PS_flags bit
 	sub.w	tmap(a1),d0
 	move.b	d0,(a0)+				;byte 2 = 2 + tmap(a2) - tmap(a1)
 	addi.w	#$1E,(CwdExciteLvl).l
-	cmpa.l	#(tmstruct-M68K_RAM),a2
+	cmpa.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	beq.w	.18
 	subi.w	#$14,(CwdExciteLvl).l	;less for an away goal
 	bset.b	#7,-1(a0)				;byte 2 bit 7 = away team scored
@@ -1714,7 +1714,7 @@ wallcollb							;Check for puck over wall. a3 = object, d0/d1 = cos/sin of the w
 	move.l	a3,-(sp)
 	move.w	(ltplayer).l,d0
 	asl.w	#scsize,d0
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d0,a3
 	moveq	#PenOOP,d0
 	bsr.w	AddPenalty2
@@ -1875,7 +1875,7 @@ checkpuckcoll						;look for puck coll with players. a3 = puck. Clears Yvel past
 	cmpi.w	#$B,d4					;compare 11 to d4
 	bgt.w	.exit
 	asl.w	#scsize,d4
-	movea.l	#(SortCords-M68K_RAM),a2
+	movea.l	#$17480,a2	;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d4,a2					;a2 now has address of player struct
 	btst.b	#2,(BA_PS_flags).l
 	beq.w	.ccx2					;branch if not set
@@ -2117,7 +2117,7 @@ puckstick							;puck collides with stick. a2 = player who collided, a3 = puck, 
 	move.w	(puckc).l,d1			;move puckc into d1
 	bmi.w	.nosteal				;branch if no puck carrier
 	asl.w	#7,d1
-	movea.l	#(SortCords-M68K_RAM),a0
+	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d1,a0					;a0 = Struct of puck carrier
 	move.b	pflags(a0),d1
 	move.b	pflags(a2),d2
@@ -2236,7 +2236,7 @@ puckglue							;part of puckstick that puckgoalie also branches to. Player a2 ta
 	move.w	#SFXpuckget,-(sp)
 	move.w	SCnum(a2),d0			;move SCnum into d0
 	move.w	d0,(puckc).l			;move d0 into puckc
-	movea.l	#(tmstruct-M68K_RAM),a0	;Move Home Stats struct into a0
+	movea.l	#$1834C,a0	;Move Home Stats struct into a0 (CD: the cartridge has #(tmstruct-M68K_RAM))
 	lea	tmsize(a0),a1
 	btst.b	#pfteam,pflags(a2)		;check if player is home or away
 	bne.w	.tm
@@ -2250,7 +2250,7 @@ puckglue							;part of puckstick that puckgoalie also branches to. Player a2 ta
 	addi.w	#1,tmfowon(a1)			;add 1 to faceoff won
 	addi.w	#$C8,(Crowdlevel).l
 	move.w	#$C,(sp)				;move C to stack
-	cmpa.l	#(tmstruct-M68K_RAM),a1	;compare if a1 is home
+	cmpa.l	#$1834C,a1	;compare if a1 is home (CD: the cartridge has #(tmstruct-M68K_RAM))
 	bne.w	.snd
 	addi.w	#$A,(CwdExciteLvl).l
 	move.w	#$B,(sp)				;Move B into stack
@@ -2458,7 +2458,7 @@ puckgoalie							;puck hits goalie a2. a3 = puck, d0/d1 = goalie - puck x/y. The
 	bmi.w	.chkanim				;branch if no puckc
 	st.b	(puckc).l
 	asl.w	#7,d2
-	movea.l	#(SortCords-M68K_RAM),a0
+	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d2,a0
 	move.b	#$14,nopuck(a0)			;carrier nopuck = 20
 	move.w	SCnum(a0),(lastplayer).l
@@ -2557,7 +2557,7 @@ makepde								;pass d0 as value to be scaled by player a0's energy level (full 
 	rts
 getpde								;get player a3's energy level into d0. Return a2 = his team struct, d1 =
 									;pnum*2
-	movea.l	#(tmstruct-M68K_RAM),a2
+	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
 	btst.b	#pfteam,pflags(a3)		;#pfteam - home or away
 	beq.w	.0
 	adda.w	#tmsize,a2

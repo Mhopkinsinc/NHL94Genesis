@@ -647,7 +647,7 @@ WaitDMA						;CD: its first lines have no twin; the rest of it starts here
 ; d0 = color to fade to
 setVram								;initialize all necesary video parameters based on my variables. d0 =
 									;color to fade to. Falls into setVram_0
-	movea.l	#(palfadenew-M68K_RAM),a0
+	movea.l	#$BBCB0,a0	;CD: the cartridge has #(palfadenew-M68K_RAM)
 	moveq	#$3F,d1
 .0									;fill each target color
 	move.w	d0,(a0)+				;fill the 64 target colors with d0
@@ -1345,7 +1345,7 @@ dobitmap							;transfer palette data/map data/tiles data to vram. a0 = palette,
 	bset.b	#dfng,(disflags).l
 	movem.l	d0-d3/d5-d6/a0-a3,-(sp)	;2(sp) start x, $A(sp) width x, $E(sp) width y (low words of d0, d2, d3)
 	move.w	d1,d6
-	movea.l	#(palfadenew-M68K_RAM),a3	;a3 = target palette, a0 = palette data
+	movea.l	#$BBCB0,a3	;a3 = target palette, a0 = palette data (CD: the cartridge has #(palfadenew-M68K_RAM))
 	bra.w	.00
 .01									;loop
 	move.b	(a0,d0.w),(a3,d0.w)	;copy the color

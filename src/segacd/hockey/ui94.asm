@@ -347,7 +347,7 @@ DrawPlayoffSprite					;The StanleyCupSprite sprite at playoffspritex / playoffsp
 .0									;end the link chain at the last sprite
 	clr.b	satLink-satLen(a6)
 	move.l	a6,d0					;end of the list
-	subi.l	#Satt,d0
+	subi.l	#$BBD30,d0	;CD: the cartridge has #Satt
 	lsr.w	#1,d0
 	move.w	d0,(Sattsize).l
 	rts

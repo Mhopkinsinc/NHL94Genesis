@@ -76,7 +76,7 @@ AddPenalty2							;forced penalties like face off and game over. d0 = penalty nu
 .song								;sound effect chosen for the penalized team's side
 	bsr.w	song
 .nonoise							;big penalties only get the crowd sound: log it now
-	movea.l	#(PenBuf-M68K_RAM),a1
+	movea.l	#$18022,a1	;CD: the cartridge has #(PenBuf-M68K_RAM)
 	moveq	#$1F,d1					;MaxPen-1
 .0									;look for a free PenBuf slot
 	tst.w	(a1)+					;find free slot
@@ -148,7 +148,7 @@ chkprogress							;control progress of ref and game control thru penalty events.
 	sub.w	d7,(PenCntDwn).l
 	bpl.w	rtss2
 	bclr.b	#gmpendel,(gmode).l		;gmpendel
-	movea.l	#(PenBuf-M68K_RAM),a0
+	movea.l	#$18022,a0	;CD: the cartridge has #(PenBuf-M68K_RAM)
 .find								;loop
 	tst.w	(a0)+					;any penalty with minutes
 	beq.w	rtss2
@@ -172,7 +172,7 @@ chkprogress							;control progress of ref and game control thru penalty events.
 	bsr.w	NewTicker				;ticker score of another game, if the clock allows
 	bsr.w	NewTicker3
 	st.b	(puckc).l					;puck carrier = none
-	movea.l	#(puckx-M68K_RAM),a3	;a3 = puck object
+	movea.l	#$17B80,a3	;a3 = puck object (CD: the cartridge has #(puckx-M68K_RAM))
 	moveq	#$1A,d0					;puckunflip
 	bsr.w	assinsert				;puck does nothing during the sequence
 	move.w	#$1C20,temp1(a3)		;temp1 = 120*60
@@ -278,7 +278,7 @@ InProgress							;ref in progress-- update graphics and stats and penalty inform
 	bpl.w	rtss2
 	movem.l	d0/a0-a3,-(sp)
 .top								;loop
-	movea.l	#(PenBuf-M68K_RAM),a0	;penalty buffer
+	movea.l	#$18022,a0	;penalty buffer (CD: the cartridge has #(PenBuf-M68K_RAM))
 	tst.w	(a0)+
 	beq.w	.4
 .0									;loop
@@ -292,7 +292,7 @@ InProgress							;ref in progress-- update graphics and stats and penalty inform
 	clr.w	d1
 	move.b	pbscnum(a0),d1
 	asl.w	#scsize,d1				;scsize
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d1,a3					;a3 = the player
 	tst.w	position(a3)			;position
 	movea.l	(sp)+,a3
@@ -326,10 +326,10 @@ InProgress							;ref in progress-- update graphics and stats and penalty inform
 	clr.w	d1
 	move.b	pbscnum(a0),d1
 	asl.w	#scsize,d1				;scsize
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d1,a3					;a3 = the guilty player
 	clr.w	d0						;d0 = player id (bit 15 = visitors)
-	movea.l	#(tmstruct-M68K_RAM),a2	;a2 = his team, a1 = the other team
+	movea.l	#$1834C,a2	;a2 = his team, a1 = the other team (CD: the cartridge has #(tmstruct-M68K_RAM))
 	lea	tmsize(a2),a1				;tmsize: visitors
 	btst.b	#pfteam,pflags(a3)		;pfteam
 	beq.w	.2
@@ -393,12 +393,12 @@ InProgress							;ref in progress-- update graphics and stats and penalty inform
 	bsr.w	SetPA
 	bra.w	.ex
 .4									;all entries done: coincidental check for both teams
-	movea.l	#(tmstruct-M68K_RAM),a2	;home team struct
+	movea.l	#$1834C,a2	;home team struct (CD: the cartridge has #(tmstruct-M68K_RAM))
 	bsr.w	InProgress_ap
 	adda.w	#tmsize,a2				;tmsize
 	bsr.w	InProgress_ap
 	bclr.b	#gmpen,(gmode).l		;gmpen
-	movea.l	#(puckx-M68K_RAM),a3	;a3 = puck object
+	movea.l	#$17B80,a3	;a3 = puck object (CD: the cartridge has #(puckx-M68K_RAM))
 	bclr.b	#6,(BA_PS_flags).l
 	move.w	#$1B,d0					;puckfaceoff
 	btst.b	#3,(BA_PS_flags).l
@@ -437,7 +437,7 @@ checkfornewpen						;look for new penalty (entered thru addpenalty(2)). Stops pl
 	btst.b	#sfhor,(sflags).l		;sfhor
 	bne.w	rtss2
 .0									;unreferenced entry
-	movea.l	#(PenBuf-M68K_RAM),a0
+	movea.l	#$18022,a0	;CD: the cartridge has #(PenBuf-M68K_RAM)
 .next								;loop
 	tst.w	(a0)+
 	beq.w	rtss2
@@ -500,7 +500,7 @@ Stop4Pen							;a0 = penaltylist penalty +2. Stop the clock, set the face off sp
 	cmpi.b	#$C,-2(a0)				;icing (92 used 8)
 	bne.w	.noticing
 	move.l	a3,-(sp)				;icing: the sign of y depends on the pfgoal flag of the icing player
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 	move.b	-1(a0),d1				;step back: player byte of the entry just read
 	ext.w	d1
 	asl.w	#scsize,d1				;scsize
@@ -552,7 +552,7 @@ Stop4Pen							;a0 = penaltylist penalty +2. Stop the clock, set the face off sp
 limitfo								;limit face off to 5-20 feet from walls of rink.
 									;Checks every player in PenBuf
 	movem.l	d0-d1/a0-a1,-(sp)
-	movea.l	#(PenBuf-M68K_RAM),a0
+	movea.l	#$18022,a0	;CD: the cartridge has #(PenBuf-M68K_RAM)
 .loop								;loop
 	bsr.w	.lf						;adjust for this entry's player
 ;CD: no cartridge twin
@@ -565,7 +565,7 @@ limitfo								;limit face off to 5-20 feet from walls of rink.
 	move.b	pbscnum(a0),d0
 	andi.w	#$7F,d0
 	asl.w	#scsize,d0				;scsize
-	movea.l	#(SortCords-M68K_RAM),a1
+	movea.l	#$17480,a1	;CD: the cartridge has #(SortCords-M68K_RAM)
 	move.w	#$58,d1					;limit +-88 on foy, by the player's pfgoal side
 	btst.b	#pfgoal,pflags(a1,d0.w)	;pfgoal
 	bne.w	.0
@@ -809,7 +809,7 @@ PenGoalStuff						;do this stuff after a goal. a1 = scored on team, a2 = scoring
 	rts
 ClearPenaltyBuffer					;Clear PenBuf. Called from clockcont and PenGoalStuff
 	moveq	#$1F,d0					;MaxPen-1
-	movea.l	#(PenBuf-M68K_RAM),a0
+	movea.l	#$18022,a0	;CD: the cartridge has #(PenBuf-M68K_RAM)
 .loop								;clear each word
 	clr.w	(a0)+
 	dbf	d0,.loop
@@ -826,7 +826,7 @@ updatepentime						;update the time remaining on all penalized players, once a s
 	bset.b	#sf3icetime,(sflags3).l	;one second tick
 	bsr.w	chkatop					;attack time stat
 	jsr	(updatePPTeamTime).l
-	movea.l	#(tmstruct-M68K_RAM),a2	;team 1, then fall through for team 2
+	movea.l	#$1834C,a2	;team 1, then fall through for team 2 (CD: the cartridge has #(tmstruct-M68K_RAM))
 	bsr.w	updatepentime_ut
 	adda.w	#tmsize,a2				;tmsize
 updatepentime_ut					;a2 = team. Walks the penalty box list (tmboxlist): the first two players
@@ -834,7 +834,7 @@ updatepentime_ut					;a2 = team. Walks the penalty box list (tmboxlist): the fir
 									;Beeps when the first served time gets to 5 or less and releases the
 									;player at 0. Coincidental penalties count down on their own
 	lea	tmboxlist(a2),a0			;penalty box list
-	movea.l	#(mesarea-M68K_RAM),a1	;serving players
+	movea.l	#$17EF2,a1	;serving players (CD: the cartridge has #(mesarea-M68K_RAM))
 	moveq	#2,d1					;two can serve at once
 	moveq	#2,d3
 .next								;loop
@@ -911,7 +911,7 @@ chkatop								;attack time of possession stat update. Called once a second from
 	beq.w	.0
 	eori.w	#tmsize,d1				;gmdir set: swap the teams
 .0									;credited team chosen
-	movea.l	#(tmstruct-M68K_RAM),a2	;a2 = team 1; d1 = offset of the credited team
+	movea.l	#$1834C,a2	;a2 = team 1; d1 = offset of the credited team (CD: the cartridge has #(tmstruct-M68K_RAM))
 	addi.w	#1,tmATOP(a2,d1.w)		;attack time
 	rts
 releasepl							;player's penalty time is up so let him out (if appropriate). a2 = team,

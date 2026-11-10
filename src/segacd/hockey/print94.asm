@@ -167,10 +167,10 @@ printsmall							;Print string macro a1 at printx/y/m with printa; uses the setu
 	move.w	(disflags).l,-(sp)
 	bset.b	#dfng,(disflags).l
 	movem.l	d0-d3/a0/a2-a3,-(sp)
-	movea.l	#(smallfontchars-M68K_RAM),a3	;char set bases, picked by printfontset
+	movea.l	#$18D42,a3	;char set bases, picked by printfontset (CD: the cartridge has #(smallfontchars-M68K_RAM))
 	btst.b	#3,(sflags6).l			;setup font?
 	beq.w	.start
-	movea.l	#(setupfontchars-M68K_RAM),a3	;setup font char base
+	movea.l	#$17EA2,a3	;setup font char base (CD: the cartridge has #(setupfontchars-M68K_RAM))
 .start								;font chosen
 	bsr.w	xyVmMap
 	move.w	(printa).l,d2			;attribute
@@ -422,7 +422,7 @@ PeriodLabelTable					;String list for FormatAndPrintTime: " 1", " 2", " 3", "OT"
 ; convert d0 into string format of min:sec
 PushTime							;convert d0 into string format of minutes:seconds. Return a1 = string.
 									;pads the minutes to 2 places with a space
-	movea.l	#(mesarea+30-M68K_RAM),a1	;end of the buffer
+	movea.l	#$17F10,a1	;end of the buffer (CD: the cartridge has #(mesarea+30-M68K_RAM))
 	move.l	d0,-(sp)
 	move.l	a1,-(sp)
 	ext.l	d0

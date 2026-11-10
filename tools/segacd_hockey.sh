@@ -28,7 +28,9 @@ port() {  # name[:part] start end [options...]   name:2 writes src/segacd/hockey
   local n=${1%%:*} part= s=$2 e=$3
   [ "$n" != "$1" ] && part="_${1##*:}"
   shift 3
-  python tools/segacd_port.py --lst "$LST" --file "$n.asm" --disc-start "$s" --disc-end "$e" \
+  local src=(--file "$n.asm")
+  [ "${n#cd}" != "$n" ] && src=(--cart-start 0 --cart-end 0)   # cd*: CD-only code, no cartridge file
+  python tools/segacd_port.py --lst "$LST" "${src[@]}" --disc-start "$s" --disc-end "$e" \
     --out "src/segacd/hockey/$n$part.asm" --register "${KNOWN[@]}" "$@" > "output/port_$n$part.log" 2>&1
   grep -q "^MATCH" "output/port_$n$part.log" || fail=1
   grep -E "^(MATCH|MISMATCH)|^src" "output/port_$n$part.log" | tr '\n' ' '; echo
@@ -36,6 +38,9 @@ port() {  # name[:part] start end [options...]   name:2 writes src/segacd/hockey
 }
 mkdir -p output
 
+port frames94 0x5432 0x6FC8 --note 'The sprite animation tables, the cartridge data unchanged (the cartridge has them at $5B1C).'
+port sram94 0x6FC8 0x7534 --also hockey94.asm --note 'CD start-up and save data. The file opens with new code (the BIOS vector at $6038, a handshake with\nthe main CPU), then Begin, the game start that the jmp at file $0 enters (stack at $C458, clears\n$1745C-$1AD99), then ValidateSRAM / ClearSRAM reworked for the backup RAM through the BIOS ($6044).'
+port cards94:2 0x7534 0x76A8 --note 'Part 2 of cards94: the save RAM readers (ReadPlayerRecord ... NameLogIO, PlayerRecordOffsets).\nOn the disc they sit here, next to sram94, not in cards94 (part 1 at $9B5E). The cartridge code.'
 port onetimer94 0x76A8 0x7DDC --note 'Same code as the cartridge. The disc team struct is one word longer: tmOneTimers and tmsize\nare two bytes further on (hockey.inc).'
 port fourway94 0x7DDC 0x7E38 --note 'CD: Detect4WayPlay and the ReadJoySwapPad routines are gone (the sub CPU has no pad ports);\none rts, called by nothing, is left where they were. Set4WayPlayer is the cartridge code.'
 port crowd94 0x7E38 0x83CC --note 'Same code as the cartridge, with one change in checkcornercoll: the corner-circle test compares\nthe squared distance with $42 where the cartridge has $1000 (the radius $40 squared).'
@@ -73,5 +78,8 @@ port setup94:2 0x24C0A 0x24C12 --note 'Part 2 of setup94: the 8 bytes between sc
 port setup94:3 0x24DE8 0x2654C --note 'Part 3 of setup94, after src/segacd/scoutload.asm and cdstart.asm ($24C12-$24DE7): menus and\nthe playoff data. $2654C-$265CB after it is src/segacd/crowdtable.asm (the start of tables94).'
 port tables94 0x265CC 0x278A0 --note 'tables94 after the crowd frame table (src/segacd/crowdtable.asm): asstab, penalties, the\nplayoff tree and the menu lists, the cartridge tables with disc addresses.'
 port graphics94 0x278A0 0x28A7E --note 'Part 1 of graphics94: the player picture palette and the four no-picture cards cards94 draws,\nread from the disc file. The rest of the file (from $28A7E: arena sprites, the graphics pointer\ntable at $2CD00, code at $2CDAE) is not done yet.'
+# Written by hand, not by this script (data, and a table of zeros): graphics94_2.asm ($28A7E, the arena
+# graphics read from the disc file) and cdgfxptrs.asm ($2CCFC, the graphics pointer table).
+port cdpads 0x2CDAC 0x2D20A --label ReadPads=0x47DB2 --note 'CD-only: the pad reader. ReadPads fills PadRaw1-PadRaw4 (the bytes ReadJoy1 ... ReadJoy4 read) by\nasking the main CPU for each pad: commands $35-$38 in $FF8026 with the port in $FF8028; all four pads\nwhen FourWayPlay. sram94 calls it. The cartridge reads its pads itself. Three rts stubs come first.'
 
 exit $fail

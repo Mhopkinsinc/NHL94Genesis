@@ -129,7 +129,7 @@ ReplayMode							;Instant replay play-back control and display code.
 	move.w	d0,d5					;d5 = d-pad direction
 	andi.w	#7,d5					;direction
 	eori.w	#4,d5					;opposite
-	movea.l	#(SortCords-M68K_RAM),a1
+	movea.l	#$17480,a1	;CD: the cartridge has #(SortCords-M68K_RAM)
 	st.b	d3							;no object to skip
 	bclr.b	#sf3track,(sflags3).l
 	beq.w	.find					;was not tracking
@@ -176,7 +176,7 @@ ReplayMode							;Instant replay play-back control and display code.
 	beq.w	.scrl					;nothing found: scroll by hand
 	move.w	camtrack(a5),d0
 	asl.w	#7,d0					;* SCstruct
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d0,a3
 	moveq	#4,d4					;4 pads
 	bsr.w	setpads					;set the pads
@@ -517,7 +517,7 @@ RestoreReplayFrame					;a4 = current replay frame address to convert into normal
 	movea.l	#revframetbl,a6			;reverse frame table
 	movea.l	a4,a0					;frame data
 	moveq	#$F,d1					;16 objects to convert (12 players/2 nets/puck/puck shadow)
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 .top								;each of the 16 objects
 	move.w	2(a0),d2				;loop over the 16 objects: x from word 1
 	andi.w	#$3FF,d2
@@ -596,7 +596,7 @@ RestoreReplayFrame					;a4 = current replay frame address to convert into normal
 	adda.l	#$80,a3
 	dbf	d1,.top						;loop to next object
 	moveq	#5,d2					;6 pairs of players
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 .loop								;each pair of players
 	move.b	(a0)+,rostnum(a3)		;loop over the 6 pairs of players
 	move.b	(a0),d0					;position byte
@@ -657,7 +657,7 @@ RestoreReplayFrame					;a4 = current replay frame address to convert into normal
 	clr.w	camidle(a5)				;camera moving
 	move.w	camtrack(a5),d0
 	asl.w	#7,d0					;* SCstruct
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d0,a3
 .cam								;camera follows a3
 	bsr.w	UpdateCameraPos			;camera position
@@ -718,7 +718,7 @@ updatereplay						;called every frame to save replay events, d7 = elapsed frames
 .rec								;record into the next slot
 	movea.l	(recbpr).l,a0			;a0 = the record slot
 	moveq	#$F,d2					;16 objects
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 .top								;pack each of the 16 objects
 	clr.l	(a0)					;loop over the 16 objects: pack x, y, frame, flip bits
 	move.w	0(a3),d1					;Xpos
@@ -741,7 +741,7 @@ updatereplay						;called every frame to save replay events, d7 = elapsed frames
 	adda.l	#$80,a3
 	dbf	d2,.top						;loop
 	moveq	#5,d2					;6 pairs of players
-	movea.l	#(SortCords-M68K_RAM),a3
+	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
 .loop								;each pair of players
 	move.b	rostnum(a3),(a0)+		;loop over the 6 pairs of players
 	move.w	position(a3),d0

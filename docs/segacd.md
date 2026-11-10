@@ -79,7 +79,7 @@ The team block at the front of `HOCKEY.BIN` matches the cartridge from Montreal'
 
 `npm run build:segacd` (`node tools/build.js --segacd`) assembles the fragments below into `output/segacd/` and compares them to `cdbin/` with `tools/verifySegacd.js`. Each fragment's assembler options are in `tools/segacd.json`; a new fragment is one line there plus its compare in `verifySegacd.js`. The cartridge ROM is not involved. The Sega CD assemble uses `/o oz-` so a written `$0(an)` stays a 16-bit displacement. The cartridge build still uses `/o oz+`.
 
-Verified bytes are 156,184 of the 410,162 bytes in the four code files (38.1%; `tools/segacd_check.sh` prints the current numbers). Before the HOCKEY.BIN segments they were 22,690 (5.5%). `MAIN.BIN` is contiguous from the first byte through `$FF34B7` (13,496 of 60,416) plus the hardware readers and the Z80 loader (498 bytes more, 13,994 total, 23.2%). `STARTER.BIN` is 3,280 bytes. `HOCKEY.BIN` is 136,150 bytes (73.7%), most of it the 94G twins in `src/segacd/hockey/`; 7,204 of those bytes are assets (palettes, pictures) read from the disc file with `incbin`, the rest is disassembled. `PLAYER.BIN` is 2,760 bytes. `GRAPH2.BIN` and `GTABLE.BIN` are still untouched. CD audio is `docs/segacd_audio.md`. `song` and `sfx` are `docs/segacd_song.md`. The scouting-report script is `docs/segacd_announce.md`. Career stats and photos are `docs/segacd_stats.md`. Crowd frames are `docs/segacd_crowd.md`. The film player, Z80 loader, and hardware readers are `docs/segacd_film.md`.
+Verified bytes are 183,322 of the 410,162 bytes in the four code files (44.7%; `tools/segacd_check.sh` prints the current numbers). Before the HOCKEY.BIN segments they were 22,690 (5.5%). `MAIN.BIN` is contiguous from the first byte through `$FF34B7` (13,496 of 60,416) plus the hardware readers and the Z80 loader (498 bytes more, 13,994 total, 23.2%). `STARTER.BIN` is 3,280 bytes. `HOCKEY.BIN` is 163,288 bytes (88.3%): everything from `$5432` to the end of the file, most of it the 94G twins in `src/segacd/hockey/`. 24,226 of those bytes are graphics (palettes, pictures, arena animations) read from the disc file with `incbin`; the rest is disassembled. The header and the team data (`$0`-`$5431`) are left. `PLAYER.BIN` is 2,760 bytes. `GRAPH2.BIN` and `GTABLE.BIN` are still untouched. CD audio is `docs/segacd_audio.md`. `song` and `sfx` are `docs/segacd_song.md`. The scouting-report script is `docs/segacd_announce.md`. Career stats and photos are `docs/segacd_stats.md`. Crowd frames are `docs/segacd_crowd.md`. The film player, Z80 loader, and hardware readers are `docs/segacd_film.md`.
 
 | Source | Compared to | Bytes |
 | --- | --- | --- |
@@ -124,6 +124,9 @@ Verified bytes are 156,184 of the 410,162 bytes in the four code files (38.1%; `
 | `src/segacd/filmclose.asm` | `cdbin/STARTER.BIN` `$473A` | `FilmClose` (66) |
 | `src/segacd/z80load.asm` | `cdbin/MAIN.BIN` `$76C8` | Z80 loader (240) |
 | `src/segacd/hwread.asm` | `cdbin/MAIN.BIN` `$3B3C` | VDP, joypad, and HV readers (258) |
+| `src/segacd/hockey/frames94.asm` | `cdbin/HOCKEY.BIN` `$5432` | `frames94.asm`: sprite animation tables, unchanged (7,062) |
+| `src/segacd/hockey/sram94.asm` | `cdbin/HOCKEY.BIN` `$6FC8` | `sram94.asm`: CD start-up, `Begin` (the game start), backup RAM (1,388) |
+| `src/segacd/hockey/cards94_2.asm` | `cdbin/HOCKEY.BIN` `$7534` | `cards94.asm` part 2: the save RAM readers, moved here (372) |
 | `src/segacd/hockey/onetimer94.asm` | `cdbin/HOCKEY.BIN` `$76A8` | `onetimer94.asm`: the one-timer (1,844) |
 | `src/segacd/hockey/fourway94.asm` | `cdbin/HOCKEY.BIN` `$7DDC` | `fourway94.asm`: only `Set4WayPlayer` is left (92) |
 | `src/segacd/hockey/crowd94.asm` | `cdbin/HOCKEY.BIN` `$7E38` | `crowd94.asm`: crowd records, hot and cold players, corner collisions (1,428) |
@@ -161,6 +164,9 @@ Verified bytes are 156,184 of the 410,162 bytes in the four code files (38.1%; `
 | `src/segacd/hockey/setup94_3.asm` | `cdbin/HOCKEY.BIN` `$24DE8` | `setup94.asm` part 3, after `cdstart.asm`: menus, playoff data (5,988) |
 | `src/segacd/hockey/tables94.asm` | `cdbin/HOCKEY.BIN` `$265CC` | `tables94.asm` after `crowdtable.asm`: asstab, penalties, playoff tree, menu lists (4,820) |
 | `src/segacd/hockey/graphics94.asm` | `cdbin/HOCKEY.BIN` `$278A0` | `graphics94.asm` part 1: picture palette and no-picture cards, read from the disc (4,574) |
+| `src/segacd/hockey/graphics94_2.asm` | `cdbin/HOCKEY.BIN` `$28A7E` | `graphics94.asm` part 2: arena animation graphics and more, read from the disc; by hand (17,022) |
+| `src/segacd/hockey/cdgfxptrs.asm` | `cdbin/HOCKEY.BIN` `$2CCFC` | CD-only: the graphics pointer table (zeros, filled at run time); by hand (176) |
+| `src/segacd/hockey/cdpads.asm` | `cdbin/HOCKEY.BIN` `$2CDAC` | CD-only: `ReadPads`, the pads through the main CPU (1,118) |
 
 `maincd.asm` is the main CPU command loop: read `$A12020` when sub flag bit 6 is set, dispatch through the long table at `$FF01BE`, and put the VBlank vector at `$FD08` back when the command finishes. Past the handshake it clears the eight command words, waits on memory-mode bit 2, and hands word RAM back and forth (DMNA / RET in `$A12003`). Two commands add `$180000` to a sub CPU pointer so the main CPU sees the same word RAM (`$080000` there, `$200000` here).
 
