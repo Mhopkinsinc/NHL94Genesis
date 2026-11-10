@@ -5,6 +5,7 @@
 ;	CD: Detect4WayPlay and the ReadJoySwapPad routines are gone (the sub CPU has no pad ports);
 ;	one rts, called by nothing, is left where they were. Set4WayPlayer is the cartridge code.
 
+	include	macros\genesis.mac
 	include	segacd\hockey\hockey.inc
 
 	org	$22DDC

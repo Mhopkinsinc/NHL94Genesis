@@ -2,7 +2,7 @@
 
 The disc is the cartridge game, linked again for the two Sega CD 68000s, with a new shell from the official Sega CD SDK around it. It is not a source-level rewrite, and it is not the cartridge ROM with a CD boot strapped on.
 
-The six disc files used here live in `cdbin/` locally (`MAIN.BIN`, `STARTER.BIN`, `HOCKEY.BIN`, `PLAYER.BIN`, `GRAPH2.BIN`, `GTABLE.BIN`). They are not in the repo and nothing in the build makes them: copy them from the data track (ISO 9660 file system) of your own NHL '94 Sega CD disc into `cdbin/` (gitignored). Without them, `npm run build:segacd` still assembles the fragments, then stops at the verify step and names each missing file.
+The six disc files used here live in `cdbin/` locally (`MAIN.BIN`, `STARTER.BIN`, `HOCKEY.BIN`, `PLAYER.BIN`, `GRAPH2.BIN`, `GTABLE.BIN`). They are not in the repo and nothing in the build makes them: copy them from the data track (ISO 9660 file system) of your own NHL '94 Sega CD disc into `cdbin/` (gitignored). Without them, `npm run build:segacd` stops before assembling and names each missing file (the HOCKEY.BIN fragments read the licensed team nicknames from `cdbin/HOCKEY.BIN` with `incbin`, the way the cartridge build reads them from the ROM).
 
 ## What each file is
 
@@ -126,6 +126,8 @@ Verified bytes are 22,690 of the 410,162 bytes in the four code files (5.5%). `M
 | `src/segacd/hwread.asm` | `cdbin/MAIN.BIN` `$3B3C` | VDP, joypad, and HV readers (258) |
 | `src/segacd/hockey/onetimer94.asm` | `cdbin/HOCKEY.BIN` `$76A8` | `onetimer94.asm`: the one-timer (1,844) |
 | `src/segacd/hockey/fourway94.asm` | `cdbin/HOCKEY.BIN` `$7DDC` | `fourway94.asm`: only `Set4WayPlayer` is left (92) |
+| `src/segacd/hockey/crowd94.asm` | `cdbin/HOCKEY.BIN` `$7E38` | `crowd94.asm`: crowd records, hot and cold players, corner collisions (1,428) |
+| `src/segacd/hockey/optsetup94.asm` | `cdbin/HOCKEY.BIN` `$83CC` | `optsetup94.asm`: game setup and options (6,034) |
 
 `maincd.asm` is the main CPU command loop: read `$A12020` when sub flag bit 6 is set, dispatch through the long table at `$FF01BE`, and put the VBlank vector at `$FD08` back when the command finishes. Past the handshake it clears the eight command words, waits on memory-mode bit 2, and hands word RAM back and forth (DMNA / RET in `$A12003`). Two commands add `$180000` to a sub CPU pointer so the main CPU sees the same word RAM (`$080000` there, `$200000` here).
 
@@ -159,10 +161,12 @@ HOCKEY.BIN runs at `$1B000` (`docs/segacd_memory_map.md`) and is linked in the c
 
 The disc assembler did not optimise: an unsized branch is `.w`, `add`/`sub` of a small immediate is `addi`/`subi` (never `addq`/`subq`), `cmp.l #n,dn` is `cmpi.l` (the cartridge ROM has `cmp.l`, one of its fixopcodes patches), a zero displacement stays `0(an)`. Absolute addresses are long because the variables and the code are above `$7FFF` on the sub CPU.
 
-`tools/segacd_port.py` does the transcription. It walks the cartridge build listing (`output/obj/nhl94 .lst` from `npm run build:retail`; the Sega CD build empties `output/obj/`, so keep a copy) and the disc bytes side by side. A disc instruction that is the cartridge instruction with relocated operands is written as the cartridge source line, with the disc encoding and the cartridge's labels, symbols and comments. Byte-equal data is copied (String macros and all). Disc code with no cartridge twin is written under `;CD:`. A name the fragment uses but does not define is solved from the disc operand: RAM names and struct offsets go to `src/segacd/hockey/hockey.inc` (shared by the HOCKEY.BIN fragments), routines outside the fragment become equates at its top. The tool assembles the result and checks it against the disc; an instruction SNASM would encode differently becomes `dc.w` with a comment (none so far). `--register` adds the fragment to `tools/segacd.json`, `tools/verifySegacd.js` and `docs/segacd-handoff/name_map.csv`.
+`tools/segacd_port.py` does the transcription. It walks the cartridge build listing (`output/obj/nhl94 .lst` from `npm run build:retail`; the Sega CD build empties `output/obj/`, so keep a copy) and the disc bytes side by side. A disc instruction that is the cartridge instruction with relocated operands is written as the cartridge source line, with the disc encoding and the cartridge's labels, symbols and comments. Byte-equal data is copied (String macros and all). Disc code with no cartridge twin is written under `;CD:`. A name the fragment uses but does not define is solved from the disc operand: RAM names and struct offsets go to `src/segacd/hockey/hockey.inc` (shared by the HOCKEY.BIN fragments), routines outside the fragment become equates at its top. The tool assembles the result and checks it against the disc; an instruction SNASM would encode differently becomes `dc.w` with a comment (none so far). `--register` adds the fragment to `tools/segacd.json`, `tools/verifySegacd.js` and `docs/segacd-handoff/name_map.csv`. `tools/segacd_hockey.sh` runs it for every HOCKEY.BIN segment in disc order with its range, the names checked by hand (`--name seed=0x18C18`) and the header note, so the fragments and `hockey.inc` can be written again from scratch.
 
 ```
 python tools/segacd_port.py --file onetimer94.asm --disc-start 0x76A8 --disc-end 0x7DDC --out src/segacd/hockey/onetimer94.asm --register
 ```
 
-`fourway94` is the first file the CD cut: `Detect4WayPlay` and the `ReadJoySwapPad` routines are gone, and one `rts` that nothing calls is left in their place.
+Text the cartridge build takes from the ROM because it is licensed (the New York team nicknames in `optsetup94`) is `incbin ..\cdbin\HOCKEY.BIN,offset,length` here, read from your own disc file.
+
+What the CD changed so far: graphics are no longer ROM labels (each `movea.l #map` became a load from a pointer table at `$47D00`-`$47D8C` in sub CPU RAM), the beam-counter seed is command `$1B` to the main CPU, the corner-collision radius test in `checkcornercoll` compares with `$42` instead of `$1000`, and the team struct is one word longer below `tmHotCold`. `fourway94` is the first file the CD cut: `Detect4WayPlay` and the `ReadJoySwapPad` routines are gone, and one `rts` that nothing calls is left in their place.

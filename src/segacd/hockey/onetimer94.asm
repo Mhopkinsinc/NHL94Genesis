@@ -5,6 +5,7 @@
 ;	Same code as the cartridge. The disc team struct is one word longer: tmOneTimers and tmsize
 ;	are two bytes further on (hockey.inc).
 
+	include	macros\genesis.mac
 	include	segacd\hockey\hockey.inc
 
 EndOneTimer	equ	$2AF00

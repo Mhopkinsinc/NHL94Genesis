@@ -166,6 +166,7 @@ class Item:
         self.label, self.mnem, self.ops, self.comment = label, mnem, ops, comment
         self.scope = scope           # global label in force for local names
         self.pre = []                # comment lines and labels before this item
+        self.licensed = False        # from an Extracted/ include: the bytes come from the disc file
         self.exp = []                # macro expansion lines
         self.len = 0
         self.kind = None             # insn / data / align / macro / dir
@@ -181,13 +182,23 @@ def build_items(lines, lo, hi, rom, cart_glob, nlo=None, nhi=None):
     items, pre = [], []
     scope = None
     i = 0
+    lic_left = 0                 # lines still to come from an Extracted/ include (licensed text)
+    lic_lines = set()
     while i < len(sel):
         ln = sel[i]
         if ln.mac:
             i += 1
             continue
+        if lic_left:
+            lic_left -= 1
+            lic_lines.add(ln.n)
         label, mnem, ops, comment = parse_src(ln.src)
         low = mnem.lower()
+        if low == "include" and "extracted" in ops.lower():
+            path = os.path.join(ROOT, "src", ops.split()[0].replace("\\", os.sep))
+            if not os.path.exists(path):
+                sys.exit(f"{path}: needed to know which lines are licensed text (run npm run build:retail)")
+            lic_left = len(open(path, encoding="latin1").read().rstrip("\n").split("\n"))
         if label and not label.startswith("."):
             code = split_comment(ln.src)[0]
             if re.match(r"\S+\s+(equ|set|rs|=|macro|reg|equr)\b", code, re.I) or re.match(r"\S+\s*=", code):
@@ -200,7 +211,8 @@ def build_items(lines, lo, hi, rom, cart_glob, nlo=None, nhi=None):
             i += 1
             continue
         it = Item(ln, label, mnem, ops, comment, scope)
-        it.pre, pre = pre, []
+        it.pre, pre = [x for x in pre if x[1].n not in lic_lines], []
+        it.licensed = ln.n in lic_lines
         j = i + 1
         while j < len(sel) and sel[j].mac:
             it.exp.append(sel[j])
@@ -303,7 +315,7 @@ def disc_operands(insn):
     out = []
     for op in split_ops(insn.op_str.replace(", ", ",")):
         o = {"raw": op, "mode": "reg", "value": None, "text": None}
-        t = op.replace("a7", "sp")
+        t = re.sub(r"\ba7\b", "sp", op)
         m = re.match(r"#(-?)\$([0-9a-f]+)$", t)
         if m:
             o["mode"], o["value"] = "imm", int(m.group(2), 16) * (-1 if m.group(1) else 1)
@@ -455,6 +467,8 @@ def main():
     ap.add_argument("--no-assemble", action="store_true")
     ap.add_argument("--register", action="store_true",
                     help="add the fragment to tools/segacd.json, tools/verifySegacd.js and the name map")
+    ap.add_argument("--name", action="append", default=[], metavar="NAME=ADDR",
+                    help="a disc address checked by hand (a RAM name or a routine outside the fragment)")
     a = ap.parse_args()
 
     rom_path = a.rom
@@ -481,6 +495,11 @@ def main():
 
     walk = align(items, disc, a.disc_start, a.disc_end)
     frag = Fragment(a, items, walk, disc, rom, cart_glob, cart_kind, cart_local, lines, lo, hi, tail)
+    for nv in a.name:
+        n, v = nv.split("=")
+        if n not in cart_glob:
+            sys.exit(f"--name {nv}: {n} is not a cartridge name")
+        frag.dsym[n] = int(v, 0)
     text = frag.emit()
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     open(a.out, "w", newline="\n").write(text)
@@ -586,7 +605,8 @@ def align(items, disc, start, end):
     while i < len(items) and p < end:
         it = items[i]
         ln = item_matches(it, disc, p, end)
-        if ln is not None and (it.kind != "insn" or run_ok(items, i, disc, p, end, 2) or i + 1 == len(items)):
+        in_run = bool(walk) and walk[-1][0] in ("m", "s")
+        if ln is not None and (it.kind != "insn" or in_run or run_ok(items, i, disc, p, end, 2) or i + 1 == len(items)):
             walk.append(("m", it, p, ln))
             i += 1
             p += ln
@@ -647,6 +667,9 @@ class Fragment:
         self.inc_new = {}
         self.globals_sorted = []
         self.starts = set()
+        self.constraints = []
+        self.force_numeric = set()
+        self.evidence = set()
 
     # -- labels from aligned items
     def place_labels(self):
@@ -699,6 +722,24 @@ class Fragment:
             return v
         raise Unknown(name)
 
+    def place_from_evidence(self, name, rt, scope):
+        """A cartridge label whose line has no disc twin, put where the disc branch to it goes."""
+        if not (BASE + self.start <= rt < BASE + self.end) or rt not in self.starts:
+            return False
+        if name.startswith("."):
+            if self.scope_of(rt) != scope or (scope, name) in self.label_at:
+                return False
+        else:
+            if name in self.label_at or self.ckind.get(name) != "label":
+                return False
+            # a global label must not split the local labels around it
+            if any(self.scope_of(rt) == sc and lab_rt >= rt for (sc, lab), lab_rt in
+                   [(k, v) for k, v in self.label_at.items() if isinstance(k, tuple)]):
+                return False
+        self.add_label(name, rt, scope)
+        self.evidence.add((rt, name))
+        return True
+
     def is_address(self, name):
         k = self.ckind.get(name)
         v = self.cglob.get(name)
@@ -749,6 +790,8 @@ class Fragment:
         if len(unknown) != 1:
             return False
         u = unknown[0]
+        if mode == "target" and expr.strip() == u:
+            return self.place_from_evidence(u, value, scope)
         if u.startswith(".") or not self.is_address(u) and u in self.cglob:
             return False
         if u not in self.cglob:
@@ -774,39 +817,65 @@ class Fragment:
         self.dsym[u] = sol
         return True
 
-    def sym_operand(self, cop, o, insn, scope):
+    def sym_operand(self, cop, o, insn, scope, key=None):
         """Symbolic text for disc operand o using cartridge operand cop, or None."""
         expr = cart_expr(cop, o["mode"])
-        if expr is None or not has_ident(expr):
+        if expr is None or not has_ident(expr) or key in self.force_numeric:
             return None
         base = insn.mnemonic.split(".")[0]
         sz = insn.mnemonic.split(".")[-1] if "." in insn.mnemonic else "w"
+        mode, width = None, 32
         if o["mode"] == "imm":
             width = {"b": 8, "w": 16, "l": 32}.get(sz, 16)
             if base == "moveq":
                 width = 8
             if base in ("btst", "bset", "bclr", "bchg") or (base in ("lsl", "lsr", "asl", "asr", "rol", "ror", "roxl", "roxr", "addq", "subq")):
                 width = 8
-            if not self.solve(expr, o["value"], width, scope):
-                return None
-            return "#" + expr
-        if o["mode"] == "abs":
-            if not self.solve(expr, o["value"], 32, scope):
-                return None
-            return f"({expr}).{o['size']}"
-        if o["mode"] == "disp":
-            if not self.solve(expr, o["value"], 16, scope, "disp"):
-                return None
-            return f"{expr}({o['reg']}{o['idx']})"
-        if o["mode"] == "pcrel":
-            if not self.solve(expr, o["value"], 32, scope):
-                return None
-            return f"{expr}(pc{o['idx']})"
-        if o["mode"] == "target":
-            if not self.solve(expr, o["value"], 32, scope):
-                return None
-            return expr
-        return None
+            if base in ("adda", "suba") and width >= 16:
+                mode = "disp"                   # a struct offset added to a pointer
+            text = "#" + expr
+        elif o["mode"] == "abs":
+            text = f"({expr}).{o['size']}"
+        elif o["mode"] == "disp":
+            mode, width = "disp", 16
+            text = f"{expr}({o['reg']}{o['idx']})"
+        elif o["mode"] == "pcrel":
+            text = f"{expr}(pc{o['idx']})"
+        elif o["mode"] == "target":
+            mode = "target"
+            text = expr
+        else:
+            return None
+        if not self.solve(expr, o["value"], width, scope, mode):
+            return None
+        self.constraints.append((key, expr, o["value"], width, scope))
+        return text
+
+    def validate(self):
+        """Every symbolic operand still equal to its disc value? Solve struct offsets that were
+        assumed at their cartridge value; return the operand keys that cannot be made to fit."""
+        changed = True
+        while changed:
+            changed = False
+            for key, expr, value, width, scope in self.constraints:
+                mask = (1 << width) - 1
+                try:
+                    if (evaluate(expr, lambda n: self.lookup_disc(n, scope)) & mask) == (value & mask):
+                        continue
+                except Unknown:
+                    continue
+                if self.solve(expr, value, width, scope, "disp"):
+                    changed = True
+        bad = set()
+        for key, expr, value, width, scope in self.constraints:
+            mask = (1 << width) - 1
+            try:
+                ok = (evaluate(expr, lambda n: self.lookup_disc(n, scope)) & mask) == (value & mask)
+            except Unknown:
+                ok = False
+            if not ok:
+                bad.add(key)
+        return bad
 
     def same_number(self, cop, o, insn):
         """The cartridge operand text, when it is a plain number equal to the disc operand."""
@@ -821,7 +890,7 @@ class Fragment:
         sz = insn.mnemonic.split(".")[-1] if "." in insn.mnemonic else "w"
         width = 16 if o["mode"] == "disp" else {"b": 8, "w": 16, "l": 32}.get(sz, 16)
         if base == "moveq":
-            return None                 # keep the -128..-1 spelling SNASM needs
+            width = 8
         mask = (1 << width) - 1
         if (v & mask) != (o["value"] & mask):
             return None
@@ -887,22 +956,31 @@ class Fragment:
                 mn = cm
         dops = disc_operands(insn)
         cops = split_ops(it.ops) if it is not None else []
-        texts, fallback = [], 0
+        texts, fallback = [], []
         for k, o in enumerate(dops):
             t = None
             if it is None and o["mode"] == "abs" and o["value"] >= 0x10000:
                 n = self.rev_name(o["value"])
                 if n:
                     t = f"({n}).{o['size']}"
+            if it is None and o["mode"] == "imm" and o["value"] >= 0x10000 and \
+                    insn.mnemonic in ("movea.l", "cmpa.l", "adda.l", "move.l") and k == 0:
+                n = self.rev_name(o["value"])
+                if n:
+                    t = "#" + n
             if it is not None and len(cops) == len(dops):
-                t = self.sym_operand(cops[k], o, insn, scope)
-                if t is None and has_ident(cart_expr(cops[k], o["mode"]) or "") :
-                    fallback += 1
+                t = self.sym_operand(cops[k], o, insn, scope, (it.ln.n, k))
+                if t is None and has_ident(cart_expr(cops[k], o["mode"]) or ""):
+                    fallback.append(cops[k])
                 if t is None and o["mode"] == "reg" and len(cops) == len(dops):
-                    if re.sub(r"\s", "", cops[k]).lower().replace("a7", "sp") == re.sub(r"\s", "", o["t"]).lower():
+                    if re.sub(r"\s", "", cops[k]).lower().replace("(a7)", "(sp)") == re.sub(r"\s", "", o["t"]).lower():
                         t = cops[k]
                 if t is None and o["mode"] in ("imm", "disp") and not has_ident(cops[k]):
                     t = self.same_number(cops[k], o, insn)
+                    if t is None:
+                        fallback.append(cops[k])
+                if t is None and o["mode"] == "abs" and not has_ident(cops[k]):
+                    fallback.append(cops[k])
             if t is None:
                 if o["mode"] in ("pcrel", "target"):
                     t = self.target_name(o["value"], scope)
@@ -915,10 +993,21 @@ class Fragment:
 
     def emit(self):
         self.place_labels()
+        for _ in range(6):
+            text = self.emit_once()
+            bad = self.validate() - self.force_numeric
+            if not bad:
+                return text
+            self.force_numeric |= bad
+        return text
+
+    def emit_once(self):
         self.auto = set()
+        self.externs = {}
+        self.constraints = []
+        for k in ("aligned", "soft", "cd_bytes", "cut", "numeric"):
+            self.stats[k] = 0
         body = []
-        self.used = set()
-        cur_scope = None
         for w in self.walk:
             if w[0] in ("m", "s"):
                 it, p, ln = w[1], w[2], w[3]
@@ -932,15 +1021,22 @@ class Fragment:
                 if it.kind == "insn":
                     insn = decode(self.disc, p, self.end, BASE)
                     mn, ops, fb = self.insn_line(insn, it, it.scope)
-                    self.stats["numeric"] += fb
+                    self.stats["numeric"] += len(fb)
                     code = split_comment(it.ln.src)[0]
                     gap = code[len(code.rstrip()):] or "\t"
-                    body.append(("insn", it.label, mn, ops, (gap + it.comment) if it.comment else "", p, insn.size))
+                    com = it.comment
+                    if fb:
+                        note = "CD: the cartridge has " + ", ".join(fb)
+                        com = (com + " (" + note + ")") if com else ";" + note
+                    body.append(("insn", it.label, mn, ops, (gap + com) if com else "", p, insn.size))
                 elif it.kind in ("data", "macro", "align", "dir"):
                     if w[0] == "s":
                         body.append(("data", it.label, self.reloc_data(it, p), p, ln))
                     elif it.mnem.lower() == "include":
                         pass
+                    elif it.licensed:
+                        body.append(("src", f"\tincbin\t..\\cdbin\\HOCKEY.BIN,${p:X},{ln}\t;licensed text: read from the disc file",
+                                     p, ln))
                     else:
                         body.append(("src", it.ln.src.rstrip(), p, ln))
             elif w[0] == "cd":
@@ -963,7 +1059,9 @@ class Fragment:
         out = []
         for k, o in enumerate(ops):
             v = int.from_bytes(self.disc[p + k * size:p + (k + 1) * size], "big")
-            if has_ident(o) and self.solve(o, v, size * 8, it.scope):
+            key = (it.ln.n, k)
+            if has_ident(o) and key not in self.force_numeric and self.solve(o, v, size * 8, it.scope):
+                self.constraints.append((key, o, v, size * 8, it.scope))
                 out.append(o)
             else:
                 out.append(fmt_num(v))
@@ -998,14 +1096,22 @@ class Fragment:
             for t in self.a.note.split("\\n"):
                 out.append(f";\t{t}")
         out.append("")
+        out.append("\tinclude\tmacros\\genesis.mac")
         out.append("\tinclude\tsegacd\\hockey\\hockey.inc")
         out.append("")
         ext_at = len(out)
         out.append(f"\torg\t${BASE + self.start:X}")
         out.append("")
         auto = sorted(self.auto)
+        placed = set()
         for k, e in enumerate(self.body):
-            if markers and self.span(e) is not None:
+            sp = self.span(e)
+            if sp is not None and sp[1]:
+                for rt, name in sorted(self.evidence):
+                    if rt == BASE + sp[0] and (rt, name) not in placed:
+                        out.append(name + "\t\t\t\t\t\t;CD: placed where the disc branches to it")
+                        placed.add((rt, name))
+            if markers and sp is not None:
                 out.append(f".zzm{k}")
             if e[0] == "text":
                 out.append(e[1])
@@ -1054,6 +1160,9 @@ class Fragment:
 
     def write_inc(self):
         merged = dict(self.inc_old)
+        for n, v in self.dsym.items():
+            if n not in self.label_at and self.ckind.get(n) != "label":
+                self.inc_new[n] = v
         for n, v in self.inc_new.items():
             if n in merged and merged[n] != v:
                 print(f"warning: {n} is ${merged[n]:X} in the include, this fragment wants ${v:X}")

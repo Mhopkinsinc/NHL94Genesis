@@ -109,3 +109,5 @@ compareAt('output/segacd/z80load.bin', 'cdbin/MAIN.BIN', 0x76C8, 0xF0);
 compareAt('output/segacd/hwread.bin', 'cdbin/MAIN.BIN', 0x3B3C, 0x102);
 compareAt('output/segacd/hockey/onetimer94.bin', 'cdbin/HOCKEY.BIN', 0x76A8, 0x734);
 compareAt('output/segacd/hockey/fourway94.bin', 'cdbin/HOCKEY.BIN', 0x7DDC, 0x5C);
+compareAt('output/segacd/hockey/crowd94.bin', 'cdbin/HOCKEY.BIN', 0x7E38, 0x594);
+compareAt('output/segacd/hockey/optsetup94.bin', 'cdbin/HOCKEY.BIN', 0x83CC, 0x1792);

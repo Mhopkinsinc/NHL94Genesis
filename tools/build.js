@@ -191,7 +191,18 @@ if (args.includes('--segacd')) {
     fs.mkdirSync(OBJ, { recursive: true });
     fs.mkdirSync(CD, { recursive: true });
     const exe = path.join(ROOT, 'assembler', 'Assembler.exe');
+    // The six disc files are the user's own: copied from the data track of an NHL '94 Sega CD disc, not
+    // built here and not in the repo (cdbin/ is gitignored). The HOCKEY.BIN fragments read licensed text
+    // (team nicknames) from cdbin/HOCKEY.BIN with incbin, so name every missing file before assembling.
+    const DISC = ['MAIN.BIN', 'STARTER.BIN', 'HOCKEY.BIN', 'PLAYER.BIN', 'GRAPH2.BIN', 'GTABLE.BIN'];
+    const missing = DISC.filter((n) => !fs.existsSync(path.join(ROOT, 'cdbin', n)));
     begin('assemble');
+    if (missing.length) {
+        fail('assemble', `missing Sega CD disc file(s) in cdbin/: ${missing.join(', ')}`,
+            `The build needs the six files from the data track of your own NHL '94 Sega CD disc\n`
+            + `(${DISC.join(', ')}) copied into cdbin/ (see docs/segacd-handoff/GETTING_FILES.md).\n`
+            + 'They are not build products and are not in the repo. See docs/segacd.md.', 'MISSING INPUT');
+    }
     const t0 = Date.now();
     for (const f of frags) {
         // A name may carry a folder: hockey/onetimer94 is src/segacd/hockey/onetimer94.asm.
@@ -215,16 +226,6 @@ if (args.includes('--segacd')) {
     }
     step('assemble', `${frags.length} fragments, 0 errors in ${((Date.now() - t0) / 1000).toFixed(1)}s -> output/segacd/`);
     begin('verify');
-    // The six disc files are the user's own: copied from the data track of an NHL '94 Sega CD disc, not
-    // built here and not in the repo (cdbin/ is gitignored). Name every missing one before comparing.
-    const DISC = ['MAIN.BIN', 'STARTER.BIN', 'HOCKEY.BIN', 'PLAYER.BIN', 'GRAPH2.BIN', 'GTABLE.BIN'];
-    const missing = DISC.filter((n) => !fs.existsSync(path.join(ROOT, 'cdbin', n)));
-    if (missing.length) {
-        fail('verify', `missing Sega CD disc file(s) in cdbin/: ${missing.join(', ')}`,
-            `The fragments assembled into output/segacd/; the compare needs the six files from the data track\n`
-            + `of your own NHL '94 Sega CD disc (${DISC.join(', ')}) copied into cdbin/.\n`
-            + 'They are not build products and are not in the repo. See docs/segacd.md.', 'MISSING INPUT');
-    }
     const r = await node('verifySegacd.js', []);
     const matches = (r.out.match(/ MATCH /g) || []).length;
     if (r.status !== 0) {
