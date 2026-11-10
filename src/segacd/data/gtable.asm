@@ -19,7 +19,7 @@ GTable
 	GRes	$46654				; 2  sector $0DF  the sprite pack
 	GRes	$2043E				; 3  sector $16C  FeaturedPictures
 	GRes	$6C7C				; 4  sector $1AD  TeamLogoBitmaps
-	GRes	$8D34				; 5  sector $1BB  the legal screen (STARTER.BIN)
+	GRes	$8D34				; 5  sector $1BB  the legal and loading screens (STARTER.BIN)
 	GRes	$61F4				; 6  sector $1CD  player photos: ANH
 	GRes	$9B8E				; 7  sector $1DA  player photos: BOS
 	GRes	$886A				; 8  sector $1EE  player photos: BUF

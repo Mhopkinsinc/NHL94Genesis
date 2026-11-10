@@ -148,8 +148,8 @@ Res04	incbin	..\cdbin\GRAPH2.BIN,$D6800,27768
 	dcb.b	$DD800-*,0				;zero fill to sector $1BB
 
 ;	resource 5 (sector $1BB, 36,148 bytes):
-;	the legal screen (the copyright and licence notices, a goalie picture; a $0808 picture, 40 x 28)
-;	and 12,648 bytes more. STARTER.BIN loads it (d0 = 5)
+;	two $0808 pictures, 40 x 28 each, with the same goalie: the legal screen (the copyright and licence
+;	notices), then Loading... please wait (from +$5BC8). STARTER.BIN loads it (d0 = 5)
 Res05	incbin	..\cdbin\GRAPH2.BIN,$DD800,36144
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$E6800-*,0				;zero fill to sector $1CD

@@ -102,8 +102,8 @@ def main():
            "this one found",
         4: "the team logos (TeamLogoBitmaps): a table of offsets, then logoANA.map.jim ... (period94 loads it\n"
            "into TeamLogoBitmapsPtr). Resource 0 piece 1 is the same without the end mark",
-        5: "the legal screen (the copyright and licence notices, a goalie picture; a $0808 picture, 40 x 28)\n"
-           "and 12,648 bytes more. STARTER.BIN loads it (d0 = 5)",
+        5: "two $0808 pictures, 40 x 28 each, with the same goalie: the legal screen (the copyright and licence\n"
+           "notices), then Loading... please wait (from +$5BC8). STARTER.BIN loads it (d0 = 5)",
         34: "each team's player stats and career records, the players' names included: 28 long offsets, one\n"
             "per team, then the records. PLAYER.BIN keeps it at $86(a6) and its pages read it",
         64: "a font, 93 characters from the space ($0808 picture, map 32 x 3). STARTER.BIN loads it into $C43A,\n"
@@ -218,7 +218,7 @@ def main():
         "gsector\t=\t0",
         "GTable",
     ]
-    what.update({5: "the legal screen (STARTER.BIN)", 34: "player stats and careers (PLAYER.BIN)", 64: "a font (STARTER.BIN, PLAYER.BIN)",
+    what.update({5: "the legal and loading screens (STARTER.BIN)", 34: "player stats and careers (PLAYER.BIN)", 64: "a font (STARTER.BIN, PLAYER.BIN)",
                  96: "LoadGameGfx, BIOS d7 = 8", 97: "the scoreboard film frame (STARTER.BIN)"})
     for k, (s, n) in enumerate(ents):
         w = what.get(k, "")

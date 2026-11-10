@@ -27,7 +27,7 @@
      byte size); HOCKEY.BIN loads resource n with BIOS `$6044`, d7 = 1, d0 = n (`docs/segacd.md` "GRAPH2.BIN and
      GTABLE.BIN", `tools/segacd_graph2.py`). The two packs (resources 0 and 1) are named piece by piece, and the
      loader of every other resource is noted (HOCKEY, STARTER or PLAYER; 6-33 and 68-95 are per team). Their contents are
-     described too (legal screen, scoreboard frame, font, stats, page backgrounds). Left: the code that reads
+     described too (legal and loading screens, scoreboard frame, font, stats, page backgrounds). Left: the code that reads
      GTABLE (behind `$6044`).
   2. Names: STARTER's driver module is named (`docs/segacd_starter_driver.md`). PLAYER's code is named
      (`docs/segacd_player.md`), and so are MAIN's shell, command table and sound engine
