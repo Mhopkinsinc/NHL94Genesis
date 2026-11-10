@@ -940,6 +940,7 @@ AppendUserName						;Append user name d2 (12 bytes of the name log at namelog, s
 NoNameTxt	dc.b	0				;AppendUserName data
 	dc.b	2
 ;CD: no cartridge twin
+RunPlayerOverlay						;CD-only routine (a name given here, not a cartridge name)
 	movem.l	d0-d7/a0-a6,-(sp)
 	move.w	#$9,d7
 	jsr	$6044.w

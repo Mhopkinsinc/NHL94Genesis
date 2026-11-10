@@ -1,7 +1,8 @@
 ;	PLAYER.BIN $281C-$3F83 (runtime $281C-$3F83).
 ;
-;	After playerpage.asm: the rest of the PLAYER.BIN code (gate array commands through $FF800E /
-;	$FF800F / $FF8020 ...). Not named yet.
+;	After playerpage.asm: the display, input and text helpers of the overlay: VRAM copies and fills, the
+;	queued display work and palette fades through the main CPU, the career record search, number formatting,
+;	the pad readers (HOCKEY names), the frame callback at $6038, text printing. docs/segacd_player.md.
 
 
 X_3F84	equ	$3F84
@@ -13,6 +14,7 @@ X_4085	equ	$4085
 
 	org	$281C
 
+CopyVramRows
 	movem.l	d0-d7/a0-a3,-(sp)
 	movea.l	#$BC000,a0
 	move.w	d0,d4
@@ -58,6 +60,7 @@ X_4085	equ	$4085
 	bne.w	.L288C
 	movem.l	(sp)+,d0-d7/a0-a3
 	rts
+CopyVramRowsViaMainCommand
 	movem.l	d0-d4,-(sp)
 	move.w	#$50,$E0(a6)
 	move.w	d0,d3
@@ -95,8 +98,9 @@ X_4085	equ	$4085
 	dc.b	$00
 	bchg.b	d5,(a0)
 	dc.b	'layer # '
-	dc.w	$0000,$48E7
-	asr.b	#$8,d0
+	dc.w	$0000
+FormatTwoDigitNumber
+	movem.l	d0-d2,-(sp)
 	moveq	#$1,d0
 	moveq	#$0,d2
 	abcd.b	d0,d1
@@ -121,6 +125,7 @@ X_4085	equ	$4085
 .L29B0
 	movem.l	(sp)+,d0-d2
 	rts
+FormatPercentage
 	movem.l	d0-d2,-(sp)
 	moveq	#$1,d0
 	moveq	#$0,d1
@@ -158,6 +163,7 @@ X_4085	equ	$4085
 .L2A18
 	movem.l	(sp)+,d0-d2
 	rts
+FormatDecimalString
 	movem.l	d0-d2/a0-a1,-(sp)
 	lea	.L2A50(pc),a1
 	moveq	#$0,d2
@@ -179,6 +185,7 @@ X_4085	equ	$4085
 	rts
 .L2A50
 	dcb.b	80,0
+FindPlayerAndCareerRecord
 	movem.l	d0-d7/a1-a5,-(sp)
 	moveq	#$0,d0
 	movea.l	$1C(a6),a1
@@ -304,6 +311,7 @@ X_4085	equ	$4085
 	movea.l	$8E(a6),a0
 	movem.l	(sp)+,d0-d7/a1-a5
 	rts
+FillVram
 	move.w	d0,$E0(a6)
 	swap	d0
 	move.w	d0,$E2(a6)
@@ -313,6 +321,7 @@ X_4085	equ	$4085
 	tst.w	$DE(a6)
 	bne.w	.L2C3E
 	rts
+FillVramWithTextTile
 	move.w	d0,$E0(a6)
 	swap	d0
 	move.w	d0,$E2(a6)
@@ -322,6 +331,7 @@ X_4085	equ	$4085
 	tst.w	$DE(a6)
 	bne.w	.L2C60
 	rts
+DrawTileMap
 	move.w	(a1)+,d1
 	subq.w	#$1,d1
 	move.w	d1,d2
@@ -330,7 +340,7 @@ X_4085	equ	$4085
 .L2C74
 	moveq	#$0,d4
 	move.w	d3,d4
-	bsr.w	.L2D3A
+	bsr.w	MakeVramWriteCommand
 .L2C7C
 	btst.b	#$7,$FF800E.l
 	bne.s	.L2C7C
@@ -375,15 +385,17 @@ X_4085	equ	$4085
 	move.w	d1,d2
 	dbf	d7,.L2C74
 	rts
-.L2D3A
+MakeVramWriteCommand
 	andi.l	#$FFFF,d4
 	lsl.l	#$2,d4
 	lsr.w	#$2,d4
 	swap	d4
 	addi.l	#$40000000,d4
 	rts
+IncrementPaletteTick
 	addq.w	#$1,$EC(a6)
 	rts
+ServicePlayerDisplay
 	move.w	#$1,$102(a6)
 	addi.l	#$1,$96(a6)
 	cmpi.w	#$2,$DE(a6)
@@ -486,7 +498,7 @@ X_4085	equ	$4085
 .L2F36
 	movem.l	d0-d3/a0-a2,-(sp)
 	clr.w	$DE(a6)
-	bsr.w	.L3F10
+	bsr.w	GiveWordRamToMain
 .L2F42
 	btst.b	#$4,$FF800E.l
 	bne.s	.L2F42
@@ -501,7 +513,7 @@ X_4085	equ	$4085
 	btst.b	#$3,$FF800E.l
 	bne.s	.L2F76
 	bclr.b	#$4,$FF800F.l
-	bsr.w	.L3F04
+	bsr.w	WaitForSubWordRam
 	bra.w	.L33FC
 .L2F90
 	movem.l	d0-d3/a0-a2,-(sp)
@@ -545,7 +557,7 @@ X_4085	equ	$4085
 	movem.l	d0-d3/a0-a2,-(sp)
 	clr.w	$DE(a6)
 	moveq	#$0,d0
-	bsr.w	.L3480
+	bsr.w	WriteHorizontalScroll
 .L3054
 	btst.b	#$4,$FF800E.l
 	bne.s	.L3054
@@ -640,7 +652,7 @@ X_4085	equ	$4085
 	move.l	d0,$BBC8C.l
 	move.w	$E4(a6),d0
 	move.l	d0,$BBC90.l
-	bsr.w	.L3F10
+	bsr.w	GiveWordRamToMain
 .L3224
 	btst.b	#$4,$FF800E.l
 	bne.s	.L3224
@@ -655,7 +667,7 @@ X_4085	equ	$4085
 	btst.b	#$3,$FF800E.l
 	bne.s	.L3258
 	bclr.b	#$4,$FF800F.l
-	bsr.w	.L3F04
+	bsr.w	WaitForSubWordRam
 	bra.w	.L33FC
 .L3272
 	movem.l	d0-d3/a0-a2,-(sp)
@@ -666,7 +678,7 @@ X_4085	equ	$4085
 	move.w	$E2(a6),d0
 	move.l	d0,$BBC8C.l
 	move.l	$E4(a6),$BBC90.l
-	bsr.w	.L3F10
+	bsr.w	GiveWordRamToMain
 .L329C
 	btst.b	#$4,$FF800E.l
 	bne.s	.L329C
@@ -681,7 +693,7 @@ X_4085	equ	$4085
 	btst.b	#$3,$FF800E.l
 	bne.s	.L32D0
 	bclr.b	#$4,$FF800F.l
-	bsr.w	.L3F04
+	bsr.w	WaitForSubWordRam
 	bra.w	.L33FC
 .L32EA
 	movem.l	d0-d3/a0-a2,-(sp)
@@ -737,7 +749,7 @@ X_4085	equ	$4085
 	move.l	d0,d3
 	ori.l	#$804000,d0
 	move.l	d0,$BBC9E.l
-	bsr.w	.L3F10
+	bsr.w	GiveWordRamToMain
 .L33B2
 	btst.b	#$4,$FF800E.l
 	bne.s	.L33B2
@@ -752,7 +764,7 @@ X_4085	equ	$4085
 	btst.b	#$3,$FF800E.l
 	bne.s	.L33E6
 	bclr.b	#$4,$FF800F.l
-	bsr.w	.L3F04
+	bsr.w	WaitForSubWordRam
 .L33FC
 	movem.l	(sp)+,d0-d3/a0-a2
 .L3400
@@ -767,7 +779,7 @@ X_4085	equ	$4085
 	neg.w	d0
 .L3424
 	add.w	$F2(a6),d0
-	bsr.w	.L3480
+	bsr.w	WriteHorizontalScroll
 	addi.w	#$6,$F6(a6)
 	bra.w	.L346E
 .L3436
@@ -782,7 +794,7 @@ X_4085	equ	$4085
 	neg.w	d0
 .L3456
 	add.w	$F2(a6),d0
-	bsr.w	.L3480
+	bsr.w	WriteHorizontalScroll
 	clr.w	$FA(a6)
 	clr.w	$F6(a6)
 	andi.w	#$3FF,d0
@@ -791,12 +803,12 @@ X_4085	equ	$4085
 	movem.l	(sp)+,d0-d3/a0-a2
 .L3472
 	movem.l	d0-d5/a0-a1,-(sp)
-	bsr.w	.L356A
+	bsr.w	StepPaletteFade
 	movem.l	(sp)+,d0-d5/a0-a1
 	rts
-.L3480
+WriteHorizontalScroll
 	btst.b	#$4,$FF800E.l
-	bne.s	.L3480
+	bne.s	WriteHorizontalScroll
 	move.w	#$30,$FF8026.l
 	move.l	#$70000003,$FF8028.l
 	bset.b	#$3,$FF800F.l
@@ -840,11 +852,11 @@ X_4085	equ	$4085
 	bne.s	.L3556
 	bclr.b	#$4,$FF800F.l
 	rts
-.L356A
+StepPaletteFade
 	tst.w	$EC(a6)
 	bmi.w	.L3606
 	cmpi.w	#$64,$EC(a6)
-	beq.w	.L3608
+	beq.w	WritePlayerPalette
 	subq.w	#$1,$EC(a6)
 	bmi.w	.L3606
 	clr.l	d0
@@ -863,7 +875,7 @@ X_4085	equ	$4085
 	move.l	d3,$BBC88.l
 	move.l	d4,$BBC8C.l
 	move.l	d5,$BBC90.l
-	bsr.w	.L3F10
+	bsr.w	GiveWordRamToMain
 .L35BC
 	btst.b	#$4,$FF800E.l
 	bne.s	.L35BC
@@ -878,10 +890,10 @@ X_4085	equ	$4085
 	btst.b	#$3,$FF800E.l
 	bne.s	.L35F0
 	bclr.b	#$4,$FF800F.l
-	bsr.w	.L3F04
+	bsr.w	WaitForSubWordRam
 .L3606
 	rts
-.L3608
+WritePlayerPalette
 	movea.l	#$BBCB0,a1
 .L360E
 	btst.b	#$4,$FF800E.l
@@ -917,39 +929,43 @@ X_4085	equ	$4085
 	dbf	d0,.L3660
 	st.b	$EC(a6)
 	rts
+ReadJoy1
 	move.b	$C2(a6),d0
-	bsr.w	.L3716
+	bsr.w	ReadJoy
 	move.w	$C6(a6),d2
 	move.w	d1,$C6(a6)
 	move.w	d1,d3
 	eor.w	d1,d2
 	and.w	d2,d1
 	rts
+ReadJoy2
 	move.b	$C3(a6),d0
-	bsr.w	.L3716
+	bsr.w	ReadJoy
 	move.w	$C8(a6),d2
 	move.w	d1,$C8(a6)
 	move.w	d1,d3
 	eor.w	d1,d2
 	and.w	d2,d1
 	rts
+ReadJoy3
 	move.b	$C4(a6),d0
-	bsr.w	.L3716
+	bsr.w	ReadJoy
 	move.w	$CA(a6),d2
 	move.w	d1,$CA(a6)
 	move.w	d1,d3
 	eor.w	d1,d2
 	and.w	d2,d1
 	rts
+ReadJoy4
 	move.b	$C5(a6),d0
-	bsr.w	.L3716
+	bsr.w	ReadJoy
 	move.w	$CC(a6),d2
 	move.w	d1,$CC(a6)
 	move.w	d1,d3
 	eor.w	d1,d2
 	and.w	d2,d1
 	rts
-.L3716
+ReadJoy
 	not.b	d0
 	clr.w	d1
 	move.b	d0,d1
@@ -968,7 +984,7 @@ X_4085	equ	$4085
 	dc.w	$0201,$0308
 	dc.w	$0808
 	dc.w	$0808
-.L3744
+ReadPads
 	movem.l	d1/a0,-(sp)
 	tst.w	$BC(a6)
 	beq.w	.L3772
@@ -1206,15 +1222,16 @@ X_4085	equ	$4085
 	dc.w	$0809
 	dc.w	$0A0A
 	dc.w	$0809
-	dc.w	$0A00,$2D78
-	bra.s	.L3BC8
-	dc.w	$00D6
-	lea	.L3BA4(pc),a0
+	dc.w	$0A00
+InstallPlayerFrameCallback
+	move.l	$6038.w,$D6(a6)
+	lea	PlayerFrameCallback(pc),a0
 	move.l	a0,$6038.w
 	rts
+RestorePlayerFrameCallback
 	move.l	$D6(a6),$6038.w
 	rts
-.L3BA4
+PlayerFrameCallback
 	btst.b	#$5,$FF800E.l
 	beq.w	.L3C14
 	bset.b	#$2,$FF800F.l
@@ -1222,12 +1239,9 @@ X_4085	equ	$4085
 	move.l	$D2(a6),-(sp)
 	rts
 .L3BC2
-	bsr.w	.L3744
+	bsr.w	ReadPads
 .L3BC6
-	dc.w	$0839
-.L3BC8
-	ori.b	#$FF,d4
-	dc.w	$800E
+	btst.b	#$4,$FF800E.l
 	bne.s	.L3BC6
 	move.w	#$2F,$FF8026.l
 	bset.b	#$3,$FF800F.l
@@ -1243,6 +1257,7 @@ X_4085	equ	$4085
 	bclr.b	#$2,$FF800F.l
 .L3C14
 	rts
+PrintTextAtScreenCell
 	movem.l	d0-d2/a0-a1/a5,-(sp)
 	andi.l	#$FFFF,d0
 	divu.w	#$28,d0
@@ -1274,9 +1289,10 @@ X_4085	equ	$4085
 	bne.s	.L3C7C
 	bclr.b	#$7,$FF800F.l
 	movea.l	$8E(a6),a5
-	bsr.w	.L3D26
+	bsr.w	PrintPaddedText
 	movem.l	(sp)+,d0-d2/a0-a1/a5
 	rts
+PrintTextAtPageCell
 	movem.l	d0-d2/a0-a1/a5,-(sp)
 	andi.l	#$FFFF,d0
 	divu.w	#$28,d0
@@ -1309,10 +1325,10 @@ X_4085	equ	$4085
 	bne.s	.L3D06
 	bclr.b	#$7,$FF800F.l
 	movea.l	$8E(a6),a5
-	bsr.w	.L3D26
+	bsr.w	PrintPaddedText
 	movem.l	(sp)+,d0-d2/a0-a1/a5
 	rts
-.L3D26
+PrintPaddedText
 	move.w	#$7A0,d0
 	bset	#$E,d0
 .L3D2E
@@ -1376,6 +1392,7 @@ X_4085	equ	$4085
 .L3E14
 	clr.b	(a5)+
 	rts
+PrintStatColumnText
 	movem.l	d0-d2/a4,-(sp)
 	move.w	#$7A0,d0
 	bset	#$E,d0
@@ -1427,6 +1444,7 @@ X_4085	equ	$4085
 .L3EE4
 	movem.l	(sp)+,d0-d2/a4
 	rts
+CopyTextToBuffer
 	movem.l	d0/a0-a1,-(sp)
 	movea.l	$8E(a6),a1
 .L3EF2
@@ -1437,16 +1455,17 @@ X_4085	equ	$4085
 .L3EFE
 	movem.l	(sp)+,d0/a0-a1
 	rts
-.L3F04
+WaitForSubWordRam
 	btst.b	#$1,$FF8003.l
-	beq.s	.L3F04
+	beq.s	WaitForSubWordRam
 	rts
-.L3F10
+GiveWordRamToMain
 	bset.b	#$0,$FF8003.l
 .L3F18
 	btst.b	#$1,$FF8003.l
 	bne.s	.L3F18
 	rts
+SendMainCommand3D
 	movem.l	d0-d7/a0-a2,-(sp)
 	bclr.b	#$5,$FF800F.l
 .L3F30

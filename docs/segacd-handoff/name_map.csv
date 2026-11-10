@@ -229,6 +229,7 @@ HOCKEY.BIN,$AD8C,CountGoalies,cards94.asm
 HOCKEY.BIN,$ADBA,CountPlayers,cards94.asm
 HOCKEY.BIN,$ADE8,AppendUserName,cards94.asm
 HOCKEY.BIN,$AE54,NoNameTxt,cards94.asm
+HOCKEY.BIN,$AE56,RunPlayerOverlay,CD-only name in cards94.asm
 HOCKEY.BIN,$B0E0,AppendTeamName,cards94.asm
 HOCKEY.BIN,$B10C,CalcAttrib,cards94.asm
 HOCKEY.BIN,$B246,OvrPlayerWgtList,cards94.asm
@@ -1094,6 +1095,52 @@ HOCKEY.BIN,$2B942,ArenaGfx12,graphics94.asm (CD name)
 HOCKEY.BIN,$2CCFC,GfxPointers,CD-only (cdgfxptrs.asm)
 HOCKEY.BIN,$2CDB2,ReadPads,
 MAIN.BIN,$34B8,DoDrawTextCommand,Sierra C name tag
+PLAYER.BIN,$0,PlayerOverlayEntry,Sierra C name tag
+PLAYER.BIN,$CAA,FetchTeamPhotoAndStatTables,Sierra C name tag
+PLAYER.BIN,$EAA,WaitDisplayFrames,Sierra C name tag
+PLAYER.BIN,$EBC,ClearVerticalScroll,Sierra C name tag
+PLAYER.BIN,$F64,SetWindowPosition,Sierra C name tag
+PLAYER.BIN,$1006,ClearStatTextTileRectangle,Sierra C name tag
+PLAYER.BIN,$10D8,AnimateStatDisplayTransition,Sierra C name tag
+PLAYER.BIN,$11DA,InitStatTextSprites,Sierra C name tag
+PLAYER.BIN,$1262,MoveStatTextSpritesY,Sierra C name tag
+PLAYER.BIN,$129C,RenderTwoStatStringsToTiles,Sierra C name tag
+PLAYER.BIN,$1336,UploadStatTextTiles,Sierra C name tag
+PLAYER.BIN,$1376,DrawSelectedTeamPageBackground,Sierra C name tag
+PLAYER.BIN,$1B9C,DrawPlayerNumberAndPosition,Sierra C name tag
+PLAYER.BIN,$1C8C,DrawThreeRowTileBlock,Sierra C name tag
+PLAYER.BIN,$281C,CopyVramRows,Sierra C name tag
+PLAYER.BIN,$289A,CopyVramRowsViaMainCommand,Sierra C name tag
+PLAYER.BIN,$2972,FormatTwoDigitNumber,Sierra C name tag
+PLAYER.BIN,$29B6,FormatPercentage,Sierra C name tag
+PLAYER.BIN,$2A1E,FormatDecimalString,Sierra C name tag
+PLAYER.BIN,$2AA0,FindPlayerAndCareerRecord,Sierra C name tag
+PLAYER.BIN,$2C28,FillVram,Sierra C name tag
+PLAYER.BIN,$2C48,FillVramWithTextTile,Sierra C name tag
+PLAYER.BIN,$2C6A,DrawTileMap,Sierra C name tag
+PLAYER.BIN,$2D3A,MakeVramWriteCommand,Sierra C name tag
+PLAYER.BIN,$2D4E,IncrementPaletteTick,Sierra C name tag
+PLAYER.BIN,$2D54,ServicePlayerDisplay,Sierra C name tag
+PLAYER.BIN,$3480,WriteHorizontalScroll,Sierra C name tag
+PLAYER.BIN,$356A,StepPaletteFade,Sierra C name tag
+PLAYER.BIN,$3608,WritePlayerPalette,Sierra C name tag
+PLAYER.BIN,$36B6,ReadJoy1,Sierra C name tag
+PLAYER.BIN,$36CE,ReadJoy2,Sierra C name tag
+PLAYER.BIN,$36E6,ReadJoy3,Sierra C name tag
+PLAYER.BIN,$36FE,ReadJoy4,Sierra C name tag
+PLAYER.BIN,$3716,ReadJoy,Sierra C name tag
+PLAYER.BIN,$3744,ReadPads,Sierra C name tag
+PLAYER.BIN,$3B8C,InstallPlayerFrameCallback,Sierra C name tag
+PLAYER.BIN,$3B9C,RestorePlayerFrameCallback,Sierra C name tag
+PLAYER.BIN,$3BA4,PlayerFrameCallback,Sierra C name tag
+PLAYER.BIN,$3C16,PrintTextAtScreenCell,Sierra C name tag
+PLAYER.BIN,$3C9C,PrintTextAtPageCell,Sierra C name tag
+PLAYER.BIN,$3D26,PrintPaddedText,Sierra C name tag
+PLAYER.BIN,$3E18,PrintStatColumnText,Sierra C name tag
+PLAYER.BIN,$3EEA,CopyTextToBuffer,Sierra C name tag
+PLAYER.BIN,$3F04,WaitForSubWordRam,Sierra C name tag
+PLAYER.BIN,$3F10,GiveWordRamToMain,Sierra C name tag
+PLAYER.BIN,$3F24,SendMainCommand3D,Sierra C name tag
 STARTER.BIN,$14B6,StarterDriverEntry,Sierra C name tag
 STARTER.BIN,$14BC,DispatchPcmCommandEntry,Sierra C name tag
 STARTER.BIN,$1542,DispatchPcmCommand,Sierra C name tag

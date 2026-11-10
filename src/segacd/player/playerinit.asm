@@ -1,27 +1,30 @@
 ;	PLAYER.BIN $0-$1D53 (runtime $0-$1D53).
 ;
-;	The start of PLAYER.BIN: clear the sub CPU flag bit 5, set the stack and a6 pc-relative (lea
-;	0(pc,a6.l)), save the registers, then the code up to playerpic.asm. Not named yet.
+;	The start of PLAYER.BIN, the player information overlay HOCKEY.BIN runs with $6044 d7 = 5 (d0, d1 the
+;	two teams, d2 FourWayPlay): stack and a6 (base + $A594), the team resources, the photo and team stat pages,
+;	text sprites and page transitions, up to playerpic.asm. Names given here; docs/segacd_player.md.
 
 
+CopyVramRows	equ	$281C
+FillVram	equ	$2C28
+DrawTileMap	equ	$2C6A
+IncrementPaletteTick	equ	$2D4E
+ServicePlayerDisplay	equ	$2D54
+ReadJoy1	equ	$36B6
+ReadJoy2	equ	$36CE
+InstallPlayerFrameCallback	equ	$3B8C
+RestorePlayerFrameCallback	equ	$3B9C
+SendMainCommand3D	equ	$3F24
+X_DEC	equ	$DEC
+X_14D2	equ	$14D2
 X_1D54	equ	$1D54
 X_23D0	equ	$23D0
-X_281C	equ	$281C
-X_2C28	equ	$2C28
-X_2C6A	equ	$2C6A
-X_2D4E	equ	$2D4E
-X_2D54	equ	$2D54
-X_36B6	equ	$36B6
-X_36CE	equ	$36CE
-X_3B8C	equ	$3B8C
-X_3B9C	equ	$3B9C
-X_3F24	equ	$3F24
 X_7CF4	equ	$7CF4
 X_82A4	equ	$82A4
 
 	org	$0
 
-.L0
+PlayerOverlayEntry
 	dc.w	$08B9
 	dc.w	$0005
 	dc.w	$00FF
@@ -31,18 +34,18 @@ X_82A4	equ	$82A4
 	dc.w	$AE6E
 	dc.w	$9DFC
 	ori.b	#$0,d0
-	lea	.L0(pc,a6.l),sp
+	lea	PlayerOverlayEntry(pc,a6.l),sp
 	move.l	a6,-(sp)
 	movea.l	#$A594,a6
-	lea	.L0(pc,a6.l),a6
+	lea	PlayerOverlayEntry(pc,a6.l),a6
 	movem.l	d0-d7/a0-a6,-(sp)
-	bsr.w	X_3B8C
-	lea	X_2D54(pc),a0
+	bsr.w	InstallPlayerFrameCallback
+	lea	ServicePlayerDisplay(pc),a0
 	move.l	a0,$D2(a6)
 	move.w	d0,$7C(a6)
 	move.w	d1,$7E(a6)
 	move.w	d2,$BC(a6)
-	bsr.w	X_3F24
+	bsr.w	SendMainCommand3D
 	move.w	#$6,d7
 	jsr	$6044.w
 	move.l	a0,$DA(a6)
@@ -138,7 +141,7 @@ X_82A4	equ	$82A4
 	move.w	#$6,d7
 	jsr	$6044.w
 	move.l	a0,$A2(a6)
-	bsr.w	.LCAA
+	bsr.w	FetchTeamPhotoAndStatTables
 	bset.b	#$5,$FF800F.l
 	movea.l	#$BBCB0,a0
 	moveq	#$1F,d0
@@ -435,19 +438,19 @@ X_82A4	equ	$82A4
 	bclr.b	#$7,$FF800F.l
 	move.l	#$7A0,$62(a6)
 	move.l	#$1000,d0
-	bsr.w	X_2C28
+	bsr.w	FillVram
 	move.l	#$20001000,d0
-	bsr.w	X_2C28
+	bsr.w	FillVram
 	move.l	#$B0000700,d0
-	bsr.w	X_2C28
+	bsr.w	FillVram
 	move.w	#$7000,$FC(a6)
-	lea	X_2D4E(pc),a0
+	lea	IncrementPaletteTick(pc),a0
 	move.l	a0,$D2(a6)
 	move.w	#$0,$EC(a6)
 .L7F0
 	tst.w	$EC(a6)
 	beq.s	.L7F0
-	lea	X_2D54(pc),a0
+	lea	ServicePlayerDisplay(pc),a0
 	move.l	a0,$D2(a6)
 	moveq	#$0,d6
 	moveq	#$0,d4
@@ -491,25 +494,25 @@ X_82A4	equ	$82A4
 	move.l	a1,$78(a6)
 	bsr.w	X_1D54
 	move.w	d4,d0
-	bsr.w	.L1376
-	bsr.w	.L1B9C
+	bsr.w	DrawSelectedTeamPageBackground
+	bsr.w	DrawPlayerNumberAndPosition
 	move.w	#$18,$EC(a6)
 .L8A4
 	tst.w	$EC(a6)
 	bpl.w	.L8A4
-	bsr.w	.LDEC
+	bsr.w	X_DEC
 	move.w	#$7,$BA(a6)
 .L8B6
 	move.l	#$B0000700,d0
-	bsr.w	X_2C28
+	bsr.w	FillVram
 	move.w	d4,d7
-	bsr.w	X_36B6
+	bsr.w	ReadJoy1
 	move.b	d0,$BE(a6)
 	move.b	d1,$BF(a6)
 	move.b	d2,$C0(a6)
 	move.b	d3,$C1(a6)
 	move.w	d1,d5
-	bsr.w	X_36CE
+	bsr.w	ReadJoy2
 	or.w	d1,d5
 	or.b	d0,$BE(a6)
 	or.b	d1,$BF(a6)
@@ -530,7 +533,7 @@ X_82A4	equ	$82A4
 	move.w	#$4,$B0(a6)
 	bsr.w	X_1D54
 	moveq	#$7,d0
-	bsr.w	.LEAA
+	bsr.w	WaitDisplayFrames
 	bra.w	.L8B6
 .L934
 	cmpi.w	#$0,$54(a6)
@@ -542,7 +545,7 @@ X_82A4	equ	$82A4
 	bsr.w	X_23D0
 	move.b	#$0,$C1(a6)
 	moveq	#$7,d0
-	bsr.w	.LEAA
+	bsr.w	WaitDisplayFrames
 	bra.w	.L8B6
 .L968
 	cmpi.b	#$24,$C1(a6)
@@ -557,7 +560,7 @@ X_82A4	equ	$82A4
 	move.w	#$3,$B0(a6)
 	bsr.w	X_1D54
 	moveq	#$7,d0
-	bsr.w	.LEAA
+	bsr.w	WaitDisplayFrames
 	bra.w	.L8B6
 .L9A6
 	cmpi.w	#$0,$54(a6)
@@ -570,7 +573,7 @@ X_82A4	equ	$82A4
 	bsr.w	X_23D0
 	move.b	#$0,$C1(a6)
 	moveq	#$7,d0
-	bsr.w	.LEAA
+	bsr.w	WaitDisplayFrames
 	bra.w	.L8B6
 .L9DC
 	cmpi.b	#$8,d5
@@ -630,7 +633,7 @@ X_82A4	equ	$82A4
 	move.w	#$0,$B0(a6)
 	bsr.w	X_23D0
 	moveq	#$7,d0
-	bsr.w	.LEAA
+	bsr.w	WaitDisplayFrames
 	bra.w	.LBC4
 .LABC
 	addi.w	#$1,$80(a6)
@@ -641,7 +644,7 @@ X_82A4	equ	$82A4
 	move.w	#$0,$B0(a6)
 	bsr.w	X_1D54
 	moveq	#$7,d0
-	bsr.w	.LEAA
+	bsr.w	WaitDisplayFrames
 	bra.w	.LBC4
 .LAEE
 	cmpi.b	#$1,d5
@@ -705,7 +708,7 @@ X_82A4	equ	$82A4
 	move.l	d4,d0
 	clr.w	$56(a6)
 	clr.w	$58(a6)
-	bsr.w	.L1376
+	bsr.w	DrawSelectedTeamPageBackground
 	move.w	#$64,$EC(a6)
 .LBDE
 	tst.w	$EC(a6)
@@ -736,7 +739,7 @@ X_82A4	equ	$82A4
 	moveq	#$0,d6
 	cmpi.w	#$2,d4
 	bne.w	.L8B6
-	bsr.w	.L14D2
+	bsr.w	X_14D2
 	move.w	$AE(a6),d5
 	bra.w	.L8EE
 .LC4E
@@ -749,7 +752,7 @@ X_82A4	equ	$82A4
 .LC62
 	tst.w	$EC(a6)
 	bpl.w	.LC62
-	bsr.w	X_3F24
+	bsr.w	SendMainCommand3D
 	bclr.b	#$5,$FF800F.l
 	move.l	#$3FFF,d0
 	movea.l	$DA(a6),a1
@@ -761,17 +764,17 @@ X_82A4	equ	$82A4
 .LC92
 	move.l	(a1)+,(a2)+
 	dbf	d0,.LC92
-	bsr.w	X_3B9C
+	bsr.w	RestorePlayerFrameCallback
 	movem.l	(sp)+,d0-d7/a0-a6
 	movea.l	(sp)+,a6
 	move.w	#$4,d7
 	jsr	$6044.w
-.LCAA
+FetchTeamPhotoAndStatTables
 	move.l	#$6,d0
 	move.l	d0,d1
 	add.w	$7C(a6),d0
 	add.w	$7E(a6),d1
-	lea	.L0(pc),a1
+	lea	PlayerOverlayEntry(pc),a1
 	movea.l	d0,a2
 	movem.l	d0-d2/d7/a0-a1,-(sp)
 	move.w	#$1,d7
@@ -855,7 +858,6 @@ X_82A4	equ	$82A4
 	move.l	#$0,$38(a6)
 .LDEA
 	rts
-.LDEC
 	movem.l	d0-d7/a1-a2,-(sp)
 	move.w	#$50,d0
 	move.l	#$B0000080,d1
@@ -864,14 +866,14 @@ X_82A4	equ	$82A4
 	swap	d2
 	move.w	#$100,d2
 	move.w	#$13,d3
-	bsr.w	X_281C
+	bsr.w	CopyVramRows
 	moveq	#$14,d0
 	moveq	#$0,d1
-	bsr.w	.LF64
+	bsr.w	SetWindowPosition
 	moveq	#$0,d0
 	movea.l	#$91EC,a1
 	suba.l	#$0,a1
-	lea	.L0(pc),a2
+	lea	PlayerOverlayEntry(pc),a2
 	adda.l	a2,a1
 	move.w	$2(a1),d0
 	lea	$4(a1),a1
@@ -892,13 +894,13 @@ X_82A4	equ	$82A4
 	lsr.w	#$5,d5
 	move.l	#$B296,d3
 	move.l	#$80,d6
-	bsr.w	X_2C6A
+	bsr.w	DrawTileMap
 	clr.l	$96(a6)
 .LE7C
-	bsr.w	X_36B6
+	bsr.w	ReadJoy1
 	tst.w	d1
 	bne.w	.LE9C
-	bsr.w	X_36CE
+	bsr.w	ReadJoy2
 	tst.w	d1
 	bne.w	.LE9C
 	cmpi.l	#$258,$96(a6)
@@ -906,16 +908,17 @@ X_82A4	equ	$82A4
 .LE9C
 	moveq	#$0,d0
 	moveq	#$0,d1
-	bsr.w	.LF64
+	bsr.w	SetWindowPosition
 	movem.l	(sp)+,d0-d7/a1-a2
 	rts
-.LEAA
+WaitDisplayFrames
 	clr.w	$102(a6)
 .LEAE
 	tst.w	$102(a6)
 	beq.w	.LEAE
-	dbf	d0,.LEAA
+	dbf	d0,WaitDisplayFrames
 	rts
+ClearVerticalScroll
 	movem.l	d0-d2,-(sp)
 .LEC0
 	btst.b	#$7,$FF800E.l
@@ -949,7 +952,7 @@ X_82A4	equ	$82A4
 	bclr.b	#$7,$FF800F.l
 	movem.l	(sp)+,d0-d2
 	rts
-.LF64
+SetWindowPosition
 	addi.w	#$9200,d0
 .LF68
 	btst.b	#$7,$FF800E.l
@@ -983,7 +986,7 @@ X_82A4	equ	$82A4
 	bne.s	.LFF2
 	bclr.b	#$7,$FF800F.l
 	rts
-.L1006
+ClearStatTextTileRectangle
 	movem.l	d0-d6,-(sp)
 	moveq	#$0,d2
 	move.w	d0,d1
@@ -1036,6 +1039,7 @@ X_82A4	equ	$82A4
 	dbf	d6,.L101E
 	movem.l	(sp)+,d0-d6
 	rts
+AnimateStatDisplayTransition
 	movem.l	d0-d7/a0-a4,-(sp)
 	move.w	$F2(a6),d2
 	moveq	#$4,d3
@@ -1049,26 +1053,26 @@ X_82A4	equ	$82A4
 	beq.w	.L1108
 	neg.w	d3
 .L1108
-	bsr.w	.L1336
+	bsr.w	UploadStatTextTiles
 	move.w	#$E8,d7
 	cmpi.w	#$8,$B8(a6)
 	beq.w	.L111E
 	move.w	#$F0,d7
 .L111E
 	move.w	d7,d0
-	bsr.w	.L1262
+	bsr.w	MoveStatTextSpritesY
 	move.w	$EE(a6),d0
 	subi.w	#$2000,d0
 	addi.w	#$CF8,d0
 	swap	d0
 	move.w	#$100,d0
-	bsr.w	.L1006
+	bsr.w	ClearStatTextTileRectangle
 	move.w	$EE(a6),d0
 	subi.w	#$2000,d0
 	addi.w	#$D50,d0
 	swap	d0
 	move.w	#$100,d0
-	bsr.w	.L1006
+	bsr.w	ClearStatTextTileRectangle
 	move.w	d2,$E2(a6)
 	move.w	d3,$E0(a6)
 	moveq	#$9,d0
@@ -1080,10 +1084,10 @@ X_82A4	equ	$82A4
 	dbf	d0,.L115A
 	moveq	#$1C,d0
 	moveq	#$0,d1
-	bsr.w	.LF64
+	bsr.w	SetWindowPosition
 	neg.w	d7
 	move.w	d7,d0
-	bsr.w	.L1262
+	bsr.w	MoveStatTextSpritesY
 	move.w	#$50,d0
 	move.w	$EE(a6),d1
 	subi.w	#$2000,d1
@@ -1091,7 +1095,7 @@ X_82A4	equ	$82A4
 	move.w	#$100,d1
 	move.l	#$B0000080,d2
 	move.w	#$1B,d3
-	bsr.w	X_281C
+	bsr.w	CopyVramRows
 	move.w	$F2(a6),$E2(a6)
 	move.w	#$0,$E0(a6)
 	move.w	#$9,$DE(a6)
@@ -1112,6 +1116,7 @@ X_82A4	equ	$82A4
 .L11D4
 	movem.l	(sp)+,d0-d7/a0-a4
 	rts
+InitStatTextSprites
 	movem.l	d0-d7/a0-a1,-(sp)
 	movea.l	$8A(a6),a0
 	move.l	#$7DF,d0
@@ -1150,7 +1155,7 @@ X_82A4	equ	$82A4
 	move.b	#$0,-$5(a1)
 	movem.l	(sp)+,d0-d7/a0-a1
 	rts
-.L1262
+MoveStatTextSpritesY
 	movem.l	d1/a1,-(sp)
 	movea.l	$92(a6),a1
 	move.w	#$140,$E0(a6)
@@ -1167,6 +1172,7 @@ X_82A4	equ	$82A4
 	bne.w	.L128E
 	movem.l	(sp)+,d1/a1
 	rts
+RenderTwoStatStringsToTiles
 	movem.l	d0-d4/a0-a4,-(sp)
 	movea.l	$70(a6),a0
 	lea	$4(a0),a0
@@ -1227,7 +1233,7 @@ X_82A4	equ	$82A4
 	addi.w	#$1,$B4(a6)
 	movem.l	(sp)+,d0-d4/a0-a4
 	rts
-.L1336
+UploadStatTextTiles
 	movem.l	d0/a0-a1,-(sp)
 	movea.l	$8A(a6),a0
 	move.w	#$7DF,d0
@@ -1244,7 +1250,7 @@ X_82A4	equ	$82A4
 	bne.w	.L1368
 	movem.l	(sp)+,d0/a0-a1
 	rts
-.L1376
+DrawSelectedTeamPageBackground
 	movem.l	d0-d7/a0-a2,-(sp)
 	lea	$0(a6),a0
 	lsl.w	#$2,d0
@@ -1325,7 +1331,7 @@ X_82A4	equ	$82A4
 	movem.l	d2,-(sp)
 	move.w	$EE(a6),d3
 	move.l	#$100,d6
-	bsr.w	X_2C6A
+	bsr.w	DrawTileMap
 	movem.l	(sp)+,d2
 	bra.w	.L14CA
 .L14AA
@@ -1337,13 +1343,12 @@ X_82A4	equ	$82A4
 	move.w	$EE(a6),d3
 	move.l	#$100,d6
 	movea.l	a1,a2
-	bsr.w	X_2C6A
+	bsr.w	DrawTileMap
 .L14CA
 	movem.l	(sp)+,d0-d7/a0-a2
 	rts
 .L14D0
 	rts
-.L14D2
 	movem.l	d0-d7/a0-a4,-(sp)
 	movea.l	$8(a6),a0
 	cmpi.w	#$0,$18(a6)
@@ -1362,7 +1367,7 @@ X_82A4	equ	$82A4
 	move.w	#$B000,d3
 	move.l	#$80,d6
 	movea.l	a2,a1
-	bsr.w	X_2C6A
+	bsr.w	DrawTileMap
 .L151A
 	btst.b	#$7,$FF800E.l
 	bne.s	.L151A
@@ -1394,13 +1399,13 @@ X_82A4	equ	$82A4
 	move.w	#$B000,d3
 	move.l	#$80,d6
 	movea.l	a2,a1
-	bsr.w	X_2C6A
+	bsr.w	DrawTileMap
 	move.w	#$4000,$FC(a6)
 .L15B8
 	move.l	#$1000,d0
-	bsr.w	X_2C28
+	bsr.w	FillVram
 	move.l	#$20001000,d0
-	bsr.w	X_2C28
+	bsr.w	FillVram
 	move.w	#$3,$DE(a6)
 .L15D2
 	tst.w	$DE(a6)
@@ -1408,7 +1413,7 @@ X_82A4	equ	$82A4
 	move.w	#$2000,d3
 	move.l	#$80,d6
 	movea.l	a2,a1
-	bsr.w	X_2C6A
+	bsr.w	DrawTileMap
 .L15EA
 	btst.b	#$7,$FF800E.l
 	bne.s	.L15EA
@@ -1517,10 +1522,10 @@ X_82A4	equ	$82A4
 	bset.b	#$5,$FF800F.l
 .L17FE
 	moveq	#$7,d0
-	bsr.w	.LEAA
-	bsr.w	X_36B6
+	bsr.w	WaitDisplayFrames
+	bsr.w	ReadJoy1
 	move.w	d1,d5
-	bsr.w	X_36CE
+	bsr.w	ReadJoy2
 	or.w	d1,d5
 	cmpi.b	#$10,d5
 	bne.w	.L1822
@@ -1577,7 +1582,7 @@ X_82A4	equ	$82A4
 	move.w	#$B000,d3
 	move.l	#$80,d6
 	movea.l	a2,a1
-	bsr.w	X_2C6A
+	bsr.w	DrawTileMap
 	move.w	#$1C,$E2(a6)
 	clr.w	$E0(a6)
 	move.w	#$A,$DE(a6)
@@ -1585,9 +1590,9 @@ X_82A4	equ	$82A4
 	tst.w	$DE(a6)
 	bne.w	.L18E6
 	move.l	#$1000,d0
-	bsr.w	X_2C28
+	bsr.w	FillVram
 	move.l	#$20001000,d0
-	bsr.w	X_2C28
+	bsr.w	FillVram
 .L1902
 	btst.b	#$7,$FF800E.l
 	bne.s	.L1902
@@ -1667,7 +1672,7 @@ X_82A4	equ	$82A4
 	andi.w	#$7FFF,d5
 	move.l	#$100,d6
 	movea.l	a2,a1
-	bsr.w	X_2C6A
+	bsr.w	DrawTileMap
 	move.w	#$4,$DE(a6)
 .L1AA6
 	tst.w	$DE(a6)
@@ -1676,9 +1681,9 @@ X_82A4	equ	$82A4
 	andi.w	#$7FFF,d5
 	move.l	#$100,d6
 	movea.l	a2,a1
-	bsr.w	X_2C6A
+	bsr.w	DrawTileMap
 	move.l	#$1000,d0
-	bsr.w	X_2C28
+	bsr.w	FillVram
 .L1ACC
 	btst.b	#$7,$FF800E.l
 	bne.s	.L1ACC
@@ -1716,12 +1721,12 @@ X_82A4	equ	$82A4
 	tst.w	$DE(a6)
 	bne.w	.L1B78
 	move.l	#$B0000800,d0
-	bsr.w	X_2C28
-	bsr.w	.LCAA
+	bsr.w	FillVram
+	bsr.w	FetchTeamPhotoAndStatTables
 	bset.b	#$5,$FF800F.l
 	movem.l	(sp)+,d0-d7/a0-a4
 	rts
-.L1B9C
+DrawPlayerNumberAndPosition
 	movem.l	d0-d7/a0-a4,-(sp)
 	moveq	#$0,d4
 	move.w	#$500,d4
@@ -1739,7 +1744,7 @@ X_82A4	equ	$82A4
 	moveq	#$25,d3
 	movea.l	$78(a6),a0
 	movea.l	a0,a1
-	bsr.w	.L1C8C
+	bsr.w	DrawThreeRowTileBlock
 	move.l	#$3844,d5
 	move.w	#$500,d4
 	andi.b	#$F,d1
@@ -1749,7 +1754,7 @@ X_82A4	equ	$82A4
 	moveq	#$2,d0
 	moveq	#$25,d3
 	movea.l	a1,a0
-	bsr.w	.L1C8C
+	bsr.w	DrawThreeRowTileBlock
 	move.l	#$3802,d5
 	move.w	#$500,d4
 	cmpi.b	#$47,$B7(a6)
@@ -1764,40 +1769,40 @@ X_82A4	equ	$82A4
 	movea.w	#$130,a2
 	move.w	#$20,d3
 	movea.l	a1,a0
-	bsr.w	.L1C8C
+	bsr.w	DrawThreeRowTileBlock
 	bra.w	.L1C86
 .L1C36
 	moveq	#$7,d0
 	movea.w	#$110,a2
 	move.w	#$20,d3
 	movea.l	a1,a0
-	bsr.w	.L1C8C
+	bsr.w	DrawThreeRowTileBlock
 	bra.w	.L1C86
 .L1C4A
 	moveq	#$7,d0
 	movea.w	#$120,a2
 	move.w	#$20,d3
 	movea.l	a1,a0
-	bsr.w	.L1C8C
+	bsr.w	DrawThreeRowTileBlock
 	bra.w	.L1C86
 .L1C5E
 	moveq	#$7,d0
 	movea.w	#$100,a2
 	move.w	#$20,d3
 	movea.l	a1,a0
-	bsr.w	.L1C8C
+	bsr.w	DrawThreeRowTileBlock
 	bra.w	.L1C86
 .L1C72
 	moveq	#$7,d0
 	movea.w	#$F0,a2
 	move.w	#$20,d3
 	movea.l	a1,a0
-	bsr.w	.L1C8C
+	bsr.w	DrawThreeRowTileBlock
 	bra.w	.L1C86
 .L1C86
 	movem.l	(sp)+,d0-d7/a0-a4
 	rts
-.L1C8C
+DrawThreeRowTileBlock
 	moveq	#$2,d7
 	move.w	d0,d2
 	add.w	d3,d3
