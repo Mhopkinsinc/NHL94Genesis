@@ -128,6 +128,7 @@ Verified bytes are 22,690 of the 410,162 bytes in the four code files (5.5%). `M
 | `src/segacd/hockey/fourway94.asm` | `cdbin/HOCKEY.BIN` `$7DDC` | `fourway94.asm`: only `Set4WayPlayer` is left (92) |
 | `src/segacd/hockey/crowd94.asm` | `cdbin/HOCKEY.BIN` `$7E38` | `crowd94.asm`: crowd records, hot and cold players, corner collisions (1,428) |
 | `src/segacd/hockey/optsetup94.asm` | `cdbin/HOCKEY.BIN` `$83CC` | `optsetup94.asm`: game setup and options (6,034) |
+| `src/segacd/hockey/cards94.asm` | `cdbin/HOCKEY.BIN` `$9B5E` | `cards94.asm`: user records bookkeeping, ratings; no player card screen (6,122) |
 
 `maincd.asm` is the main CPU command loop: read `$A12020` when sub flag bit 6 is set, dispatch through the long table at `$FF01BE`, and put the VBlank vector at `$FD08` back when the command finishes. Past the handshake it clears the eight command words, waits on memory-mode bit 2, and hands word RAM back and forth (DMNA / RET in `$A12003`). Two commands add `$180000` to a sub CPU pointer so the main CPU sees the same word RAM (`$080000` there, `$200000` here).
 
@@ -167,6 +168,6 @@ The disc assembler did not optimise: an unsized branch is `.w`, `add`/`sub` of a
 python tools/segacd_port.py --file onetimer94.asm --disc-start 0x76A8 --disc-end 0x7DDC --out src/segacd/hockey/onetimer94.asm --register
 ```
 
-Text the cartridge build takes from the ROM because it is licensed (the New York team nicknames in `optsetup94`) is `incbin ..\cdbin\HOCKEY.BIN,offset,length` here, read from your own disc file.
+What the cartridge build takes from the ROM (the licensed New York team nicknames in `optsetup94`, the asset files it `incbin`s from `Extracted/`, such as the matchup palettes in `cards94`) is `incbin ..\cdbin\HOCKEY.BIN,offset,length` here, read from your own disc file. The Sega CD build never reads `Extracted/`, and `segacd_port.py` stops if a written fragment would contain a player name or team nickname.
 
-What the CD changed so far: graphics are no longer ROM labels (each `movea.l #map` became a load from a pointer table at `$47D00`-`$47D8C` in sub CPU RAM), the beam-counter seed is command `$1B` to the main CPU, the corner-collision radius test in `checkcornercoll` compares with `$42` instead of `$1000`, and the team struct is one word longer below `tmHotCold`. `fourway94` is the first file the CD cut: `Detect4WayPlay` and the `ReadJoySwapPad` routines are gone, and one `rts` that nothing calls is left in their place.
+What the CD changed so far: graphics are no longer ROM labels (each `movea.l #map` became a load from a pointer table at `$47D00`, inside HOCKEY.BIN but zeros on the disc, filled at run time), the beam-counter seed is command `$1B` to the main CPU, the corner-collision radius test in `checkcornercoll` compares with `$42` instead of `$1000`, and the team struct is one word longer below `tmgoals` (`$B4`). `cards94` lost the whole player card screen and its save RAM readers moved next to `sram94`. `fourway94` is the first file the CD cut: `Detect4WayPlay` and the `ReadJoySwapPad` routines are gone, and one `rts` that nothing calls is left in their place.

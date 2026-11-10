@@ -1,6 +1,6 @@
 # NHL 94 Sega CD: sub CPU memory map
 
-`HOCKEY.BIN` runs at `$1B000` in sub CPU program RAM. A HOCKEY.BIN file offset plus `$1B000` is its runtime address. The `$37xxx`-`$39xxx` call targets are therefore HOCKEY.BIN itself (file `$1C000`-`$1EFFF`): `middle94`, `decompress94` and `print94` code. There is no second image and no copy loop.
+`HOCKEY.BIN` runs at `$1B000` in sub CPU program RAM. A HOCKEY.BIN file offset plus `$1B000` is its runtime address. The file is `$2D20A` bytes, so it spans `$1B000`-`$48209`. The `$37xxx`-`$39xxx` call targets are therefore HOCKEY.BIN itself (file `$1C000`-`$1EFFF`): `middle94`, `decompress94` and `print94` code. There is no second image and no copy loop.
 
 ## Evidence
 
@@ -18,17 +18,17 @@
 
 | Runtime | What |
 | --- | --- |
-| `$0000`-`$5FFF` | sub CPU BIOS |
+| `$0000`-`$5FFF` | sub CPU BIOS (HOCKEY.BIN calls `$5F22` and `$6044` directly; the cartridge's `MenuWaitVblank` call became `jsr $6044.w`) |
 | `$6000`-`$60FF` | BIOS entry points (`$6044` is the dispatcher, function number in `d7`) |
 | `$B090` | the boot keeps the BIOS vector from `$6038` here |
 | up to `$C458` | stack (grows down from `$C458`) |
 | `$1745C`-`$1AD99` | game variables. The cartridge's `$FFxxxx` RAM names live here; `src/segacd/hockey/hockey.inc` lists each one found so far |
-| `$1B000`-`$3620A` | `HOCKEY.BIN` |
+| `$1B000`-`$48209` | `HOCKEY.BIN`. File `$2CD00`-`$2CDAB` (`$47D00`-`$47DAB`) is zeros on the disc: a table of graphics pointers filled at run time, read where the cartridge used ROM labels (`movea.l $47D74,a0` for `movea.l #SetupMenuMap,a0`) |
 | `$FF8000`-`$FF80xx` | gate array: `$FF800E` main CPU flag, `$FF800F` sub CPU flag, `$FF8010` main-to-sub words, `$FF8020` sub-to-main command words |
 
 The RAM is not the cartridge layout moved by a constant: `printx` (`$FFB028`) is `$18D58` but `disflags` (`$FFBF78`) is `$18D64`. Each name is placed from a disc operand, never by offset.
 
-The team struct is one word longer than the cartridge's: `tmOneTimers` is `$35E` (cartridge `$35C`) and `tmsize` is `$366` (cartridge `$364`). Where the extra word sits is not known yet; `hockey.inc` notes every struct offset whose disc value differs.
+The team struct is one word longer than the cartridge's, and the extra word sits below `tmgoals`: `tmgoals` `$B6`, `tmpshots` `$EA`, `tmHotCold` `$1A4`, `tmPerGoals` `$344`, `tmOneTimers` `$35E`, `tmsize` `$366` (each two more than the cartridge). Which field grew is not known yet; `hockey.inc` notes every struct offset whose disc value differs.
 
 ## Open
 

@@ -3,9 +3,9 @@
 ;	no cartridge twin. Names are the cartridge's; segacd\hockey\hockey.inc has the disc RAM map.
 ;
 ;	The option logic and strings are the cartridge's. CD: the graphics are not ROM labels any more:
-;	each movea.l #map / lea of a tile set became a load from a pointer table in sub CPU RAM
-;	($47D00-$47D8C, above HOCKEY.BIN), and the beam-counter seed is command $1B to the main CPU
-;	(the word comes back in $FF8010). The New York full names are read from the disc file.
+;	each movea.l #map / lea of a tile set became a load from a pointer table at $47D00-$47D8C
+;	(file $2CD00, zeros on the disc, filled at run time), and the beam-counter seed is command $1B
+;	to the main CPU (the word comes back in $FF8010). The New York full names are read from the disc file.
 
 	include	macros\genesis.mac
 	include	segacd\hockey\hockey.inc

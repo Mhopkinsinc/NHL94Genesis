@@ -274,6 +274,14 @@ def decode(blob, pc, end, base):
     return got
 
 
+TMOFS = re.compile(r"#tm\w+|(?<![\w.])tm\w+\(")
+
+
+def loose(n):
+    n = re.sub(r"#-?\$[0-9a-f]+", "#@", n)
+    return re.sub(r"-?\$[0-9a-f]+\(", "@(", n)
+
+
 def norm(insn):
     m = insn.mnemonic
     op = insn.op_str
@@ -467,6 +475,8 @@ def main():
     ap.add_argument("--no-assemble", action="store_true")
     ap.add_argument("--register", action="store_true",
                     help="add the fragment to tools/segacd.json, tools/verifySegacd.js and the name map")
+    ap.add_argument("--also", action="append", default=[], metavar="FILE",
+                    help="another 94G file whose routines may have moved into this disc range")
     ap.add_argument("--name", action="append", default=[], metavar="NAME=ADDR",
                     help="a disc address checked by hand (a RAM name or a routine outside the fragment)")
     a = ap.parse_args()
@@ -493,7 +503,16 @@ def main():
         if it.scope is None:
             it.scope = scope0
 
-    walk = align(items, disc, a.disc_start, a.disc_end)
+    nmain = len(items)
+    for extra in a.also:
+        elo, ehi, enlo, enhi = file_range(lines, extra)
+        more, _ = build_items(lines, elo, ehi, rom, cart_glob, enlo, enhi)
+        sc = scope_at(lines, elo)
+        for it in more:
+            if it.scope is None:
+                it.scope = sc
+        items += more
+    walk = align(items, disc, a.disc_start, a.disc_end, nmain)
     frag = Fragment(a, items, walk, disc, rom, cart_glob, cart_kind, cart_local, lines, lo, hi, tail)
     for nv in a.name:
         n, v = nv.split("=")
@@ -507,8 +526,29 @@ def main():
     if not a.no_assemble:
         frag.fix_by_assembly(a.out)
     frag.report()
+    licensed_check(a.out)
     if a.register:
         register(a, frag)
+
+
+def licensed_check(path):
+    """Stop if a player name or team nickname (licensed, never in the repo) is in the written file."""
+    lists = {}
+    for f in ("PlayerNames.txt", "TeamNicknames.txt"):
+        p = os.path.join(ROOT, "Extracted", f)
+        if not os.path.exists(p):
+            sys.exit(f"{p}: missing; it is needed to check that no licensed name is written (npm run build:retail)")
+        lists[f] = [n.strip() for n in open(p, encoding="latin1") if len(n.strip()) >= 4]
+    text = open(path, encoding="latin1").read()
+    if re.search(r"^[^;\n]*\b(incbin|include)\s+\.\.\\Extracted", text, re.M | re.I):
+        sys.exit(f"{path}: reads Extracted/ (cartridge assets); the Sega CD build must read cdbin/ only.")
+    quoted = " ".join(re.findall(r"'([^']*)'", text))
+    hits = {n for n in lists["PlayerNames.txt"] if re.search(r"\b" + re.escape(n) + r"\b", text)}
+    hits |= {n for n in lists["TeamNicknames.txt"] if re.search(r"\b" + re.escape(n) + r"\b", quoted)}
+    if hits:
+        sys.exit(f"{path}: contains {len(hits)} licensed name(s). Do not commit it; "
+                 "those bytes must be read from cdbin/ (incbin).")
+
 
 
 def find_rom():
@@ -562,6 +602,8 @@ def item_matches(it, disc, p, end):
         d = decode(disc, p, end, BASE)
         if d is not None and norm(d) == it.norm:
             return d.size
+        if d is not None and TMOFS.search(it.ops) and loose(norm(d)) == loose(it.norm):
+            return d.size               # only a team struct offset differs (the disc struct is longer)
         return None
     if it.kind in ("data", "macro"):
         if it.len and disc[p:p + it.len] == it.cart:
@@ -583,9 +625,11 @@ def soft_matches(it, disc, p, end):
     return None
 
 
-def run_ok(items, i, disc, p, end, k):
+def run_ok(items, i, disc, p, end, k, used=()):
     n = 0
     while n < k:
+        if i in used:
+            return False
         if i >= len(items):
             return n > 0
         it = items[i]
@@ -599,55 +643,125 @@ def run_ok(items, i, disc, p, end, k):
     return True
 
 
-def align(items, disc, start, end):
-    walk = []        # ("m", item, p, len) / ("s", item, p, len) / ("cd", p, q) / ("cut", item)
-    i, p = 0, start
-    while i < len(items) and p < end:
-        it = items[i]
-        ln = item_matches(it, disc, p, end)
-        in_run = bool(walk) and walk[-1][0] in ("m", "s")
-        if ln is not None and (it.kind != "insn" or in_run or run_ok(items, i, disc, p, end, 2) or i + 1 == len(items)):
-            walk.append(("m", it, p, ln))
-            i += 1
-            p += ln
-            continue
-        ln = soft_matches(it, disc, p, end)
-        if ln is not None and run_ok(items, i + 1, disc, p + ln, end, K):
-            walk.append(("s", it, p, ln))
-            i += 1
-            p += ln
-            continue
-        # resync: the cheapest (skip cart items, skip disc bytes) that gives K matches
-        best = None
-        for di in range(0, min(400, len(items) - i)):
-            if best and di >= best[0]:
-                break
-            j = i + di
-            if items[j].kind != "insn":
+def align(items, disc, start, end, nmain=None):
+    """Walk the disc range in disc order. At each position continue the current run of cartridge
+    lines, or jump to an unused cartridge line whose next lines match too (the disc may reorder or
+    move routines), or take one instruction as CD-only code. items[nmain:] are other 94G files'
+    lines (--also), used only by a jump."""
+    from collections import defaultdict
+    if nmain is None:
+        nmain = len(items)
+    idx = defaultdict(list)
+    for j, it in enumerate(items):
+        if it.kind == "insn":
+            idx[("i", it.norm)].append(j)
+        elif it.kind in ("data", "macro") and it.len >= 4:
+            idx[("d", bytes(it.cart[:4]))].append(j)
+    used = set()
+    walk = []
+    cd_from = None
+    p, nxt = start, 0
+
+    def flush_cd(q):
+        nonlocal cd_from
+        if cd_from is not None and q > cd_from:
+            walk.append(("cd", cd_from, q))
+        cd_from = None
+
+    in_run = False
+    while p < end:
+        # 1. the next cartridge line, when it is here
+        if in_run and nxt < len(items) and nxt not in used:
+            it = items[nxt]
+            ln = item_matches(it, disc, p, end)
+            if ln is not None and p + ln <= end:
+                flush_cd(p)
+                walk.append(("m", it, p, ln))
+                used.add(nxt)
+                nxt += 1
+                p += ln
                 continue
-            maxq = min(end, p + 6000)
-            q = p
-            while q < maxq:
-                cost = di + (q - p) / 8
-                if best and cost >= best[0]:
-                    break
-                if run_ok(items, j, disc, q, end, K):
-                    best = (cost, j, q)
-                    break
-                q += 2
-        if best is None:
-            break
-        _, j, q = best
-        for it2 in items[i:j]:
-            walk.append(("cut", it2))
-        if q > p:
-            walk.append(("cd", p, q))
-        i, p = j, q
-    for it2 in items[i:]:
-        walk.append(("cut", it2))
-    if p < end:
-        walk.append(("cd", p, end))
+            ln = soft_matches(it, disc, p, end)
+            if ln is not None and run_ok(items, nxt + 1, disc, p + ln, end, 2):
+                flush_cd(p)
+                walk.append(("s", it, p, ln))
+                used.add(nxt)
+                nxt += 1
+                p += ln
+                continue
+        # 2. a jump: a cartridge line that starts a run of matches here
+        d = decode(disc, p, end, BASE)
+        cands = []
+        if d is not None:
+            cands += idx.get(("i", norm(d)), [])
+        cands += idx.get(("d", bytes(disc[p:p + 4])), [])
+        best = None
+        for j in cands:
+            if j in used or not run_ok(items, j, disc, p, end, K if j < nmain else K + 2, used):
+                continue
+            # prefer the run that follows on, then lines of this file, then the nearest after
+            key = (0 if j == nxt else 1, 0 if j < nmain else 1, 0 if j > nxt else 1, abs(j - nxt))
+            if best is None or key < best[0]:
+                best = (key, j)
+        if best is not None:
+            j = best[1]
+            # zero-length lines just before it (labels, even) come along
+            while j > 0 and items[j - 1].kind == "dir" and (j - 1) not in used and j - 1 >= (nmain if j >= nmain else 0):
+                j -= 1
+            flush_cd(p)
+            nxt = j
+            in_run = True
+            continue
+        # 3. CD-only code
+        if cd_from is None:
+            cd_from = p
+        in_run = False
+        p += d.size if d is not None else 2
+    flush_cd(min(p, end))
+    walk = backfill(walk, items, disc, end, used)
+    for j, it in enumerate(items[:nmain]):
+        if j not in used:
+            walk.append(("cut", it))
     return walk
+
+
+def backfill(walk, items, disc, end, used):
+    """A CD block followed by a run that starts at cartridge line j: the lines just before j may sit
+    at the start of the block (the CD inserted code after them, e.g. right after a routine's
+    movem). Take the longest such lead-in."""
+    index = {id(it): j for j, it in enumerate(items)}
+    out = []
+    for k, w in enumerate(walk):
+        if w[0] == "cd" and k + 1 < len(walk) and walk[k + 1][0] == "m":
+            p, q = w[1], w[2]
+            j = index[id(walk[k + 1][1])]
+            got = None
+            for m in range(min(8, j), 0, -1):
+                if any((j - m + t) in used for t in range(m)):
+                    continue
+                pos, ents = p, []
+                for t in range(m):          # a prefix of the lead-in: the CD may have replaced the rest
+                    it = items[j - m + t]
+                    ln = item_matches(it, disc, pos, q)
+                    if ln is None or pos + ln > q:
+                        break
+                    ents.append(("m", it, pos, ln))
+                    pos += ln
+                while ents and ents[-1][1].kind == "dir":
+                    pos -= ents.pop()[3]
+                if any(e[1].kind == "insn" for e in ents):
+                    got = (ents, pos)
+                    break
+            if got:
+                ents, pos = got
+                for e in ents:
+                    used.add(index[id(e[1])])
+                out += ents
+                if pos < q:
+                    out.append(("cd", pos, q))
+                continue
+        out.append(w)
+    return out
 
 
 # ---------------------------------------------------------------- emission
@@ -661,7 +775,9 @@ class Fragment:
         self.dsym = {}          # name -> disc value (solved)
         self.labels = {}        # disc runtime address -> [(name, scope)]
         self.label_at = {}      # (scope, name) or name -> disc runtime address
-        self.inc_old = read_inc(a.inc)
+        self.inc_assumed = set()
+        self.inc_old = read_inc(a.inc, self.inc_assumed)
+        self.confirmed = set()
         self.stats = {"aligned": 0, "soft": 0, "cd_bytes": 0, "cut": 0, "numeric": 0, "dcw": 0}
         self.externs = {}
         self.inc_new = {}
@@ -712,7 +828,7 @@ class Fragment:
             return self.label_at[name]
         if name in self.dsym:
             return self.dsym[name]
-        if name in self.inc_old:
+        if name in self.inc_old and name not in self.inc_assumed:
             return self.inc_old[name]
         k = self.ckind.get(name)
         if k in ("equ", "rs"):
@@ -755,13 +871,18 @@ class Fragment:
         try:
             v = evaluate(expr, lambda n: self.lookup_disc(n, scope))
             if (v & mask) == (value & mask):
+                single = expr.strip()
+                if re.fullmatch(ID, single) and self.ckind.get(single) in ("equ", "rs") and not self.is_address(single) \
+                        and single not in self.dsym:
+                    self.confirmed.add(single)
                 return True
             if mode != "disp":
                 return False
             # a struct offset whose disc value differs (the disc team struct has an extra word)
             free = [t for t in re.findall(ID, expr) if t.lower() not in REGS and not t.startswith(".")
                     and self.ckind.get(t) in ("equ", "rs") and not self.is_address(t)
-                    and t not in self.dsym and t not in self.inc_old]
+                    and t not in self.dsym and (t not in self.inc_old or t in self.inc_assumed)
+                    and t not in self.confirmed]
             if len(free) != 1:
                 return False
             u = free[0]
@@ -791,7 +912,11 @@ class Fragment:
             return False
         u = unknown[0]
         if mode == "target" and expr.strip() == u:
-            return self.place_from_evidence(u, value, scope)
+            if self.place_from_evidence(u, value, scope):
+                return True
+            if u.startswith(".") or BASE + self.start <= value < BASE + self.end:
+                return False
+            # a routine outside the fragment: an equate (below)
         if u.startswith(".") or not self.is_address(u) and u in self.cglob:
             return False
         if u not in self.cglob:
@@ -814,6 +939,8 @@ class Fragment:
             if sol & 0x8000 and width == 16:
                 sol |= 0xFFFF0000
             sol &= 0xFFFFFFFF
+        if self.ckind.get(u) == "label" and not (BASE <= sol < BASE + len(self.disc)):
+            return False                # a routine name must land in HOCKEY.BIN (not the BIOS at $6044)
         self.dsym[u] = sol
         return True
 
@@ -833,6 +960,8 @@ class Fragment:
                 width = 8
             if base in ("adda", "suba") and width >= 16:
                 mode = "disp"                   # a struct offset added to a pointer
+            if re.fullmatch(r"tm\w+", expr.strip()) and width >= 16:
+                mode = "disp"                   # a team struct offset (the disc struct is one word longer)
             text = "#" + expr
         elif o["mode"] == "abs":
             text = f"({expr}).{o['size']}"
@@ -1037,6 +1166,11 @@ class Fragment:
                     elif it.licensed:
                         body.append(("src", f"\tincbin\t..\\cdbin\\HOCKEY.BIN,${p:X},{ln}\t;licensed text: read from the disc file",
                                      p, ln))
+                    elif it.mnem.lower() == "incbin" and "extracted" in it.ops.lower():
+                        # a cartridge asset (extracted from the ROM there): the same bytes from the disc file
+                        what = it.comment.lstrip(";").strip() or it.ops.split("\\")[-1]
+                        body.append(("src", f"{it.label or ''}\tincbin\t..\\cdbin\\HOCKEY.BIN,${p:X},{ln}\t;{what} (from the disc file)",
+                                     p, ln))
                     else:
                         body.append(("src", it.ln.src.rstrip(), p, ln))
             elif w[0] == "cd":
@@ -1149,8 +1283,10 @@ class Fragment:
                 names[n] = v
             else:
                 self.inc_new[n] = v
+        used_text = "\n".join(out)
         for n, v in sorted(names.items(), key=lambda kv: kv[1]):
-            ext.append(f"{n}\tequ\t${v:X}")
+            if re.search(r"(?<![\w.@])" + re.escape(n) + r"(?![\w@])", used_text):
+                ext.append(f"{n}\tequ\t${v:X}")
         for n, v in sorted(self.externs.items(), key=lambda kv: kv[1]):
             ext.append(f"{n}\tequ\t${v:X}")
         if ext:
@@ -1160,20 +1296,26 @@ class Fragment:
 
     def write_inc(self):
         merged = dict(self.inc_old)
+        assumed = set(self.inc_assumed)
+        used = self.used_constants("")          # also confirms constants seen in copied data
         for n, v in self.dsym.items():
             if n not in self.label_at and self.ckind.get(n) != "label":
                 self.inc_new[n] = v
+        for n in self.confirmed:
+            if n not in self.inc_new:
+                self.inc_new[n] = self.cglob[n]
         for n, v in self.inc_new.items():
-            if n in merged and merged[n] != v:
+            if n in merged and merged[n] != v and n not in assumed:
                 print(f"warning: {n} is ${merged[n]:X} in the include, this fragment wants ${v:X}")
                 continue
             merged[n] = v
+            assumed.discard(n)
         # constants used by the fragment and not defined in it
-        text_all = "\n".join(str(e) for e in self.body)
-        for n in self.used_constants(text_all):
+        for n in used:
             if n not in merged:
                 merged[n] = self.cglob[n]
-        write_inc(self.a.inc, merged, self.cglob, self.ckind)
+                assumed.add(n)
+        write_inc(self.a.inc, merged, self.cglob, self.ckind, assumed)
 
     def used_constants(self, text):
         out = []
@@ -1205,6 +1347,9 @@ class Fragment:
                 k = self.ckind.get(tok)
                 if k in ("equ", "rs") and self.cglob[tok] < 0xFF0000:
                     out.append(tok)
+                    # a constant in a byte-equal copied data line (String CC_Font1,...) shows its value
+                    if e[0] == "src" and e[3] and re.fullmatch(r"\s*(" + ID + r"\s+)?(string|dc\.[bwl]|dc)\b.*", split_comment(e[1])[0], re.I | re.S):
+                        self.confirmed.add(tok)
         return out
 
     def span(self, e):
@@ -1278,6 +1423,8 @@ class Fragment:
         print("gave up after 400 fixes")
 
     def report(self):
+        last = max((w[2] + w[3] for w in self.walk if w[0] in ("m", "s") and w[1].kind != "dir"), default=self.start)
+        print(f"last aligned cartridge line ends at ${last:X}")
         s = self.stats
         print(f"{os.path.relpath(self.a.out, ROOT)}: ${self.start:X}-${self.end:X} ({self.end - self.start} bytes), "
               f"aligned {s['aligned']} (+{s['soft']} relocated data), CD-only {s['cd_bytes']} bytes, "
@@ -1338,21 +1485,28 @@ def raw_dc(raw):
     return "dc.b\t" + ",".join(f"${b:02X}" for b in raw)
 
 
-def read_inc(path):
+ASSUMED = "not checked on the disc yet"
+
+
+def read_inc(path, assumed=None):
     out = {}
     if os.path.exists(path):
         for line in open(path):
             m = re.match(r"(" + ID + r")\s+equ\s+\$([0-9A-Fa-f]+)", line)
             if m:
                 out[m.group(1)] = int(m.group(2), 16)
+                if assumed is not None and ASSUMED in line:
+                    assumed.add(m.group(1))
     return out
 
 
-def write_inc(path, merged, cglob, ckind):
+def write_inc(path, merged, cglob, ckind, assumed=()):
     ram = {n: v for n, v in merged.items() if cglob.get(n, 0) >= 0xFF0000}
     const = {n: v for n, v in merged.items() if n not in ram}
     out = [";\tHOCKEY.BIN names: the sub CPU RAM map (where each cartridge variable lives on the disc) and the",
            ";\tcartridge constants the HOCKEY.BIN fragments use. tools/segacd_port.py adds to this file.",
+           f";\tA constant marked \"{ASSUMED}\" has the cartridge value and was only used where its own",
+           ";\tvalue does not show (a difference, a copied line); a disc operand may still change it.",
            "", "; RAM"]
     for n, v in sorted(ram.items(), key=lambda kv: (kv[1], kv[0])):
         out.append(f"{n}\tequ\t${v:X}")
@@ -1360,6 +1514,8 @@ def write_inc(path, merged, cglob, ckind):
     for n, v in sorted(const.items(), key=lambda kv: kv[0].lower()):
         c = cglob.get(n)
         note = f"\t\t;the cartridge has ${c:X}" if c is not None and c != v else ""
+        if n in assumed:
+            note = f"\t\t;{ASSUMED}"
         out.append(f"{n}\tequ\t${v:X}{note}")
     os.makedirs(os.path.dirname(path), exist_ok=True)
     open(path, "w", newline="\n").write("\n".join(out) + "\n")

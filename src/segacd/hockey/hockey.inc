@@ -1,7 +1,10 @@
 ;	HOCKEY.BIN names: the sub CPU RAM map (where each cartridge variable lives on the disc) and the
 ;	cartridge constants the HOCKEY.BIN fragments use. tools/segacd_port.py adds to this file.
+;	A constant marked "not checked on the disc yet" has the cartridge value and was only used where its own
+;	value does not show (a difference, a copied line); a disc operand may still change it.
 
 ; RAM
+M68K_RAM	equ	$C45C
 Vcount	equ	$17474
 OldVcount	equ	$17476
 SortCords	equ	$17480
@@ -35,6 +38,7 @@ homecoldplayer	equ	$17EB2
 onetimerplayer	equ	$17EBC
 onetimerclock	equ	$17EBE
 onetimerflags	equ	$17EC6
+mesarea	equ	$17EF2
 gmode	equ	$17F68
 sflags	equ	$17F6A
 sflags3	equ	$17F6E
@@ -64,6 +68,8 @@ tmstruct	equ	$1834C
 awtmstruct	equ	$186B2
 bosgames	equ	$18A9C
 gamelevel	equ	$18A9E
+homeuser	equ	$18BF4
+awayuser	equ	$18BF6
 FourWayPlay	equ	$18BF8
 OptPlayMode	equ	$18BFA
 OptNOP	equ	$18BFC
@@ -113,11 +119,24 @@ setupvis	equ	$1938E
 setupcardflags	equ	$19390
 homepicchars	equ	$19392
 vispicchars	equ	$19394
+cardroster	equ	$19396
 logobox1chars	equ	$19398
 logobox2chars	equ	$1939A
 cardtimer	equ	$1939E
+featuredplayer	equ	$193A0
 carddelay	equ	$193A2
+cardprintx	equ	$193A4
+cardprinty	equ	$193A6
+cardteamnum	equ	$193A8
+homegoalies	equ	$193AA
+awaygoalies	equ	$193AC
+homeplayers	equ	$193AE
+awayplayers	equ	$193B0
 ValidSRAM	equ	$193BA
+namelog	equ	$1A2FC
+OvrDivisor	equ	$1A570
+OvrDividend	equ	$1A572
+picturebuf	equ	$1A8C0
 inputjoy	equ	$1AD7A
 TmpJoyPuckCarrier	equ	$1AD7C
 palfadenew	equ	$BBCB0
@@ -125,19 +144,32 @@ recordbuf	equ	$BC000
 
 ; constants
 attribute	equ	$4
+Blueline	equ	$58
 cbut	equ	$5
 CC_Font1	equ	$FF
 CC_Font1Pal1	equ	$EF
 CC_Font1Pal3	equ	$CF
 CC_Font1Pri	equ	$BF
 CC_Font2	equ	$FE
+crgoalsopp	equ	$2
+crgoalsoppuser	equ	$3
+crgoalsuser	equ	$1
 crpeak	equ	$8
+crpeakopp	equ	$A
+crpeakoppuser	equ	$B
+crpeakuser	equ	$9
+crsaves	equ	$4
+crsavesopp	equ	$6
+crsavesoppuser	equ	$7
+crsavesuser	equ	$5
 dbut	equ	$1
 df32c	equ	$1
 dfng	equ	$2
 dfok	equ	$0
 facedir	equ	$54
 gmclock	equ	$0
+GoalieOdds	equ	$A
+jimdata	equ	$4
 lbut	equ	$2
 LineSets	equ	$6
 NumPlayoffTeams	equ	$1A
@@ -155,11 +187,16 @@ pfna	equ	$1
 pfteam	equ	$6
 pnum	equ	$66
 position	equ	$34
+propp	equ	$2
+proppuser	equ	$3
+pruser	equ	$1
+radiusx	equ	$4A
+radiusy	equ	$4C
 rbut	equ	$3
-rosxoff	equ	$1C
+rosxoff	equ	$1C		;not checked on the disc yet
 sbut	equ	$7
 SCnum	equ	$52
-SCstruct	equ	$80
+SCstruct	equ	$80		;not checked on the disc yet
 sf3llcs	equ	$0
 sfhor	equ	$7
 Sideline	equ	$88
@@ -169,14 +206,27 @@ SPAshotb	equ	$92E
 SPAshotf	equ	$7FC
 Teamname	equ	$4
 tmdata	equ	$1E
+tmgoals	equ	$B6		;the cartridge has $B4
 tmHotCold	equ	$1A4		;the cartridge has $1A2
 tmOneTimers	equ	$35E		;the cartridge has $35C
 tmPerGoals	equ	$344		;the cartridge has $342
+tmpshots	equ	$EA		;the cartridge has $E8
+tmscore	equ	$C
 tmsize	equ	$366		;the cartridge has $364
 tmtouch1	equ	$18
 tmtouch2	equ	$1A
 tmtouch3	equ	$1C
 ubut	equ	$0
+urgames	equ	$A
+urgoalsopp	equ	$2
+urgoalsoppuser	equ	$3
+urgoalsteam	equ	$1
+ursaves	equ	$4
+ursavesopp	equ	$6
+ursavesoppuser	equ	$7
+ursavesteam	equ	$5
+urties	equ	$C
+urwins	equ	$8
 Wallcos	equ	$4E
 Wallsin	equ	$50
 Xvel	equ	$28
