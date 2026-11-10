@@ -117,5 +117,7 @@
   {"name": "starter/filmbuf_tag", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
   {"name": "starter/startertext", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
   {"name": "starter/startergfx", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
-  {"name": "starter/startertail", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]}
+  {"name": "starter/startertail", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
+  {"name": "data/gtable", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
+  {"name": "data/graph2", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]}
 ]

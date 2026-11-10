@@ -2,10 +2,11 @@
 
 ## Now
 - Unit: none in progress. Branch `mcmarkis/segacd-hockey` (fork Mhopkinsinc/NHL94Genesis), PR abdulahmad/NHL94Genesis#239.
-- Last check: 2026-11-10, Windows: `npm run build:segacd` MATCH 119 fragments; `tools/verify_all.sh -q` ALL MATCH.
+- Last check: 2026-11-10, Windows: `npm run build:segacd` MATCH 121 fragments; `tools/verify_all.sh -q` ALL MATCH.
   `tools/segacd_check.sh`: all four code files match in full, 410,162 of 410,162 bytes. Of those, 43,120 (HOCKEY.BIN),
   25,806 (PLAYER.BIN) and about 87 KB (STARTER.BIN) are graphics, pictures, licensed names or credits read from the
-  disc with incbin; the rest is source. GRAPH2.BIN and GTABLE.BIN (PLAN step 5) are not started.
+  disc with incbin; the rest is source. GRAPH2.BIN and GTABLE.BIN (PLAN step 5) match too: all six disc files are
+  built byte for byte (`src/segacd/data/`).
 - Owner decision (Abdul, on the PR): all Sega CD code goes in the Sega CD folder and does not touch the existing
   work; align code, symbols and file names with 94G where possible. So the older hand fragments in `src/segacd/`
   stay as they are, and a 94G twin whose disc range holds one is written in parts around it (`name.asm`,
@@ -20,8 +21,8 @@
 - STARTER.BIN, MAIN.BIN, PLAYER.BIN (PLAN steps 3 and 4) match in full: `src/segacd/starter/`, `main/`, `player/`,
   written by `tools/segacd_starter.sh`, `segacd_main.sh`, `segacd_player.sh` (no ROM or listing needed).
 - Next:
-  1. PLAN step 5: GTABLE.BIN (2 KB of long offsets) and GRAPH2.BIN (3 MB, offsets first): format notes, a table in
-     source, the graphics with incbin.
+  1. PLAN step 5 is done in its first form: GRAPH2's offset table is source and its 23 blocks are incbin; GTABLE is
+     source. Left: which code reads GTABLE (the 12-byte record guess), and which GRAPH2 block is which picture.
   2. Names: STARTER's driver module (runtime `$C000`, dispatch at `$C542`), MAIN's start-up and the module at
      `$77B8`, PLAYER's `playerinit` / `playercode`, HOCKEY's graphics pointer table entries and its header.
   3. Formats: STARTER's tiles and packed block, MAIN's Z80 program (a Z80 disassembly with asm80 like the
@@ -42,8 +43,8 @@
 | STARTER.BIN | 120,248 | 120,248 (100%) | the older fragments and `src/segacd/starter/` (tiles, packed block, credits text incbin) |
 | HOCKEY.BIN | 184,842 | 184,842 (100%) | 94G twins (some in parts), team data, CD-only pads and pointer table, the older fragments; 43,120 bytes incbin |
 | PLAYER.BIN | 44,656 | 44,656 (100%) | the older fragments and `src/segacd/player/` (pictures incbin) |
-| GRAPH2.BIN | 3,051,520 | 0 | graphics archive; first longs are offsets |
-| GTABLE.BIN | 2,048 | 0 | long offsets |
+| GRAPH2.BIN | 3,051,520 | 3,051,520 (100%) | offset table in source, 23 blocks incbin |
+| GTABLE.BIN | 2,048 | 2,048 (100%) | 512 longs in source |
 | Total code | 410,162 | 410,162 (100%) | was 22,690 (5.5%) at the start of the session |
 
 ## Parked units

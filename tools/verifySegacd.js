@@ -185,3 +185,5 @@ compareAt('output/segacd/starter/filmbuf_tag.bin', 'cdbin/STARTER.BIN', 0x4EC0, 
 compareAt('output/segacd/starter/startertext.bin', 'cdbin/STARTER.BIN', 0x556E, 0x892);
 compareAt('output/segacd/starter/startergfx.bin', 'cdbin/STARTER.BIN', 0x5E00, 0x1510E);
 compareAt('output/segacd/starter/startertail.bin', 'cdbin/STARTER.BIN', 0x1AF0E, 0x26AA);
+compareAt('output/segacd/data/gtable.bin', 'cdbin/GTABLE.BIN', 0x0, 0x800);
+compareAt('output/segacd/data/graph2.bin', 'cdbin/GRAPH2.BIN', 0x0, 0x2E9000);
