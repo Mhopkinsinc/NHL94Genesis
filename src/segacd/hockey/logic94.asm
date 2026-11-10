@@ -5603,7 +5603,7 @@ puckpenshot							;puck start for a penalty shot or shootout: on the first call 
 .setuprink							;set up the rink
 	move.w	(ExtraChars).l,d4
 ;CD: no cartridge twin
-	movea.l	$47D1C.l,a2
+	movea.l	(RefsMapPtr).l,a2
 	addq.l	#$8,a2
 	jsr	(DecompressGraphicsPlain).l
 	bset.b	#dfclock,(disflags).l
@@ -6427,11 +6427,11 @@ puckfaceoff2						;face off control logic and general setup for action a3 = the 
 	bsr.w	ResetAndSelectPlayers
 	move.w	(ExtraChars).l,d4
 ;CD: no cartridge twin
-	movea.l	$47D14.l,a2
+	movea.l	(FaceOffMapPtr).l,a2
 	addq.l	#$8,a2
 	jsr	(DecompressGraphicsPlain).l
 	move.w	d4,$18D4C.l
-	movea.l	$47D30.l,a2
+	movea.l	(FaceOffSpritesPtr).l,a2
 	addq.l	#$8,a2
 	bsr.w	DecompressGraphicsPlain
 	move.w	#$FFFF,(arenaanim).l
@@ -6459,7 +6459,7 @@ puckfaceoff2						;face off control logic and general setup for action a3 = the 
 	move.w	d0,(printy).l			;print row = (y - 68) / 8
 	move.w	(ExtraChars).l,d4		;space for faceoff map
 ;CD: no cartridge twin
-	movea.l	$47D14.l,a0
+	movea.l	(FaceOffMapPtr).l,a0
 	movea.l	a0,a1
 	movea.l	a0,a2
 	adda.l	(a2)+,a0
@@ -6646,7 +6646,7 @@ Endfaceoff							;drop the puck: pick the faceoff winner and send the puck off
 	move.w	#$3C,(holdreset).l
 	move.w	(ExtraChars).l,d4
 ;CD: no cartridge twin
-	movea.l	$47D1C.l,a2
+	movea.l	(RefsMapPtr).l,a2
 	addq.l	#$8,a2
 	bsr.w	DecompressGraphicsPlain	;ref cam chars
 	bclr.b	#sf2drec,(sflags2).l	;replay recording may start

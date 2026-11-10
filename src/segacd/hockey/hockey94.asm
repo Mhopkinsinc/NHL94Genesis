@@ -51,54 +51,54 @@ Begin						;CD: its first lines have no twin; the rest of it starts here
 	movem.l	(sp)+,d0-d2/d7/a0-a1
 	movea.l	$47D60.l,a0
 	move.l	a0,d0
-	move.l	(a0)+,$47D3C.l
-	add.l	d0,$47D3C.l
-	move.l	(a0)+,$47D18.l
-	add.l	d0,$47D18.l
-	move.l	(a0)+,$47D40.l
-	add.l	d0,$47D40.l
-	move.l	(a0)+,$47D2C.l
-	add.l	d0,$47D2C.l
-	move.l	(a0)+,$47D38.l
-	add.l	d0,$47D38.l
-	move.l	(a0)+,$47D4C.l
-	add.l	d0,$47D4C.l
-	move.l	(a0)+,$47D34.l
-	add.l	d0,$47D34.l
-	move.l	(a0)+,$47D30.l
-	add.l	d0,$47D30.l
-	move.l	(a0)+,$47D1C.l
-	add.l	d0,$47D1C.l
-	move.l	(a0)+,$47D20.l
-	add.l	d0,$47D20.l
-	move.l	(a0)+,$47D44.l
-	add.l	d0,$47D44.l
-	move.l	(a0)+,$47D10.l
-	add.l	d0,$47D10.l
-	move.l	(a0)+,$47D58.l
-	add.l	d0,$47D58.l
-	move.l	(a0)+,$47D14.l
-	add.l	d0,$47D14.l
+	move.l	(a0)+,(SmallFontMapPtr).l
+	add.l	d0,(SmallFontMapPtr).l
+	move.l	(a0)+,(RinktilelistPtr).l
+	add.l	d0,(RinktilelistPtr).l
+	move.l	(a0)+,(EnergyBarMapPtr).l
+	add.l	d0,(EnergyBarMapPtr).l
+	move.l	(a0)+,(CrowdSpritesPtr).l
+	add.l	d0,(CrowdSpritesPtr).l
+	move.l	(a0)+,(BigFontMapPtr).l
+	add.l	d0,(BigFontMapPtr).l
+	move.l	(a0)+,(EASportsMapPtr).l
+	add.l	d0,(EASportsMapPtr).l
+	move.l	(a0)+,(ZamSpritesPtr).l
+	add.l	d0,(ZamSpritesPtr).l
+	move.l	(a0)+,(FaceOffSpritesPtr).l
+	add.l	d0,(FaceOffSpritesPtr).l
+	move.l	(a0)+,(RefsMapPtr).l
+	add.l	d0,(RefsMapPtr).l
+	move.l	(a0)+,(RefMap2Ptr).l
+	add.l	d0,(RefMap2Ptr).l
+	move.l	(a0)+,(TeamblocksmapPtr).l
+	add.l	d0,(TeamblocksmapPtr).l
+	move.l	(a0)+,(FramerMapPtr).l
+	add.l	d0,(FramerMapPtr).l
+	move.l	(a0)+,(ScoresMapPtr).l
+	add.l	d0,(ScoresMapPtr).l
+	move.l	(a0)+,(FaceOffMapPtr).l
+	add.l	d0,(FaceOffMapPtr).l
 	move.l	(a0)+,$47D28.l
 	add.l	d0,$47D28.l
-	move.l	(a0)+,$47D0C.l
-	add.l	d0,$47D0C.l
+	move.l	(a0)+,(EASportsBGMapPtr).l
+	add.l	d0,(EASportsBGMapPtr).l
 	move.l	(a0)+,$47D64.l
 	add.l	d0,$47D64.l
-	move.l	(a0)+,$47D68.l
-	add.l	d0,$47D68.l
-	move.l	(a0)+,$47D6C.l
-	add.l	d0,$47D6C.l
-	move.l	(a0)+,$47D70.l
-	add.l	d0,$47D70.l
-	move.l	(a0)+,$47D80.l
-	add.l	d0,$47D80.l
-	move.l	(a0)+,$47D84.l
-	add.l	d0,$47D84.l
-	move.l	(a0)+,$47D98.l
-	add.l	d0,$47D98.l
-	move.l	(a0)+,$47D9C.l
-	add.l	d0,$47D9C.l
+	move.l	(a0)+,(ReplayMapPtr).l
+	add.l	d0,(ReplayMapPtr).l
+	move.l	(a0)+,(IceRinkHorMapPtr).l
+	add.l	d0,(IceRinkHorMapPtr).l
+	move.l	(a0)+,(PrintFont2MapPtr).l
+	add.l	d0,(PrintFont2MapPtr).l
+	move.l	(a0)+,(NHLLogoMapPtr).l
+	add.l	d0,(NHLLogoMapPtr).l
+	move.l	(a0)+,(NHLPALogoMapPtr).l
+	add.l	d0,(NHLPALogoMapPtr).l
+	move.l	(a0)+,(HotMapPtr).l
+	add.l	d0,(HotMapPtr).l
+	move.l	(a0)+,(ColdMapPtr).l
+	add.l	d0,(ColdMapPtr).l
 	move.l	(a0)+,$47DA8.l
 	add.l	d0,$47DA8.l
 	lea	$2A9FA.l,a2

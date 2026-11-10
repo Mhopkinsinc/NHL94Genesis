@@ -90,7 +90,7 @@ Framer								;frame and fill (uses framer.map graphics and assums tiles are alr
 	move.w	(printa).l,d2			;attribute
 	add.w	(framercset).l,d2		;plus the frame chars
 ;CD: no cartridge twin
-	movea.l	$47D10.l,a1
+	movea.l	(FramerMapPtr).l,a1
 	adda.l	$4(a1),a1
 	adda.w	#$4,a1
 	clr.w	d4						;d4 = offset of the frame map row (6 bytes per row: left, middle, right)
@@ -197,10 +197,10 @@ printsmall							;Print string macro a1 at printx/y/m with printa; uses the setu
 	beq.w	.skip
 	asl.w	#1,d0					;ascii -> word index into the font map
 ;CD: no cartridge twin
-	movea.l	$47D3C.l,a2
+	movea.l	(SmallFontMapPtr).l,a2
 	btst.b	#$3,(sflags6).l
 	beq.w	.4
-	movea.l	$47D70.l,a2
+	movea.l	(PrintFont2MapPtr).l,a2
 .4									;font map chosen
 	adda.l	jimdata(a2),a2
 	move.w	mapwords(a2,d0.w),d0	;char of the font
@@ -362,10 +362,10 @@ print								;a1 = string macro, printx/y = x/y cordinate on map for printing, p
 	beq.w	.skip
 	asl.w	#1,d0					;ascii -> word index into the font map
 ;CD: no cartridge twin
-	movea.l	$47D3C.l,a2
+	movea.l	(SmallFontMapPtr).l,a2
 	btst.b	#$3,(sflags6).l
 	beq.w	.2
-	movea.l	$47D70.l,a2
+	movea.l	(PrintFont2MapPtr).l,a2
 .2									;font map chosen
 	adda.l	jimdata(a2),a2
 	move.w	mapwords(a2,d0.w),d0	;char of the font
@@ -639,7 +639,7 @@ PrintBigChar						;print big font char d0 (ascii) through bfasciicon
 .0									;tile offset ready
 	asl.w	#1,d1
 ;CD: no cartridge twin
-	movea.l	$47D38.l,a0
+	movea.l	(BigFontMapPtr).l,a0
 	adda.l	jimdata(a0),a0
 .loop								;each tile of the char
 	move.w	mapwords(a0,d1.w),d3
@@ -690,10 +690,10 @@ AddSmallFont						;transfer smallfont.map tiles to vram. d4 = char to start tile
 									;d4 = end of tiles + 1. Goes through DecompressGraphics
 	move.w	d4,(smallfontchars).l
 ;CD: no cartridge twin
-	movea.l	$47D3C.l,a2
+	movea.l	(SmallFontMapPtr).l,a2
 	addq.l	#$8,a2
 	bra.w	X_38958
-	movea.l	$47D10.l,a2
+	movea.l	(FramerMapPtr).l,a2
 	addq.l	#$8,a2
 AddFramer						;CD: its first lines have no twin; the rest of it starts here
 	move.w	d4,(framercset).l		;frame chars
@@ -702,6 +702,6 @@ AddTeamBlock						;transfer TeamBlocks.map tiles to vram at char 2. Return d4 = 
 									;+ 1. Goes through DecompressGraphics
 	moveq	#2,d4
 ;CD: no cartridge twin
-	movea.l	$47D44.l,a2
+	movea.l	(TeamblocksmapPtr).l,a2
 	addq.l	#$8,a2
 	bra.w	DecompressGraphicsPlain

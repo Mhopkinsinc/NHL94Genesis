@@ -508,6 +508,8 @@ def main():
                          "nicknames) and every CD block are incbin from the disc file, never text")
     ap.add_argument("--label", action="append", default=[], metavar="NAME=ADDR",
                     help="a name for a CD-only routine at runtime address ADDR in the fragment")
+    ap.add_argument("--cdname", action="append", default=[], metavar="NAME=ADDR",
+                    help="a name for a CD-only disc address (no cartridge twin); CD lines use it, hockey.inc keeps it")
     ap.add_argument("--name", action="append", default=[], metavar="NAME=ADDR",
                     help="a disc address checked by hand (a RAM name or a routine outside the fragment)")
     a = ap.parse_args()
@@ -592,6 +594,10 @@ def main():
         if n not in cart_glob:
             sys.exit(f"--name {nv}: {n} is not a cartridge name")
         frag.dsym[n] = int(v, 0)
+    for nv in a.cdname:             # a name for a disc address with no cartridge twin (cdgfxptrs.asm entries)
+        n, v = nv.split("=")
+        frag.dsym[n] = int(v, 0)
+        frag.cdnames.add(n)
     text = frag.emit()
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     open(a.out, "w", newline="\n").write(text)
@@ -936,6 +942,7 @@ class Fragment:
         self.targets = set()
         self.cd_pcs = set()
         self.cdlabels = set()
+        self.cdnames = set()
         self.tagspans = {}
         self.known_funcs = {}
         self.public = set()
@@ -1259,7 +1266,7 @@ class Fragment:
         """A unique name for address v (RAM map or a routine), for CD-only lines."""
         hits = set()
         for n, x in list(self.inc_old.items()) + list(self.dsym.items()):
-            if x == v and self.is_address(n):
+            if x == v and (self.is_address(n) or n in self.cdnames):
                 hits.add(n)
         for k, x in self.label_at.items():
             if x == v and isinstance(k, str):

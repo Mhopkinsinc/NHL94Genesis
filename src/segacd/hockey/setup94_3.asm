@@ -159,7 +159,7 @@ DrawTeamBitmap						;dobitmap entry d1 of TeamBitmaps (d4 from the caller)
 	clr.w	d0
 	asl.w	#1,d1
 ;CD: no cartridge twin
-	movea.l	$47D48.l,a0
+	movea.l	(TeamBitmapsPtr).l,a0
 	movea.l	a0,a1					;a1 = map header
 	adda.l	(a0),a0					;a0 = tile data
 	adda.l	jimdata(a1),a1			;a1 = map data
@@ -173,7 +173,7 @@ dotb								;unreferenced. Like DrawTeamBitmap with Teamblocksmap, d4 = 2, d5 = 
 	clr.w	d0
 	asl.w	#1,d1
 ;CD: no cartridge twin
-	movea.l	$47D44.l,a0
+	movea.l	(TeamblocksmapPtr).l,a0
 	movea.l	a0,a1					;a1 = map header
 	adda.l	(a0),a0					;a0 = tile data
 	adda.l	jimdata(a1),a1			;a1 = map data
@@ -1057,7 +1057,7 @@ ShowThreeStars						;End of game Stars of the Game box. Called from UpdatePA whi
 	dc.b	'tars of the Game'
 	eor.b	d7,d3
 	btst	d7,d0
-	movea.l	$47D18.l,a1
+	movea.l	(RinktilelistPtr).l,a1
 	movea.l	#null,a2
 	adda.l	jimdata(a1),a1
 	moveq	#$D,d0					;dobitmap d0-d5
@@ -1716,7 +1716,7 @@ crash								;printbig d1 then d0 as hex, set the vdp up, copy 8 longs from the
 	btst.b	#$6,$FF800E.l
 	bne.s	.L414B6
 	bclr.b	#$7,$FF800F.l
-	movea.l	$47D18.l,a1
+	movea.l	(RinktilelistPtr).l,a1
 	adda.l	(a1),a1
 	adda.w	#$20,a1					;second palette
 	moveq	#7,d0					;8 longs

@@ -22,6 +22,40 @@ KNOWN=(
   --name tmpshots=0xEA         # cards94 UpdatePlayerRecords: addi.w #$EA,d0 for addi.w #tmpshots,d0
   --name LineDataBase=0xE20    # shootoutpath94 ReadLineData / WriteLineData: move.l #$E20,d0 for #LineDataBase
 )
+# Graphics pointer table entries (cdgfxptrs.asm), named after the cartridge label the replaced lines used:
+CDNAMES=(
+  --cdname GameSetUpMapPtr=0x47D00
+  --cdname GameSetUpMap2Ptr=0x47D04
+  --cdname EASportsBGMapPtr=0x47D0C
+  --cdname FramerMapPtr=0x47D10
+  --cdname FaceOffMapPtr=0x47D14
+  --cdname RinktilelistPtr=0x47D18
+  --cdname RefsMapPtr=0x47D1C
+  --cdname RefMap2Ptr=0x47D20
+  --cdname CrowdSpritesPtr=0x47D2C
+  --cdname FaceOffSpritesPtr=0x47D30
+  --cdname ZamSpritesPtr=0x47D34
+  --cdname BigFontMapPtr=0x47D38
+  --cdname SmallFontMapPtr=0x47D3C
+  --cdname EnergyBarMapPtr=0x47D40
+  --cdname TeamblocksmapPtr=0x47D44
+  --cdname TeamBitmapsPtr=0x47D48
+  --cdname EASportsMapPtr=0x47D4C
+  --cdname ArrowsmapPtr=0x47D50
+  --cdname RonBarrMapPtr=0x47D54
+  --cdname ScoresMapPtr=0x47D58
+  --cdname ReplayMapPtr=0x47D68
+  --cdname IceRinkHorMapPtr=0x47D6C
+  --cdname PrintFont2MapPtr=0x47D70
+  --cdname SetupMenuMapPtr=0x47D74
+  --cdname SetupFramerMapPtr=0x47D78
+  --cdname LogoBoxMapPtr=0x47D7C
+  --cdname NHLLogoMapPtr=0x47D80
+  --cdname NHLPALogoMapPtr=0x47D84
+  --cdname StanleyCupSpritePtr=0x47D94
+  --cdname HotMapPtr=0x47D98
+  --cdname ColdMapPtr=0x47D9C
+)
 port() {  # name[:part] start end [options...]   name:2 writes src/segacd/hockey/name_2.asm
   # A 94G file whose disc range holds one of the older hand fragments (src/segacd/*.asm, left as they are)
   # is written in parts around it: name, name_2, name_3 ... each its own fragment.
@@ -31,7 +65,7 @@ port() {  # name[:part] start end [options...]   name:2 writes src/segacd/hockey
   local src=(--file "$n.asm")
   [ "${n#cd}" != "$n" ] && src=(--cart-start 0 --cart-end 0)   # cd*: CD-only code, no cartridge file
   python tools/segacd_port.py --lst "$LST" "${src[@]}" --disc-start "$s" --disc-end "$e" \
-    --out "src/segacd/hockey/$n$part.asm" --register "${KNOWN[@]}" "$@" > "output/port_$n$part.log" 2>&1
+    --out "src/segacd/hockey/$n$part.asm" --register "${KNOWN[@]}" "${CDNAMES[@]}" "$@" > "output/port_$n$part.log" 2>&1
   grep -q "^MATCH" "output/port_$n$part.log" || fail=1
   grep -E "^(MATCH|MISMATCH)|^src" "output/port_$n$part.log" | tr '\n' ' '; echo
   if [ "$n$part" = "$STOP" ]; then exit $fail; fi

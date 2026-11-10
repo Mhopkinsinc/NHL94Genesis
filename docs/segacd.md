@@ -198,7 +198,7 @@ Verified bytes are 410,162 of the 410,162 bytes in the four code files (all of t
 | `src/segacd/hockey/tables94.asm` | `cdbin/HOCKEY.BIN` `$265CC` | `tables94.asm` after `crowdtable.asm`: asstab, penalties, playoff tree, menu lists (4,820) |
 | `src/segacd/hockey/graphics94.asm` | `cdbin/HOCKEY.BIN` `$278A0` | `graphics94.asm` part 1: picture palette and no-picture cards, read from the disc (4,574) |
 | `src/segacd/hockey/graphics94_2.asm` | `cdbin/HOCKEY.BIN` `$28A7E` | `graphics94.asm` part 2: arena animation graphics and more, read from the disc; by hand (17,022) |
-| `src/segacd/hockey/cdgfxptrs.asm` | `cdbin/HOCKEY.BIN` `$2CCFC` | CD-only: the graphics pointer table (zeros, filled at run time); by hand (176) |
+| `src/segacd/hockey/cdgfxptrs.asm` | `cdbin/HOCKEY.BIN` `$2CCFC` | CD-only: the graphics pointer table (zeros, filled at run time), 31 of 44 entries named `<label>Ptr` after the cartridge graphic the replaced lines loaded; by hand (176) |
 | `src/segacd/hockey/cdpads.asm` | `cdbin/HOCKEY.BIN` `$2CDAC` | CD-only: `ReadPads`, the pads through the main CPU (1,118) |
 
 `maincd.asm` is the main CPU command loop: read `$A12020` when sub flag bit 6 is set, dispatch through the long table at `$FF01BE`, and put the VBlank vector at `$FD08` back when the command finishes. Past the handshake it clears the eight command words, waits on memory-mode bit 2, and hands word RAM back and forth (DMNA / RET in `$A12003`). Two commands add `$180000` to a sub CPU pointer so the main CPU sees the same word RAM (`$080000` there, `$200000` here).

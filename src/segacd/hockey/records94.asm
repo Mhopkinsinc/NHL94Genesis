@@ -72,13 +72,13 @@ NameEntryScreen						;"NAME ENTRY" screen for the user records (own vblank VBlan
 	bset.b	#$5,$FF800F.l
 	jsr	$37460.l
 	move.w	d4,(framercset).l
-	movea.l	$47D10.l,a2
+	movea.l	(FramerMapPtr).l,a2
 	addq.l	#$8,a2
 	jsr	(DecompressGraphicsWithRemap).l	;frame tiles
 	dc.l	$91234567,$89ABCDEF		;remap table
 	move.w	d4,(nameframechars).l	;name frame tiles
 ;CD: no cartridge twin
-	movea.l	$47D10.l,a2
+	movea.l	(FramerMapPtr).l,a2
 	addq.l	#$8,a2
 	jsr	(DecompressGraphicsWithRemap).l	;the same frame tiles again
 	dc.l	$91234560,$89ABCDEF		;remap table
@@ -94,7 +94,7 @@ NameEntryScreen						;"NAME ENTRY" screen for the user records (own vblank VBlan
 	jsr	(printz).l
 	String	CC_Font2,0,0
 ;CD: no cartridge twin
-	movea.l	$47D0C.l,a0
+	movea.l	(EASportsBGMapPtr).l,a0
 	movea.l	a0,a1					;a1 = map header
 	movea.l	a0,a2
 	adda.l	(a2)+,a0				;a0 = tile data
@@ -111,11 +111,11 @@ NameEntryScreen						;"NAME ENTRY" screen for the user records (own vblank VBlan
 	addi.w	#$24,d4					;36 logo chars
 	move.w	d4,(logobox1chars).l	;logo box tiles
 ;CD: no cartridge twin
-	movea.l	$47D7C.l,a2
+	movea.l	(LogoBoxMapPtr).l,a2
 	addq.l	#$8,a2
 	jsr	$38958.l
 	move.w	d4,$18D40.l
-	movea.l	$47D38.l,a2
+	movea.l	(BigFontMapPtr).l,a2
 	addq.l	#$8,a2
 	jsr	(DecompressGraphicsWithRemap).l
 	dc.l	$71234567,$89ABCDEF		;remap table
@@ -926,7 +926,7 @@ RecordHoldersScreen					;"Record Holders" menu item (menu lists): the save RAM r
 	jsr	(printz).l
 	String	CC_Font2Pri,1,1
 ;CD: no cartridge twin
-	movea.l	$47D80.l,a0
+	movea.l	(NHLLogoMapPtr).l,a0
 	movea.l	a0,a1					;a1 = map header
 	movea.l	a0,a2
 	adda.l	(a2)+,a0				;a0 = tile data
@@ -940,7 +940,7 @@ RecordHoldersScreen					;"Record Holders" menu item (menu lists): the save RAM r
 	jsr	(printz).l
 	String	CC_Font2Pri,'!',1
 ;CD: no cartridge twin
-	movea.l	$47D84.l,a0
+	movea.l	(NHLPALogoMapPtr).l,a0
 	movea.l	a0,a1					;a1 = map header
 .0									;(not branched to)
 	movea.l	a0,a2

@@ -40,12 +40,12 @@ ScoutingReport						;CD: its first lines have no twin; the rest of it starts her
 	jsr	(AddSmallFont).l
 	move.w	d4,(smallfont2chars).l	;1st vram char of the 2nd small font set
 ;CD: no cartridge twin
-	movea.l	$47D3C.l,a2
+	movea.l	(SmallFontMapPtr).l,a2
 	addq.l	#$8,a2
 	jsr	$38946.l
 	dc.w	$0A23,$4567
 	or.l	d4,-$3211(a3)
-	movea.l	$47D10.l,a2
+	movea.l	(FramerMapPtr).l,a2
 	addq.l	#$8,a2
 	move.w	d4,(framercset).l
 	jsr	(DecompressGraphicsWithRemap).l
@@ -53,7 +53,7 @@ ScoutingReport						;CD: its first lines have no twin; the rest of it starts her
 	jsr	(printz).l
 	String	CC_Font2,0,0
 ;CD: no cartridge twin
-	movea.l	$47D0C.l,a0
+	movea.l	(EASportsBGMapPtr).l,a0
 	movea.l	a0,a1					;a1 = map header
 	movea.l	a0,a2
 	adda.l	(a2)+,a0
@@ -87,7 +87,7 @@ ScoutingReport						;CD: its first lines have no twin; the rest of it starts her
 	jsr	(printz).l					;map at Ron Barr
 	String	CC_Font1,1,1
 ;CD: no cartridge twin
-	movea.l	$47D54.l,a0
+	movea.l	(RonBarrMapPtr).l,a0
 	movea.l	a0,a1					;a1 = map header
 	movea.l	a0,a2
 	adda.l	(a2)+,a0
@@ -99,11 +99,11 @@ ScoutingReport						;CD: its first lines have no twin; the rest of it starts her
 	moveq	#$C,d5					;color fam 3-4
 	jsr	(dobitmap).l
 ;CD: no cartridge twin
-	movea.l	$47D98.l,a2
+	movea.l	(HotMapPtr).l,a2
 	adda.l	#$8,a2
 	move.w	d4,$1AD86.l
 	jsr	$38958.l
-	movea.l	$47D9C.l,a2
+	movea.l	(ColdMapPtr).l,a2
 	adda.l	#$8,a2
 	move.w	d4,(coldiconchars).l	;tiles: 1st vram char
 	jsr	(DecompressGraphicsPlain).l
@@ -426,7 +426,7 @@ ScoutingReport						;CD: its first lines have no twin; the rest of it starts her
 	move.w	#$10,d7
 	jsr	$6044.w
 	move.w	#$0,(printfontset).l
-	movea.l	$47D00.l,sp
+	movea.l	(GameSetUpMapPtr).l,sp
 	rts
 .L289EC
 	cmpi.w	#$1A,d0

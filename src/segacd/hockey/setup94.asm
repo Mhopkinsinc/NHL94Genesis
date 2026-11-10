@@ -86,7 +86,7 @@ setupice							;set all variables, send non purgeable graphics, build sprite fra
 	clr.w	d4
 	move.w	d4,(rinkvrcset).l		;1st vram char for rink map tiles
 ;CD: no cartridge twin
-	movea.l	$47D18.l,a2
+	movea.l	(RinktilelistPtr).l,a2
 	addq.l	#$8,a2
 	btst.b	#$4,(sflags4).l
 	beq.w	.0
@@ -99,11 +99,11 @@ setupice							;set all variables, send non purgeable graphics, build sprite fra
 	bsr.w	setupEASportsMap
 	move.w	d4,(energybarchars).l
 ;CD: no cartridge twin
-	movea.l	$47D40.l,a2
+	movea.l	(EnergyBarMapPtr).l,a2
 	addq.l	#$8,a2
 	bsr.w	DecompressGraphicsPlain
 	move.w	d4,(crowdvrcset).l
-	movea.l	$47D2C.l,a2
+	movea.l	(CrowdSpritesPtr).l,a2
 	addq.l	#$8,a2
 	bsr.w	DecompressGraphicsPlain
 	move.w	d4,(arenaanimchars).l
@@ -116,13 +116,13 @@ setupice							;set all variables, send non purgeable graphics, build sprite fra
 	bsr.w	AddFramer				;frame tiles
 	move.w	d4,(smallfontchars).l	;1st vram char for smallfont tiles
 ;CD: no cartridge twin
-	movea.l	$47D3C.l,a2
+	movea.l	(SmallFontMapPtr).l,a2
 	addq.l	#$8,a2
 	bsr.w	DecompressGraphicsWithRemap
 	dc.l	$43434567,$89ABCDEF		;remap table
 	move.w	d4,(BigFontchars).l		;1st vram char for Bigfont tiles
 ;CD: no cartridge twin
-	movea.l	$47D38.l,a2
+	movea.l	(BigFontMapPtr).l,a2
 	addq.l	#$8,a2
 	bsr.w	DecompressGraphicsWithRemap
 	dc.l	$71234567,$89ABCDEF		;remap table
@@ -235,7 +235,7 @@ setupice_highlight					;Rebuild the rink sprites after a highlight replay withou
 	movem.l	(sp)+,d0-d7/a0-a6
 	rts
 setupIceRinkPal						;CD: placed where the disc branches to it
-	movea.l	$47D18.l,a0
+	movea.l	(RinktilelistPtr).l,a0
 	adda.l	(a0),a0					;palette offset in the map header
 	moveq	#$F,d0
 	movea.l	#$BBCB0,a1	;CD: the cartridge has #(palfadenew-M68K_RAM)
@@ -248,7 +248,7 @@ setupEASportsMap					;Decompress the easn logo tiles (EASportsMap+8) to vram at 
 									;from setupice, setupice_highlight
 	move.w	(EASNcset).l,d4
 ;CD: no cartridge twin
-	movea.l	$47D4C.l,a2
+	movea.l	(EASportsMapPtr).l,a2
 	addq.l	#$8,a2
 	bsr.w	DecompressGraphicsWithRemap
 	dc.l	$71234567,$89ABCDEF		;remap table
@@ -257,27 +257,27 @@ ReloadEnergyBarTiles				;Reload the energy bar tiles (EnergyBarMap+8) at energyb
 									;from the replay code and ReloadRinkGraphics
 	move.w	(energybarchars).l,d4
 ;CD: no cartridge twin
-	movea.l	$47D40.l,a2
+	movea.l	(EnergyBarMapPtr).l,a2
 	addq.l	#$8,a2
 	bra.w	DecompressGraphicsPlain
 	move.w	(crowdvrcset).l,d4
-	movea.l	$47D2C.l,a2
+	movea.l	(CrowdSpritesPtr).l,a2
 	addq.l	#$8,a2
 	bra.w	DecompressGraphicsPlain
 	move.w	(ExtraChars).l,d4
-	movea.l	$47D20.l,a2
+	movea.l	(RefMap2Ptr).l,a2
 	addq.l	#$8,a2
 	bra.w	DecompressGraphicsPlain
 	move.w	(ExtraChars).l,d4
-	movea.l	$47D1C.l,a2
+	movea.l	(RefsMapPtr).l,a2
 	addq.l	#$8,a2
 	bra.w	DecompressGraphicsPlain
 	move.w	(faceoffvrcset).l,d4
-	movea.l	$47D30.l,a2
+	movea.l	(FaceOffSpritesPtr).l,a2
 	addq.l	#$8,a2
 	bra.w	DecompressGraphicsPlain
 	move.w	(ExtraChars).l,d4
-	movea.l	$47D14.l,a2
+	movea.l	(FaceOffMapPtr).l,a2
 	addq.l	#$8,a2
 ReloadFaceOffMap						;CD: its first lines have no twin; the rest of it starts here
 	bra.w	DecompressGraphicsPlain
@@ -288,7 +288,7 @@ setupTeamBlocksMap					;Load the TeamBlocks map tiles (Teamblocksmap) at d4+$2C 
 	addi.w	#$2C,d4
 	movea.l	#(TeamBlockMap-M68K_RAM),a1	;map word buffer for CopyTeamBlockMapData
 ;CD: no cartridge twin
-	movea.l	$47D44.l,a0
+	movea.l	(TeamblocksmapPtr).l,a0
 	lea	jimtilecount(a0),a2
 	bsr.w	DecompressGraphicsPlain	;all team block tiles to vram at d4
 	adda.l	jimdata(a0),a0
@@ -899,14 +899,14 @@ PlayoffScreen						;bring up playoff screen if in playoff mode. Called from Game
 	bsr.w	AddTeamBlock
 	bsr.w	AddSmallFont
 ;CD: no cartridge twin
-	movea.l	$47D50.l,a2
+	movea.l	(ArrowsmapPtr).l,a2
 	addq.l	#$8,a2
 	move.w	d4,(ExtraChars).l		;arrow tiles start here
 	bsr.w	DecompressGraphicsPlain	;arrow tiles at ExtraChars
 	bsr.w	printz					;map 2 (palette 3) at 0,0
 	String	CC_Font2Pal3,0,0
 ;CD: no cartridge twin
-	movea.l	$47D0C.l,a0
+	movea.l	(EASportsBGMapPtr).l,a0
 	movea.l	a0,a1					;a1 = map header
 	movea.l	a0,a2
 	adda.l	(a2)+,a0				;a0 = map data
@@ -918,7 +918,7 @@ PlayoffScreen						;bring up playoff screen if in playoff mode. Called from Game
 	moveq	#3,d5
 	bsr.w	dobitmap
 ;CD: no cartridge twin
-	movea.l	$47D94.l,a1
+	movea.l	(StanleyCupSpritePtr).l,a1
 	lea	jimtilecount(a1),a2
 	adda.l	(a1),a1
 	moveq	#7,d0					;8 longs
@@ -1106,7 +1106,7 @@ PlayoffScreen_doscores				;Print best of 7 wins "t-b" for game struct a2 at prin
 PlayoffScreen_doarrow				;Draw tree arrow d0 from the arrows map (Arrowsmap) at printx/printy
 	movem.l	d0-d7/a0-a3,-(sp)
 ;CD: no cartridge twin
-	movea.l	$47D50.l,a0
+	movea.l	(ArrowsmapPtr).l,a0
 	movea.l	a0,a1					;a1 = map header
 	adda.l	(a0),a0					;a0 = arrow frames
 	adda.l	jimdata(a1),a1			;a1 = map data
@@ -1132,7 +1132,7 @@ PlayoffScreen_doteam				;Draw team block d1 (team*2) from the TeamBlocks map (Te
 	move.w	#$6000,(printa).l
 ;CD: no cartridge twin
 .nohi						;CD: placed where the disc branches to it
-	movea.l	$47D44.l,a1
+	movea.l	(TeamblocksmapPtr).l,a1
 	adda.l	jimdata(a1),a1
 	movea.l	#null,a2
 	clr.w	d0

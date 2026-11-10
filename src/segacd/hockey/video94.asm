@@ -231,7 +231,7 @@ updatescroll						;Using hpos and vpos set scroll cords; queue rink map rows on 
 	cmp.w	d4,d1
 	beq.w	rtss2					;same row as last frame
 ;CD: no cartridge twin
-	movea.l	$47D18.l,a0
+	movea.l	(RinktilelistPtr).l,a0
 	btst.b	#$4,(sflags4).l
 	beq.w	.0
 	movea.l	$47D64.l,a0
@@ -325,7 +325,7 @@ checkfo								;check for face off sprites. 3 entries of fofdata2: word frame, w
 	bmi.w	.next
 	beq.w	.next
 ;CD: no cartridge twin
-	movea.l	$47D30.l,a2
+	movea.l	(FaceOffSpritesPtr).l,a2
 	adda.l	jimdata(a2),a2
 	add.w	d4,d4
 	move.w	$2(a2,d4.w),d5
@@ -376,7 +376,7 @@ showzam								;zamboni. a5 = dma list, a6 = sprite table, d6 = link counter. Dr
 	move.w	(Zamx).l,d0
 	bmi.w	rtss2					;no zamboni
 ;CD: no cartridge twin
-	movea.l	$47D34.l,a0
+	movea.l	(ZamSpritesPtr).l,a0
 	lsr.w	#2,d0
 	move.w	#$12A,d1				;y (92 128+200)
 	moveq	#1,d2					;frame
@@ -449,7 +449,7 @@ showcrowd							;draw crowd sprites: up to 3 frames per PBnum nibble, then the t
 	btst.b	#4,(sflags4).l			;check if reverse angle replay
 	bne.w	.x						;branch if so
 ;CD: no cartridge twin
-	movea.l	$47D2C.l,a1
+	movea.l	(CrowdSpritesPtr).l,a1
 	adda.l	jimdata(a1),a1			;a1 = frame offset table
 	move.w	(Hpos).l,d4
 	move.w	(Vpos).l,d5
@@ -628,7 +628,7 @@ showclock							;put the game clock on screen. Called from setvideo and PauseMod
 	beq.w	rtss2
 	movea.l	#(clockram+6-M68K_RAM),a0	;end of the 5 word clock buffer; written backward
 ;CD: no cartridge twin
-	movea.l	$47D3C.l,a1
+	movea.l	(SmallFontMapPtr).l,a1
 	adda.l	jimdata(a1),a1
 	move.w	$78(a1),d0				;4+(':'*2)
 	add.w	(smallfontchars).l,d0
@@ -924,14 +924,14 @@ QueuePadLabel						;Queue the 3 character label of a pad object. d1 = label code
 	moveq	#2,d0
 ;CD: no cartridge twin
 uppads_pd						;CD: placed where the disc branches to it
-	movea.l	$47D3C.l,a3
+	movea.l	(SmallFontMapPtr).l,a3
 	adda.l	jimdata(a3),a3
 	add.w	d2,d2
 	move.w	mapwords(a3,d2.w),d2
 	andi.w	#$7FF,d2
 	asl.w	#5,d2					;32 bytes per tile
 ;CD: no cartridge twin
-	movea.l	$47D3C.l,a3
+	movea.l	(SmallFontMapPtr).l,a3
 	lea	jimtiles(a3,d2.w),a3		;tile data
 	move.l	a3,(a5)+
 	move.w	#$10,(a5)+				;words to transfer

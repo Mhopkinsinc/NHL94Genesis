@@ -24,7 +24,7 @@
   1. PLAN step 5 is done in its first form: GRAPH2's offset table is source and its 23 blocks are incbin; GTABLE is
      source. Left: which code reads GTABLE (the 12-byte record guess), and which GRAPH2 block is which picture.
   2. Names: STARTER's driver module (runtime `$C000`, dispatch at `$C542`), MAIN's start-up and the module at
-     `$77B8`, PLAYER's `playerinit` / `playercode`, HOCKEY's graphics pointer table entries and its header.
+     `$77B8`, PLAYER's `playerinit` / `playercode`, and HOCKEY's header. (HOCKEY's graphics pointer table: 31 of 44 entries named, `--cdname` in `tools/segacd_hockey.sh`.)
   3. Formats: STARTER's tiles and packed block, MAIN's Z80 program (a Z80 disassembly with asm80 like the
      cartridge driver).
 - Open questions:

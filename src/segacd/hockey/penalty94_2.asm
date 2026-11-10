@@ -126,7 +126,7 @@ ClrHor								;revert the graphics back to vertical ice rink mode. Reloads Rinkt
 	move.w	#$3E8,(Oldrow).l		;1000
 	move.w	(rinkvrcset).l,d4
 ;CD: no cartridge twin
-	movea.l	$47D18.l,a2
+	movea.l	(RinktilelistPtr).l,a2
 	addq.l	#$8,a2
 	jsr	(DecompressGraphicsPlain).l
 	jsr	(LoadHomeTeamGfx).l
@@ -155,9 +155,9 @@ SetHor								;switch graphics to horizontal ice rink graphics mode
 	bsr.w	printz
 	String	CC_Font2,0,0
 ;CD: no cartridge twin
-	movea.l	$47D6C.l,a1
+	movea.l	(IceRinkHorMapPtr).l,a1
 	adda.l	$4(a1),a1
-	movea.l	$47D6C.l,a2
+	movea.l	(IceRinkHorMapPtr).l,a2
 	addq.l	#$8,a2
 	clr.w	d0
 	move.w	#0,d1
@@ -300,7 +300,7 @@ EASNLogo							;Draw the EASN logo map at x 1, y $19 on the vertical ice rink if
 	bsr.w	printz
 	String	CC_Font1Pri,1,$19
 ;CD: no cartridge twin
-	movea.l	$47D4C.l,a1
+	movea.l	(EASportsMapPtr).l,a1
 	adda.l	jimdata(a1),a1
 	movea.l	#null,a2
 	clr.w	d0
@@ -391,7 +391,7 @@ linebar								;Draw the energy bar of line d0 for team a2 at printx/printy (bit
 	sub.w	d0,d1					;d1 = bar frame (15 = empty)
 	clr.w	d0
 ;CD: no cartridge twin
-	movea.l	$47D40.l,a1
+	movea.l	(EnergyBarMapPtr).l,a1
 	adda.l	jimdata(a1),a1
 	movea.l	#null,a2				;tile pointer null (as in SetHor)
 	move.w	(a1),d2					;map width
@@ -615,7 +615,7 @@ Intermission						;end of period junk (zamboni/stats). Opens the pause menu scre
 	dbf	d0,.clr
 	move.w	(ExtraChars).l,d4
 ;CD: no cartridge twin
-	movea.l	$47D34.l,a2
+	movea.l	(ZamSpritesPtr).l,a2
 	addq.l	#$8,a2
 	bsr.w	DecompressGraphicsPlain
 	move.w	#$140,(Zamx).l			;320
@@ -1014,7 +1014,7 @@ StartHL2							;Play hilite for game a0. Start skips it with a random result. A 
 	bne.s	.L3D10C
 	bclr.b	#$7,$FF800F.l
 	move.w	(ExtraChars).l,d4
-	movea.l	$47D1C.l,a2
+	movea.l	(RefsMapPtr).l,a2
 	addq.l	#$8,a2
 	bsr.w	DecompressGraphicsPlain
 	clr.w	(Vpos).l

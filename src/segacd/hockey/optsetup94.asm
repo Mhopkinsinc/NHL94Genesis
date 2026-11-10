@@ -366,7 +366,7 @@ MoveMenuFrame						;Move the menu frame by d0 (+2 / -2 lines). Shows 6 of the 9 
 	movem.l	d0-d7/a0-a6,-(sp)
 	move.w	(setupmenuchars).l,d4
 ;CD: no cartridge twin
-	movea.l	$47D74.l,a0
+	movea.l	(SetupMenuMapPtr).l,a0
 	movea.l	a0,a1
 	movea.l	a0,a2
 	adda.l	(a2)+,a0
@@ -867,19 +867,19 @@ setoptions							;options screen display: build the game setup screen only: vbla
 	jsr	(LoadSetupTiles).l			;TeamBitmaps+8 tiles 
 	move.w	d4,(framercset).l		;frame chars
 ;CD: no cartridge twin
-	movea.l	$47D78.l,a2
+	movea.l	(SetupFramerMapPtr).l,a2
 	addq.l	#$8,a2
 	jsr	(DecompressGraphicsWithRemap).l
 	dc.l	$03567564,$89ABCDEF		;remap table (/ or.l, a word dropped)
 	move.w	d4,(smallfontchars).l
 ;CD: no cartridge twin
-	movea.l	$47D3C.l,a2
+	movea.l	(SmallFontMapPtr).l,a2
 	addq.l	#$8,a2
 	jsr	(DecompressGraphicsWithRemap).l
 	dc.l	$0FC04567,$89ABCDEF		;remap table (/ or.l)
 	move.w	d4,(setupfontchars).l
 ;CD: no cartridge twin
-	movea.l	$47D70.l,a2
+	movea.l	(PrintFont2MapPtr).l,a2
 	addq.l	#$8,a2
 	jsr	(DecompressGraphicsWithRemap).l
 	dc.l	$01234567,$89ABCDEF		;remap table (/ or.l)
@@ -892,7 +892,7 @@ setoptions							;options screen display: build the game setup screen only: vbla
 	jsr	(printz).l					;map at the background
 	String	CC_Font2,0,0			;x3
 ;CD: no cartridge twin
-	movea.l	$47D00.l,a0
+	movea.l	(GameSetUpMapPtr).l,a0
 	movea.l	a0,a1
 	movea.l	a0,a2
 	adda.l	(a2)+,a0
@@ -908,7 +908,7 @@ setoptions							;options screen display: build the game setup screen only: vbla
 	jsr	(printz).l					;map at the second layer
 	String	CC_Font1,0,0			;x3
 ;CD: no cartridge twin
-	movea.l	$47D04.l,a0
+	movea.l	(GameSetUpMap2Ptr).l,a0
 	movea.l	a0,a1
 	movea.l	a0,a2
 	adda.l	(a2)+,a0
@@ -923,7 +923,7 @@ setoptions							;options screen display: build the game setup screen only: vbla
 	String	CC_Font1,1,$E			;(and dropped a word)
 	move.w	d4,(setupmenuchars).l
 ;CD: no cartridge twin
-	movea.l	$47D74.l,a0
+	movea.l	(SetupMenuMapPtr).l,a0
 	movea.l	a0,a1
 	movea.l	a0,a2
 	adda.l	(a2)+,a0
@@ -938,11 +938,11 @@ setoptions							;options screen display: build the game setup screen only: vbla
 	addi.w	#$24,d4
 	move.w	d4,(logobox1chars).l	;logo box 1 chars
 ;CD: no cartridge twin
-	movea.l	$47D7C.l,a2
+	movea.l	(LogoBoxMapPtr).l,a2
 	addq.l	#$8,a2
 	jsr	$38958.l
 	move.w	d4,$1939A.l
-	movea.l	$47D7C.l,a2
+	movea.l	(LogoBoxMapPtr).l,a2
 	addq.l	#$8,a2
 	jsr	(DecompressGraphicsWithRemap).l
 	dc.l	$03414567,$89ABCDEF		;remap table (/ or.l, a word dropped)
@@ -1141,11 +1141,11 @@ LoadSetupTiles						;Load the TeamBitmaps+8 tiles from char 2, then again remapp
 									;from setoptions
 	moveq	#2,d4
 ;CD: no cartridge twin
-	movea.l	$47D48.l,a2
+	movea.l	(TeamBitmapsPtr).l,a2
 	addq.l	#$8,a2
 	jsr	$38958.l
 	move.w	d4,$1939C.l
-	movea.l	$47D48.l,a2
+	movea.l	(TeamBitmapsPtr).l,a2
 	addq.l	#$8,a2
 	jsr	(DecompressGraphicsWithRemap).l
 	dc.l	$03412567,$89ABCDEF		;remap table (/ move.l / dc.b)
@@ -1309,7 +1309,7 @@ DrawLogoBox							;Draw the LogoBoxMap box at printx, y 5 (sflags6 bit 0 set). B
 	clr.w	(printa).l
 	move.w	#5,(printy).l
 ;CD: no cartridge twin
-	movea.l	$47D7C.l,a0
+	movea.l	(LogoBoxMapPtr).l,a0
 	movea.l	a0,a1
 	movea.l	a0,a2
 	adda.l	(a2)+,a0

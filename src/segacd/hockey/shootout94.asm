@@ -511,7 +511,7 @@ ShootersBackground					;Shootout shooters background and "Shootout" title
 	jsr	(printz).l
 	String	CC_Font3,0,0
 ;CD: no cartridge twin
-	movea.l	$47D0C.l,a1
+	movea.l	(EASportsBGMapPtr).l,a1
 	adda.l	jimdata(a1),a1
 	movea.l	#null,a2
 	clr.w	d0

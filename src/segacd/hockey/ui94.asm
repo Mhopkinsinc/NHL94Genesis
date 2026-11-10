@@ -333,7 +333,7 @@ DrawPlayoffSprite					;The StanleyCupSprite sprite at playoffspritex / playoffsp
 	movea.l	#(Satt-M68K_RAM),a6
 	moveq	#1,d6
 ;CD: no cartridge twin
-	movea.l	$47D94.l,a0
+	movea.l	(StanleyCupSpritePtr).l,a0
 	move.w	(logochars).l,d3
 	ori.w	#$8000,d3				;high priority
 	move.w	(playoffspritex).l,d0

@@ -87,7 +87,7 @@ ShowScores							;"Scores" screen: the other games of the night in gstruct over 
 	jsr	(printbigz).l
 	String	CC_Font3Pri,$E,3,'Scores',CC_Font3Pri,$B,1
 ;CD: no cartridge twin
-	movea.l	$47D58.l,a1
+	movea.l	(ScoresMapPtr).l,a1
 	lea	jimtilecount(a1),a2
 	adda.l	jimdata(a1),a1
 	clr.w	d0
@@ -562,7 +562,7 @@ DrawTeamScreen						;Line editor background: bitmap (EASportsBGMap), frame, "Lin
 	jsr	(printz).l
 	String	CC_Font3,0,0
 ;CD: no cartridge twin
-	movea.l	$47D0C.l,a1
+	movea.l	(EASportsBGMapPtr).l,a1
 	adda.l	jimdata(a1),a1
 	movea.l	#null,a2				;a2 saved/restored around this block
 	clr.w	d0
@@ -2228,7 +2228,7 @@ SetupScreen							;Common start of the stats screens: blank, 40 cell mode, the f
 	bclr.b	#df32c,(disflags).l		;not in 32 cell mode
 	move.w	(framercset).l,d4		;frame chars
 ;CD: no cartridge twin
-	movea.l	$47D10.l,a2
+	movea.l	(FramerMapPtr).l,a2
 	addq.l	#$8,a2
 	jsr	$38946.l
 	dc.l	$91234567,$89ABCDEF		;remap table
@@ -2254,7 +2254,7 @@ SetupScreen							;Common start of the stats screens: blank, 40 cell mode, the f
 	movem.l	(sp),d0-d1/a2
 	add.w	d0,(printy).l
 ;CD: no cartridge twin
-	movea.l	$47D0C.l,a0
+	movea.l	(EASportsBGMapPtr).l,a0
 	movea.l	a0,a1					;a1 = map header
 	movea.l	a0,a2
 	adda.l	(a2)+,a0				;a0 = tile data
@@ -2268,7 +2268,7 @@ SetupScreen							;Common start of the stats screens: blank, 40 cell mode, the f
 ;CD: no cartridge twin
 	jsr	(dobitmap).l
 	move.w	d4,(smallfont2chars).l
-	movea.l	$47D3C.l,a2
+	movea.l	(SmallFontMapPtr).l,a2
 	addq.l	#$8,a2
 	jsr	$38946.l
 	add.b	d0,-(a3)
@@ -2353,7 +2353,7 @@ ReloadRinkGraphics					;after the forceblack: back to 32 cell mode and reload th
 	bset.b	#df32c,(disflags).l
 	move.w	(rinkvrcset).l,d4
 ;CD: no cartridge twin
-	movea.l	$47D18.l,a2
+	movea.l	(RinktilelistPtr).l,a2
 	addq.l	#$8,a2
 	btst.b	#$4,(sflags4).l
 	beq.w	.L2EAD8
@@ -2363,7 +2363,7 @@ ReloadRinkGraphics					;after the forceblack: back to 32 cell mode and reload th
 	jsr	$38958.l
 	jsr	$2A9D0.l
 	move.w	(smallfontchars).l,d4
-	movea.l	$47D3C.l,a2
+	movea.l	(SmallFontMapPtr).l,a2
 	addq.l	#$8,a2
 	jsr	$38946.l
 	dc.l	$43434567,$89ABCDEF		;remap table

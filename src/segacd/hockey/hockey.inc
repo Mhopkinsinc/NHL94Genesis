@@ -416,9 +416,11 @@ aggress	equ	$73
 aidef	equ	$6B
 aioff	equ	$6A
 ANH	equ	$0
+ArrowsmapPtr	equ	$47D50
 asslist	equ	$38
 assnum	equ	$36
 attribute	equ	$4
+BigFontMapPtr	equ	$47D38
 Blueline	equ	$58
 BOS	equ	$1
 BUF	equ	$2
@@ -454,11 +456,13 @@ CC_SetY	equ	$FC
 CGY	equ	$3
 checking	equ	$75
 CHI	equ	$4
+ColdMapPtr	equ	$47D9C
 crgoalsopp	equ	$2
 crgoalsoppuser	equ	$3
 crgoalsuser	equ	$1
 CrowdRecBase	equ	$B60
 CrowdRecBytes	equ	$10
+CrowdSpritesPtr	equ	$47D2C
 crpeak	equ	$8
 crpeakopp	equ	$A
 crpeakoppuser	equ	$B
@@ -475,9 +479,14 @@ dfclock	equ	$3
 dffaceoff	equ	$4
 dfng	equ	$2
 dfok	equ	$0
+EASportsBGMapPtr	equ	$47D0C
+EASportsMapPtr	equ	$47D4C
 EDM	equ	$7
 endurance	equ	$72
+EnergyBarMapPtr	equ	$47D40
 facedir	equ	$54
+FaceOffMapPtr	equ	$47D14
+FaceOffSpritesPtr	equ	$47D30
 ffonum	equ	$7		;not checked on the disc yet
 ffosize	equ	$1C
 fighting	equ	$74
@@ -486,6 +495,9 @@ foattr	equ	$2
 foframe	equ	$0		;not checked on the disc yet
 fosize	equ	$4		;not checked on the disc yet
 frame	equ	$6
+FramerMapPtr	equ	$47D10
+GameSetUpMap2Ptr	equ	$47D04
+GameSetUpMapPtr	equ	$47D00
 GGSleft	equ	$73
 glitch	equ	$65
 gmclock	equ	$0
@@ -512,6 +524,8 @@ gst1	equ	$0		;not checked on the disc yet
 gst2	equ	$2
 handed	equ	$76
 HFD	equ	$9
+HotMapPtr	equ	$47D98
+IceRinkHorMapPtr	equ	$47D6C
 ifcgl	equ	$0
 ifdir	equ	$1
 ifok	equ	$2
@@ -529,6 +543,7 @@ legstr	equ	$68
 limpact	equ	$30
 LineDataBase	equ	$E20		;the cartridge has $1EF6
 LineSets	equ	$6
+LogoBoxMapPtr	equ	$47D7C
 mapheight	equ	$2
 mapwords	equ	$4
 maxros	equ	$1A		;not checked on the disc yet
@@ -538,6 +553,8 @@ NameLogBase	equ	$DA0
 NameLogBytes	equ	$80
 newpnum	equ	$61
 newpos	equ	$60
+NHLLogoMapPtr	equ	$47D80
+NHLPALogoMapPtr	equ	$47D84
 NJ	equ	$C
 nopuck	equ	$5E
 nopuckb	equ	$5F
@@ -599,6 +616,7 @@ pldweight	equ	$1
 plpos	equ	$6
 pnum	equ	$66
 position	equ	$34
+PrintFont2MapPtr	equ	$47D70
 propp	equ	$2
 proppuser	equ	$3
 pruser	equ	$1
@@ -609,7 +627,12 @@ QUE	equ	$12
 radiusx	equ	$4A
 radiusy	equ	$4C
 rbut	equ	$3
+RefMap2Ptr	equ	$47D20
+RefsMapPtr	equ	$47D1C
+ReplayMapPtr	equ	$47D68
 replaysize	equ	$62
+RinktilelistPtr	equ	$47D18
+RonBarrMapPtr	equ	$47D54
 RosterSlots	equ	$1A
 rostnum	equ	$6F
 rosxoff	equ	$1C		;not checked on the disc yet
@@ -620,12 +643,15 @@ satTile	equ	$4
 satX	equ	$6
 sbut	equ	$7
 SCnum	equ	$52
+ScoresMapPtr	equ	$47D58
 ScoutReport	equ	$8
 scsize	equ	$7
 SCstruct	equ	$80
 seAttr	equ	$6
 seSize	equ	$7
 seTile	equ	$4
+SetupFramerMapPtr	equ	$47D78
+SetupMenuMapPtr	equ	$47D74
 seY	equ	$2
 sf2drec	equ	$2
 sf2faceoff	equ	$0
@@ -674,6 +700,7 @@ shotacc	equ	$6D
 shotspd	equ	$6C
 Sideline	equ	$88
 SJ	equ	$13
+SmallFontMapPtr	equ	$47D3C
 SngEOP	equ	$79
 SngFaceoff	equ	$2
 SngGoal	equ	$3
@@ -696,10 +723,13 @@ ssonum	equ	$4		;not checked on the disc yet
 ssosize	equ	$14
 ssscorer	equ	$3
 Stack	equ	-2		;not checked on the disc yet
+StanleyCupSpritePtr	equ	$47D94
 stickhand	equ	$71
 STL	equ	$14
 strtext	equ	$2
 TB	equ	$15
+TeamBitmapsPtr	equ	$47D48
+TeamblocksmapPtr	equ	$47D44
 Teamname	equ	$4
 TeamRecBase	equ	$D20
 temp1	equ	$40
@@ -784,5 +814,6 @@ Xvel	equ	$28
 Ycord	equ	$2
 Ypos	equ	$14
 Yvel	equ	$2A
+ZamSpritesPtr	equ	$47D34
 Zpos	equ	$18
 Zvel	equ	$2C

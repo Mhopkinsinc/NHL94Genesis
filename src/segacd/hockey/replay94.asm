@@ -55,7 +55,7 @@ ReplayMode							;Instant replay play-back control and display code.
 ;CD: no cartridge twin
 	jsr	$37AA2.l
 	move.w	$18D56.l,d4
-	movea.l	$47D68.l,a2
+	movea.l	(ReplayMapPtr).l,a2
 	addq.l	#$8,a2
 	jsr	(DecompressGraphicsPlain).l
 	jsr	(ShowReplayIcon).l
@@ -353,7 +353,7 @@ ShowReplayIcon						;CD: placed where the disc branches to it
 	move.w	(rinkvrcset).l,d4
 	move.w	#0,d5					;no palette lines
 ;CD: no cartridge twin
-	movea.l	$47D18.l,a1
+	movea.l	(RinktilelistPtr).l,a1
 	btst.b	#$4,(sflags4).l
 	beq.w	.L2F36E
 	movea.l	$47D64.l,a1
@@ -380,7 +380,7 @@ ShowReplayBanner					;Show ReplayMap at 0,0 (16 x 11) and stop the replayicontim
 	move.w	(ExtraChars).l,d4
 	move.w	#0,d5					;no palette lines
 ;CD: no cartridge twin
-	movea.l	$47D68.l,a1
+	movea.l	(ReplayMapPtr).l,a1
 	adda.l	$4(a1),a1
 	movea.l	#$1B008,a2
 	jmp	$387E2.l

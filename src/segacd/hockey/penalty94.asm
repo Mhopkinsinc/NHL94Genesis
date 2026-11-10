@@ -166,7 +166,7 @@ chkprogress							;control progress of ref and game control thru penalty events.
 	bsr.w	SetHor					;horizontal rink graphics
 	move.w	(ExtraChars).l,d4		;load horizontal ref tiles
 ;CD: no cartridge twin
-	movea.l	$47D20.l,a2
+	movea.l	(RefMap2Ptr).l,a2
 	addq.l	#$8,a2
 	bsr.w	DecompressGraphicsPlain
 	bsr.w	NewTicker				;ticker score of another game, if the clock allows
@@ -679,10 +679,10 @@ PushRef								;tell vblank what to display. d0 = ref frame, $40 clears the wind
 	beq.w	.clearit
 	mulu.w	#$70,d0					;refwidth*refheight*2
 ;CD: no cartridge twin
-	movea.l	$47D1C.l,a0
+	movea.l	(RefsMapPtr).l,a0
 	btst.b	#$7,(sflags).l
 	beq.w	.L39D2A
-	movea.l	$47D20.l,a0
+	movea.l	(RefMap2Ptr).l,a0
 .L39D2A
 	adda.l	$4(a0),a0
 	adda.w	#$4,a0
