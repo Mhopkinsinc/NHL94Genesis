@@ -39,7 +39,7 @@ RunSubCommand	move.l	a7,$FF2840
 	movea.l	$FF2840,a7
 	rts
 
-SetCmdPending	move.w	#$FFFF,$FF2844
+SetCmdPending	move.w	#$FFFF,$FF2844	;command $1E (CmdJumpTable)
 	rts
 
 ; Point the VBlank vector ($FD08, cart VBint) at CD code, keeping the old one.
@@ -141,7 +141,7 @@ CmdJumpTable	dc.l	$248,$22E,$36C,$1EC
 
 ; Command 5. A pointer the sub CPU wrote, plus $180000, is the same bytes in
 ; the main CPU's word RAM (sub $080000, main $200000).
-StoreLinkedPtr	lea	$23A450,a0
+StoreLinkedPtr	lea	$23A450,a0	;command $05 (CmdJumpTable)
 	move.l	(a0)+,d0
 	addi.l	#$180000,d0
 	lea	LinkedPtr(pc),a0
@@ -149,7 +149,7 @@ StoreLinkedPtr	lea	$23A450,a0
 	rts
 
 ; Command 4. Same translation, then the routine just past this one. d4 is put back.
-CallLinkedPtr	lea	$23A450,a0
+CallLinkedPtr	lea	$23A450,a0	;command $04 (CmdJumpTable)
 	move.l	(a0)+,d4
 	movea.l	(a0),a2
 	adda.l	#$180000,a2

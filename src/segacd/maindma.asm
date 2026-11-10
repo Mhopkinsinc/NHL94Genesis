@@ -108,6 +108,7 @@ LFF139C	bsr.w	LFF13D2
 	bra.w	LFF13A4
 LFF13A4	movem.l	(sp)+,d0-d1/a0-a1
 	rts
+SubCmd03					;command $03 (CmdJumpTable): clear VRAM (64 KB), word RAM flags kept
 	move.w	$23C6E8.l,-(sp)
 	bset.b	#$4,$23C6E8.l
 	moveq	#$0,d0
@@ -123,12 +124,14 @@ LFF13D2	move.w	$23C6E8.l,-(sp)
 	bsr.w	LFF1418
 	move.w	(sp)+,$23C6E8.l
 	rts
+SubCmd01					;command $01 (CmdJumpTable): command $00 with word RAM flag bit 4 kept and set
 	move.w	$23C6E8.l,-(sp)
 	bset.b	#$4,$23C6E8.l
-	bsr.w	LFF1406
+	bsr.w	SubCmd00
 	move.w	(sp)+,$23C6E8.l
 	rts
-LFF1406	lea.l	$23A450.l,a1
+SubCmd00					;command $00 (CmdJumpTable): DMA to VRAM: length, destination and source (a sub CPU pointer, translated) from $23A450
+	lea.l	$23A450.l,a1
 	move.w	(a1)+,d0
 	move.w	(a1)+,d1
 	movea.l	(a1)+,a0

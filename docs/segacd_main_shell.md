@@ -4,7 +4,7 @@ MAIN.BIN runs at file + `$FF1000` on the main CPU, the whole file. Its first ins
 
 MAIN.BIN holds two command interfaces and a sound sequence engine:
 
-- the older interface: a table of displacements at file `$1BE` (`maincd.asm`), with handlers in the older fragments (`maindma`, `maincont`, `mainblit`, `mainvdp`). STARTER.BIN's driver sends these commands during the start-up (`docs/segacd_starter_driver.md`).
+- the older interface: `CmdJumpTable`, a table of displacements at `$FF11BE` (file `$1BE`, `maincd.asm`), with handlers in the older fragments (`maindma`, `maincont`, `mainblit`, `mainvdp`). STARTER.BIN's driver sends these commands during the start-up (`docs/segacd_starter_driver.md`).
 - the game shell: MainShellEntry, its command table and handlers. HOCKEY.BIN and PLAYER.BIN send these.
 - the sound engine (`mainmod.asm`) behind DispatchSoundOperation, and the Z80 program (`mainz80.z80`).
 
@@ -61,6 +61,28 @@ MainShellEntry (`$FF45A8`) sets the stack at `$FFFC00`, clears `$A12010`-`$A1201
 | `$3F` | InstallMainShellOverlayCommand | shows a word RAM screen, copies `$C5B` longs to `$FF1006` | startertail |
 | `$40` | InitSoundDriverCommand | `$29` without the resource calls | |
 
+## The older interface
+
+`RunSubCommand` (`maincd.asm`, `$FF1006`) serves these until command `$1E`; the game shell runs it for command `$3E`. `DispatchSubCommand` adds the long from `CmdJumpTable` (`$FF11BE`) to the table address. STARTER.BIN's driver sends these during the start-up (`docs/segacd_starter_driver.md`). The handlers are labelled `SubCmdNN` in the older fragments, with the command's job as the comment; the three that had names keep them.
+
+| Cmd | Handler | What it does |
+| --- | --- | --- |
+| `$00` / `$01` | SubCmd00 / SubCmd01 (`maindma`) | DMA to VRAM from `$23A450` parameters; `$01` keeps word RAM flag bit 4 |
+| `$02` | SubCmd02 (`maincont`) | display set-up from word RAM |
+| `$03` | SubCmd03 (`maindma`) | clear VRAM |
+| `$04` / `$05` | CallLinkedPtr / StoreLinkedPtr (`maincd`) | call / keep a translated sub CPU pointer |
+| `$06`-`$0A` | SubCmd06-SubCmd0A (`maincont`) | the drawing state and drawing with translated pointers |
+| `$0B`-`$0D` | SubCmd0B-SubCmd0D (`maincont`, `mainblit`) | length-prefixed text and blocks (the credits lines) |
+| `$0E` | SubCmd0E (`mainblit`) | `$24` bytes of drawing state to `$FF2860` |
+| `$0F` | SubCmd0F (`mainblit`) | the HV counter into `$23A450` |
+| `$10`-`$12` | SubCmd10-SubCmd12 (`mainblit`) | the linked routine with d4, drawing parameters, the block at `$23A450` |
+| `$13` | SubCmd13 (`mainvdp`) | a word to VDP control |
+| `$14`, `$15`, `$17`, `$18` | SubCmd14 / 15 / 17 / 18 (`mainvdp`, `maincont`) | clear the tables and VSRAM, VRAM fills |
+| `$16`, `$19`, `$1D` | SubCmd16 / 19 / 1D (`mainvdp`) | VSRAM (vertical scroll; `$1D` is the credits scroll) |
+| `$1A` / `$1B` | SubCmd1A / SubCmd1B (`mainvdp`) | VDP set-up for the film; the film (the C code at `$FF2E00`) |
+| `$1C` | SubCmd1C (`mainvdp`) | VDP registers `$9100`, `$9213`, `$8B03` |
+| `$1E` | SetCmdPending (`maincd`) | the end: `RunSubCommand` returns |
+
 ## The sound engine
 
 DispatchSoundOperation (`$FF865C`) takes d0: 0 the Z80 loader (`z80load.asm`), 1 TickSoundSequences, 2 StartSoundSequence, 3 StopSoundSequence, 4 (`$FF8B36`, not worked out), 5 ClearZ80SoundBuffers, 6 RegisterSoundResourceBank, 7 LoadZ80SoundResources, 8 RemoveZ80SoundResources, 9 ClearZ80SoundResourceDirectory; any other returns 1 with carry set.
@@ -71,4 +93,4 @@ The Z80 program is `src/segacd/main/mainz80.z80`; its absolute addresses put it 
 
 ## Not worked out
 
-What sound operation 4 does; the names of the older interface's handlers beyond what `docs/segacd_film.md` covers; which screen command `$3D` shows and what the overlay installed by `$3F` is; whether the game shell commands with no sender seen are used.
+What sound operation 4 does; what the drawing commands `$07`-`$12` draw; which screen command `$3D` shows and what the overlay installed by `$3F` is; whether the game shell commands with no sender seen are used.

@@ -53,6 +53,7 @@ LFF1D34	clr.w	d0
 	add.w	d0,d0
 	move.w	d0,$FF2DBA.l
 	rts
+SubCmd0C					;command $0C (CmdJumpTable): a length-prefixed block with the drawing state
 	lea.l	$23A450.l,a2
 	move.w	(a2)+,$FF2DB6.l
 	move.w	(a2)+,$FF2DB2.l
@@ -77,6 +78,7 @@ LFF1D34	clr.w	d0
 	move.l	a1,$4(sp)
 	movea.l	(sp)+,a1
 	rts
+SubCmd0D					;command $0D (CmdJumpTable): a length-prefixed block with the drawing state
 	lea.l	$23A450.l,a1
 	move.w	(a1)+,$FF2DB6.l
 	move.w	(a1)+,$FF2DB2.l
@@ -94,6 +96,7 @@ LFF1D34	clr.w	d0
 	move.w	$FF2DBA.l,(a1)+
 	move.w	$FF2DB8.l,(a1)
 	rts
+SubCmd0E					;command $0E (CmdJumpTable): $24 bytes of drawing state from $23A450 to $FF2860
 	lea.l	$23A450.l,a0
 	lea.l	$FF2860.l,a1
 LFF1E24	move.w	(a0)+,(a1)+
@@ -122,8 +125,10 @@ LFF1E70	add.w	$FF286C.l,d0
 	bclr.b	#$4,$23C6E8.l
 	rts
 	rts
+SubCmd0F					;command $0F (CmdJumpTable): the HV counter into $23A450
 	move.w	$C00008.l,$23A450.l
 	rts
+SubCmd10					;command $10 (CmdJumpTable): a translated pointer: the linked routine, d4 written back
 	lea.l	$23A450.l,a0
 	move.l	(a0)+,d4
 	movea.l	(a0)+,a2
@@ -133,6 +138,7 @@ LFF1E70	add.w	$FF286C.l,d0
 	lea.l	$23A450.l,a0
 	move.l	d4,(a0)
 	rts
+SubCmd11					;command $11 (CmdJumpTable): drawing parameters
 	lea.l	$23A450.l,a5
 	addq.l	#$4,a5
 	move.w	(a5)+,d4
@@ -286,6 +292,7 @@ LFF20E6	move.l	d3,$FF290E.l
 	dbra	d0,LFF20E6
 	movem.l	(sp)+,d3/a1
 	rts
+SubCmd12					;command $12 (CmdJumpTable): the block at $23A450
 	lea.l	$23A450.l,a1
 	bsr.w	LFF1FD6
 	rts

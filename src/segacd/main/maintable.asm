@@ -2,8 +2,8 @@
 ;
 ;	MainShellCommandLoop (mainstart.asm) calls ShellCommandTable[command - 1] for each command word the sub
 ;	CPU writes to $FF8020 (main CPU $A12020); MainShellVBlank does the same for $FF8026 ($A12026). The
-;	pointers are runtime addresses: MAIN.BIN runs at $FF1000. The handlers in hwread.asm (an older
-;	fragment) have no labels there; their names are equates here only. docs/segacd_main_shell.md.
+;	pointers are runtime addresses: MAIN.BIN runs at $FF1000. Each fragment assembles on its own, so the
+;	handlers (labels in their own files, hwread.asm included) are equates here. docs/segacd_main_shell.md.
 
 ClearVramByWord	equ	$FF496E
 CopyWordRamToVram	equ	$FF49DA

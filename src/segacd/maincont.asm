@@ -20,6 +20,7 @@ LFF151C	move.w	$C00004.l,d2
 	btst	#$1,d2
 	bne.b	LFF151C
 	rts
+SubCmd02					;command $02 (CmdJumpTable): display set-up from word RAM
 	lea.l	$23A450.l,a0
 	move.w	(a0)+,$FF284E.l
 	move.w	(a0)+,$FF2850.l
@@ -144,6 +145,7 @@ LFF1748	tst.w	$23A8D0.l
 	move.w	(sp)+,$23C6E8.l
 	move.w	(sp)+,sr
 	rts
+SubCmd06					;command $06 (CmdJumpTable): clear $398 bytes of drawing state at $FF2A1A, set $FF2A18
 	movem.l	d0/a0,-(sp)
 	lea.l	$FF2A1A.l,a0
 	move.w	#$1CB,d0
@@ -152,6 +154,7 @@ LFF1768	clr.w	(a0)+
 	move.b	#$1,$FF2A18.l
 	movem.l	(sp)+,d0/a0
 	rts
+SubCmd17					;command $17 (CmdJumpTable): clear the configured VRAM tables
 	bset.b	#$4,$23C6E8.l
 	andi.b	#$9C,$23C6E8.l
 	move.w	$FF284E.l,d0
@@ -167,6 +170,7 @@ LFF179C	move.l	d1,(a0)
 	move.l	d0,(a0)
 	bclr.b	#$4,$23C6E8.l
 	rts
+SubCmd07					;command $07 (CmdJumpTable): drawing: loads the drawing state, draws, writes the state back
 	lea.l	$23A450.l,a0
 	move.w	(a0)+,d0
 	move.w	(a0)+,d1
@@ -180,6 +184,7 @@ LFF179C	move.l	d1,(a0)
 	move.w	$FF2DB4.l,(a0)+
 	move.w	$FF2DB8.l,(a0)+
 	rts
+SubCmd18					;command $18 (CmdJumpTable): a VRAM fill with d0 / d1 / d2 from $23A450
 	lea.l	$23A450.l,a0
 	move.w	(a0)+,d0
 	move.w	(a0)+,d1
@@ -277,6 +282,7 @@ LFF1936	move.w	$4(a1,d0.w),d3
 	move.w	(sp)+,$23C6E8.l
 	move.w	(sp)+,$FF2DB4.l
 	rts
+SubCmd08					;command $08 (CmdJumpTable): drawing with three translated pointers
 	lea.l	$23A450.l,a5
 	movea.l	(a5)+,a0
 	movea.l	(a5)+,a1
@@ -302,6 +308,7 @@ LFF1936	move.w	$4(a1,d0.w),d3
 	move.w	$FF2DB4.l,(a5)+
 	move.w	$FF2DB8.l,(a5)+
 	rts
+SubCmd09					;command $09 (CmdJumpTable): drawing with one translated pointer
 	lea.l	$23A450.l,a5
 	movea.l	(a5)+,a0
 	adda.l	#$180000,a0
@@ -309,6 +316,7 @@ LFF1936	move.w	$4(a1,d0.w),d3
 	bsr.w	LFF18A8
 	move.w	d4,$23A450.l
 	rts
+SubCmd0A					;command $0A (CmdJumpTable): drawing with three translated pointers
 	lea.l	$23A450.l,a5
 	movea.l	(a5)+,a0
 	movea.l	(a5)+,a1
@@ -382,6 +390,7 @@ LFF1AD8	dbra	d3,LFF1A5E
 	move.l	a1,$4(sp)
 	movea.l	(sp)+,a1
 	rts
+SubCmd0B					;command $0B (CmdJumpTable): text: a length-prefixed block with the drawing state (STARTER credits lines)
 	lea.l	$23A450.l,a1
 	move.w	(a1)+,$FF2DB6.l
 	move.w	(a1)+,$FF2DB8.l

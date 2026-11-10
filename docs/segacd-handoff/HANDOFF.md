@@ -30,9 +30,9 @@
      formats of 5, 34, 64, 68-95 and 97, and the sub CPU code that reads GTABLE.
   2. Names: STARTER's driver module is named (`docs/segacd_starter_driver.md`). PLAYER's code is named
      (`docs/segacd_player.md`), and so are MAIN's shell, command table and sound engine
-     (`docs/segacd_main_shell.md`; MAIN.BIN runs at `$FF1000`, not `$FF0000`). Left: the older interface's
-     handlers in Abdul's MAIN fragments, the two STARTER start-up stages, and what `$6044` does (its code is
-     not in the six files). HOCKEY's header and TeamList are source now; the graphics
+     (`docs/segacd_main_shell.md`; MAIN.BIN runs at `$FF1000`, not `$FF0000`). The older interface's handlers are
+     labelled too (`SubCmd00`-`SubCmd1D`), and hwread.asm's. Left: what the drawing commands draw, the two
+     STARTER start-up stages, and what `$6044` does (its code is not in the six files). HOCKEY's header and TeamList are source now; the graphics
      pointer table has 37 of 44 entries named (`--cdname` in `tools/segacd_hockey.sh`), the rest have no cartridge
      label (their comments say what they hold).
   3. Formats: STARTER's data is five `.map.jim` screens and a block for driver function 5 (`startergfx.asm`);

@@ -62,7 +62,7 @@ RunCredits reads the records at `$25F0E` and `$25F36`, the credits text at the s
 
 ## Commands to the main CPU
 
-SendMainCommand (`$E370`) writes d0 to `$FF8020`, sets sub flag bit 6, waits for the main CPU, and hands word RAM over and back (`$FF8014` bit 0 and the four phases on `$FF8018`/`$FF8028`, SyncMainWordRamPhase0-3). Arguments go in word RAM at `$BA450` (`$23A450` on the main CPU). These numbers are the driver's: the table at `$FF01BE` in MAIN.BIN (`docs/segacd_main_shell.md`), not the game shell's.
+SendMainCommand (`$E370`) writes d0 to `$FF8020`, sets sub flag bit 6, waits for the main CPU, and hands word RAM over and back (`$FF8014` bit 0 and the four phases on `$FF8018`/`$FF8028`, SyncMainWordRamPhase0-3). Arguments go in word RAM at `$BA450` (`$23A450` on the main CPU). These numbers are the driver's: MAIN.BIN's older interface, `CmdJumpTable` at `$FF11BE` with handlers `SubCmd00`-`SubCmd1D` (`docs/segacd_main_shell.md`), not the game shell's.
 
 | Routine | Command | Arguments |
 | --- | --- | --- |
