@@ -30,8 +30,9 @@
      `$77B8`, PLAYER's `playerinit` / `playercode`. HOCKEY's header and TeamList are source now; the graphics
      pointer table has 34 of 44 entries named (`--cdname` in `tools/segacd_hockey.sh`), the rest have no cartridge
      label (their comments say what they hold).
-  3. Formats: STARTER's tiles and packed block, MAIN's Z80 program (a Z80 disassembly with asm80 like the
-     cartridge driver).
+  3. Formats: STARTER's data is five `.map.jim` screens and a block for driver function 5 (`startergfx.asm`);
+     left: the packed tile format (bit 15 of the tile count) and what function 5 does with the block. MAIN's
+     Z80 program (a Z80 disassembly with asm80 like the cartridge driver: in progress).
 - Open questions:
   - The team struct is one word longer from `tmap` on; probably `tmsort` became a long. Confirm when a fragment uses
     `tmsort` (logic94 has `movea.w tmsort(a2),a0` among its CD lines).
@@ -46,7 +47,7 @@
 | File | Size | Matched | Notes |
 |---|---|---|---|
 | MAIN.BIN | 60,416 | 60,416 (100%) | the older fragments, the second copies, the rest in `src/segacd/main/` (Z80 program as bytes) |
-| STARTER.BIN | 120,248 | 120,248 (100%) | the older fragments and `src/segacd/starter/` (tiles, packed block, credits text incbin) |
+| STARTER.BIN | 120,248 | 120,248 (100%) | the older fragments and `src/segacd/starter/` (five screens, the function 5 block, credits text incbin) |
 | HOCKEY.BIN | 184,842 | 184,842 (100%) | 94G twins (some in parts), team data, CD-only pads and pointer table, the older fragments; 43,120 bytes incbin |
 | PLAYER.BIN | 44,656 | 44,656 (100%) | the older fragments and `src/segacd/player/` (pictures incbin) |
 | GRAPH2.BIN | 3,051,520 | 3,051,520 (100%) | 99 resources; pack tables, end marks and fill in source, graphics incbin |

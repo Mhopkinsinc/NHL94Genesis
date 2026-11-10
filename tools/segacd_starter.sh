@@ -37,7 +37,7 @@ port filmtask_tag 0x472E 0x473A --note 'The FilmTask name tag after filmtask.asm
 port filmclose_tag 0x477C 0x4788 --note 'The FilmClose name tag after filmclose.asm.'
 port filmcmd_tag 0x4DCA 0x4DDE --note 'The SendCommandToMain name tag after filmcmd.asm.'
 port filmbuf_tag 0x4EC0 0x4ECE --note 'The InitEngine name tag after filmbuf.asm.'
-port startertext 0x556E 0x5E00 --raw --raw-text --note 'After cdfade.asm: tables, the SDK demo strings (Example Line 0-7) and more tables, as bytes.\nstartergfx.asm (by hand) follows.'
+port startertext 0x556E 0x5BD8 --raw --raw-text --note 'After cdfade.asm: tables, the SDK demo strings (Example Line 0-7) and more tables, as bytes.\nstartergfx.asm (by hand: the five screens the driver copies to $80000) follows.'
 port startertail 0x1AF0E 0x1D5B8 --text-incbin --label SubMain=0x262A8 --note 'After startergfx.asm to the end of the file: the credits text (read from the disc file: it names\nreal people), then code and data, decoded as found. SubMain (a name given here) is where the boot'"'"'s\njmp $262A8 lands: stack at $C41C, the gate array command words cleared, then the start-up. The code\nends with jmp $B00E, back to the boot, which loads HOCKEY.BIN at $1B000 over this part of the file.'
 port crt 0x5304 0x54F6 --note 'The Sierra C run-time helpers after AudioBusy: 32-bit multiply ($10304) and the divide /\nmodulo entries with their jump table. No name tags here; cdfade.asm follows.'
 
