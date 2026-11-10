@@ -166,7 +166,8 @@ compareAt('output/segacd/main/maindisp_2.bin', 'cdbin/MAIN.BIN', 0x40D0, 0xE9A);
 compareAt('output/segacd/main/mainfont_2.bin', 'cdbin/MAIN.BIN', 0x4F6A, 0x300);
 compareAt('output/segacd/main/maintext_2.bin', 'cdbin/MAIN.BIN', 0x526A, 0x48E);
 compareAt('output/segacd/main/maincrt.bin', 'cdbin/MAIN.BIN', 0x34B8, 0xF0);
-compareAt('output/segacd/main/mainstart.bin', 'cdbin/MAIN.BIN', 0x35A8, 0x594);
+compareAt('output/segacd/main/mainstart.bin', 'cdbin/MAIN.BIN', 0x35A8, 0x174);
+compareAt('output/segacd/main/maintable.bin', 'cdbin/MAIN.BIN', 0x371C, 0x100);
 compareAt('output/segacd/main/mainwram.bin', 'cdbin/MAIN.BIN', 0x3C3E, 0x492);
 compareAt('output/segacd/main/mainmod.bin', 'cdbin/MAIN.BIN', 0x77B8, 0x7448);
 compareAt('output/segacd/main/maincrt_2.bin', 'cdbin/MAIN.BIN', 0x56F8, 0xF0);
@@ -187,3 +188,4 @@ compareAt('output/segacd/starter/startergfx.bin', 'cdbin/STARTER.BIN', 0x5BD8, 0
 compareAt('output/segacd/starter/startertail.bin', 'cdbin/STARTER.BIN', 0x1AF0E, 0x26AA);
 compareAt('output/segacd/data/gtable.bin', 'cdbin/GTABLE.BIN', 0x0, 0x800);
 compareAt('output/segacd/data/graph2.bin', 'cdbin/GRAPH2.BIN', 0x0, 0x2E9000);
+compareAt('output/segacd/main/mainstart_2.bin', 'cdbin/MAIN.BIN', 0x381C, 0x320);

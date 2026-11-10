@@ -1,51 +1,68 @@
-;	MAIN.BIN $77B8-$EBFF (runtime $FF77B8-$FFEBFF).
+;	MAIN.BIN $77B8-$EBFF (runtime $FF87B8-$FFFBFF).
 ;
-;	After z80load.asm: a module that checks a $1234 word before it runs, its tables, then zeros
-;	to the end of the file. Not named yet.
+;	After z80load.asm: the sound sequence engine (eight streams of MIDI-style events, timed note-offs,
+;	the Z80 event queue, resource directories, bus access), its state and tables, then zeros to the end.
+;	docs/segacd_main_shell.md.
 
 
-X_FF182C	equ	$FF182C
-X_FF185A	equ	$FF185A
-X_FF1880	equ	$FF1880
-X_FF1884	equ	$FF1884
-X_FF1892	equ	$FF1892
-X_FF189A	equ	$FF189A
-X_FF18AA	equ	$FF18AA
-X_FF18C6	equ	$FF18C6
-X_FF18D8	equ	$FF18D8
-X_FF6906	equ	$FF6906
-X_FF6908	equ	$FF6908
-X_FF853C	equ	$FF853C
-X_FF8544	equ	$FF8544
-X_FF8548	equ	$FF8548
-X_FF855A	equ	$FF855A
-X_FF904F	equ	$FF904F
+X_FF282C	equ	$FF282C
+X_FF285A	equ	$FF285A
+X_FF2880	equ	$FF2880
+X_FF2884	equ	$FF2884
+X_FF2892	equ	$FF2892
+X_FF289A	equ	$FF289A
+X_FF28AA	equ	$FF28AA
+X_FF28C6	equ	$FF28C6
+X_FF28D8	equ	$FF28D8
+X_FF7906	equ	$FF7906
+X_FF7908	equ	$FF7908
+X_FF8D5A	equ	$FF8D5A
+X_FF941A	equ	$FF941A
+X_FF941C	equ	$FF941C
+X_FF943C	equ	$FF943C
+X_FF945C	equ	$FF945C
+X_FF946C	equ	$FF946C
+X_FF947C	equ	$FF947C
+X_FF948C	equ	$FF948C
+X_FF949C	equ	$FF949C
+X_FF94BC	equ	$FF94BC
+X_FF953C	equ	$FF953C
+X_FF953E	equ	$FF953E
+X_FF9544	equ	$FF9544
+X_FF9548	equ	$FF9548
+X_FF954A	equ	$FF954A
+X_FF955A	equ	$FF955A
+X_FF955E	equ	$FF955E
+X_FF95EA	equ	$FF95EA
+X_FF95EC	equ	$FF95EC
+X_FFA04F	equ	$FFA04F
 
-	org	$FF77B8
+	org	$FF87B8
 
+TickSoundSequences
 	movem.l	d0-d7/a0-a6,-(sp)
-	lea	.LFF841A(pc),a0
+	lea	X_FF941A(pc),a0
 	cmpi.w	#$1234,(a0)
-	bne.w	.LFF7A2A
-	bsr.w	.LFF7EBC
-	bsr.w	.LFF7F30
-	lea	.LFF853E(pc),a0
+	bne.w	.LFF8A2A
+	bsr.w	TickPendingNoteOffs
+	bsr.w	ServiceZ80DataRequest
+	lea	X_FF953E(pc),a0
 	move.w	#$0,(a0)
-	lea	.LFF841C(pc),a6
-	lea	.LFF843C(pc),a5
-	lea	.LFF846C(pc),a4
-	lea	.LFF847C(pc),a3
-	lea	.LFF848C(pc),a2
-	lea	.LFF849C(pc),a1
-.LFF77F0
-	move.w	.LFF853E(pc),d6
+	lea	X_FF941C(pc),a6
+	lea	X_FF943C(pc),a5
+	lea	X_FF946C(pc),a4
+	lea	X_FF947C(pc),a3
+	lea	X_FF948C(pc),a2
+	lea	X_FF949C(pc),a1
+.LFF87F0
+	move.w	X_FF953E(pc),d6
 	lsl.w	#$1,d6
 	move.w	d6,d7
 	lsl.w	#$1,d7
 	cmpi.l	#$FFFFFFFF,(a6,d7.w)
-	beq.w	.LFF7A16
+	beq.w	.LFF8A16
 	tst.w	(a4,d6.w)
-	beq.s	.LFF784E
+	beq.s	.LFF884E
 	move.w	(a3,d6.w),d1
 	add.w	(a2,d6.w),d1
 	move.w	d1,d2
@@ -54,38 +71,38 @@ X_FF904F	equ	$FF904F
 	add.w	(a1,d7.w),d1
 	move.w	#$0,(a1,d7.w)
 	cmp.w	(a4,d6.w),d1
-	bge.s	.LFF783E
+	bge.s	.LFF883E
 	move.w	(a4,d6.w),d3
 	sub.w	d1,d3
 	move.w	d3,(a4,d6.w)
 	move.w	d2,(a2,d6.w)
-	bra.w	.LFF7A16
-.LFF783E
+	bra.w	.LFF8A16
+.LFF883E
 	sub.w	(a4,d6.w),d1
 	lsl.w	#$8,d1
 	or.w	d2,d1
 	move.w	d1,(a2,d6.w)
 	clr.w	(a4,d6.w)
-.LFF784E
+.LFF884E
 	movea.l	(a6,d7.w),a0
 	move.l	(a5,d7.w),d5
-.LFF7856
+.LFF8856
 	tst.b	(a0,d5.l)
-	bpl.s	.LFF7864
+	bpl.s	.LFF8864
 	addi.l	#$1,d5
-	bra.s	.LFF7856
-.LFF7864
+	bra.s	.LFF8856
+.LFF8864
 	addi.l	#$1,d5
 	tst.b	(a0,d5.l)
-	bpl.s	.LFF787C
+	bpl.s	.LFF887C
 	move.b	(a0,d5.l),$2(a1,d7.w)
 	addi.l	#$1,d5
-.LFF787C
+.LFF887C
 	move.b	$2(a1,d7.w),d0
 	andi.b	#$F0,d0
 	cmpi.b	#$90,d0
-	bne.w	.LFF790C
-	move.w	.LFF853E(pc),d0
+	bne.w	.LFF890C
+	move.w	X_FF953E(pc),d0
 	lsl.w	#$8,d0
 	lsl.w	#$4,d0
 	move.b	$1(a0,d5.l),d0
@@ -93,66 +110,66 @@ X_FF904F	equ	$FF904F
 	move.b	(a0,d5.l),d0
 	lsl.w	#$8,d0
 	move.b	$2(a1,d7.w),d0
-	bsr.w	.LFF7BFC
+	bsr.w	RouteSoundEvent
 	tst.w	d0
-	beq.s	.LFF78B6
+	beq.s	.LFF88B6
 	addi.w	#$1,(a1,d7.w)
-	bra.w	.LFF7A16
-.LFF78B6
+	bra.w	.LFF8A16
+.LFF88B6
 	clr.l	d0
 	move.b	$2(a0,d5.l),d0
-	bpl.s	.LFF78CA
+	bpl.s	.LFF88CA
 	andi.l	#$7F,d0
 	lsl.l	#$7,d0
 	or.b	$3(a0,d5.l),d0
-.LFF78CA
+.LFF88CA
 	lsl.l	#$8,d0
 	move.w	(a3,d6.w),d3
 	divu.w	d3,d0
 	swap	d0
 	move.b	(a0,d5.l),d0
 	lsl.w	#$8,d0
-	move.w	.LFF853E(pc),d1
+	move.w	X_FF953E(pc),d1
 	lsl.w	#$4,d1
 	move.b	$2(a1,d7.w),d0
 	andi.b	#$F,d0
 	or.b	d1,d0
-	bsr.w	.LFF7E96
+	bsr.w	QueueTimedNoteOff
 	addi.l	#$2,d5
-.LFF78F4
+.LFF88F4
 	tst.b	(a0,d5.l)
-	bpl.s	.LFF7902
+	bpl.s	.LFF8902
 	addi.l	#$1,d5
-	bra.s	.LFF78F4
-.LFF7902
+	bra.s	.LFF88F4
+.LFF8902
 	addi.l	#$1,d5
-	bra.w	.LFF79F4
-.LFF790C
+	bra.w	.LFF89F4
+.LFF890C
 	cmpi.b	#$B0,d0
-	bne.s	.LFF797E
+	bne.s	.LFF897E
 	cmpi.b	#$12,(a0,d5.l)
-	bne.s	.LFF794C
+	bne.s	.LFF894C
 	move.l	a0,-(sp)
 	move.b	$1(a0,d5.l),d1
-	move.w	.LFF853E(pc),d0
+	move.w	X_FF953E(pc),d0
 	lsl.w	#$1,d0
 	clr.w	d2
 	move.b	$2(a1,d7.w),d2
 	andi.b	#$F,d2
-	lea	.LFF854A(pc),a0
+	lea	X_FF954A(pc),a0
 	move.w	(a0,d0.w),d3
 	cmpi.b	#$0,d1
-	bne.s	.LFF7942
+	bne.s	.LFF8942
 	bclr	d2,d3
-	bra.s	.LFF7944
-.LFF7942
+	bra.s	.LFF8944
+.LFF8942
 	bset	d2,d3
-.LFF7944
+.LFF8944
 	move.w	d3,(a0,d0.w)
 	movea.l	(sp)+,a0
-	bra.s	.LFF7976
-.LFF794C
-	move.w	.LFF853E(pc),d0
+	bra.s	.LFF8976
+.LFF894C
+	move.w	X_FF953E(pc),d0
 	lsl.w	#$8,d0
 	lsl.w	#$4,d0
 	move.b	$1(a0,d5.l),d0
@@ -160,112 +177,113 @@ X_FF904F	equ	$FF904F
 	move.b	(a0,d5.l),d0
 	lsl.w	#$8,d0
 	move.b	$2(a1,d7.w),d0
-	bsr.w	.LFF7BFC
+	bsr.w	RouteSoundEvent
 	tst.w	d0
-	beq.s	.LFF7976
+	beq.s	.LFF8976
 	addi.w	#$1,(a1,d7.w)
-	bra.w	.LFF7A16
-.LFF7976
+	bra.w	.LFF8A16
+.LFF8976
 	addi.l	#$2,d5
-	bra.s	.LFF79F4
-.LFF797E
+	bra.s	.LFF89F4
+.LFF897E
 	cmpi.b	#$C0,d0
-	bne.s	.LFF79B0
-	move.w	.LFF853E(pc),d0
+	bne.s	.LFF89B0
+	move.w	X_FF953E(pc),d0
 	lsl.w	#$8,d0
 	lsl.w	#$4,d0
 	swap	d0
 	move.b	(a0,d5.l),d0
 	lsl.w	#$8,d0
 	move.b	$2(a1,d7.w),d0
-	bsr.w	.LFF7BFC
+	bsr.w	RouteSoundEvent
 	tst.w	d0
-	beq.s	.LFF79A8
+	beq.s	.LFF89A8
 	addi.w	#$1,(a1,d7.w)
-	bra.s	.LFF7A16
-.LFF79A8
+	bra.s	.LFF8A16
+.LFF89A8
 	addi.l	#$1,d5
-	bra.s	.LFF79F4
-.LFF79B0
+	bra.s	.LFF89F4
+.LFF89B0
 	cmpi.b	#$E0,d0
-	bne.s	.LFF79E2
-	move.w	.LFF853E(pc),d0
+	bne.s	.LFF89E2
+	move.w	X_FF953E(pc),d0
 	lsl.w	#$8,d0
 	lsl.w	#$4,d0
 	swap	d0
 	move.b	(a0,d5.l),d0
 	lsl.w	#$8,d0
 	move.b	$2(a1,d7.w),d0
-	bsr.w	.LFF7BFC
+	bsr.w	RouteSoundEvent
 	tst.w	d0
-	beq.s	.LFF79DA
+	beq.s	.LFF89DA
 	addi.w	#$1,(a1,d7.w)
-	bra.s	.LFF7A16
-.LFF79DA
+	bra.s	.LFF8A16
+.LFF89DA
 	addi.l	#$1,d5
-	bra.s	.LFF79F4
-.LFF79E2
+	bra.s	.LFF89F4
+.LFF89E2
 	cmpi.b	#$FF,$2(a1,d7.w)
-	bne.s	.LFF79F4
+	bne.s	.LFF89F4
 	move.l	#$FFFFFFFF,(a6,d7.w)
-	bra.s	.LFF7A16
-.LFF79F4
+	bra.s	.LFF8A16
+.LFF89F4
 	move.l	d5,(a5,d7.w)
 	clr.w	d2
 	move.b	(a0,d5.l),d2
-	bpl.s	.LFF7A0A
+	bpl.s	.LFF8A0A
 	andi.b	#$7F,d2
 	lsl.w	#$7,d2
 	or.b	$1(a0,d5.l),d2
-.LFF7A0A
+.LFF8A0A
 	move.w	d2,(a4,d6.w)
 	tst.w	d2
-	bne.s	.LFF7A16
-	bra.w	.LFF77F0
-.LFF7A16
-	lea	.LFF853E(pc),a0
+	bne.s	.LFF8A16
+	bra.w	.LFF87F0
+.LFF8A16
+	lea	X_FF953E(pc),a0
 	addi.w	#$1,(a0)
 	cmpi.w	#$8,(a0)
-	blt.w	.LFF77F0
-	bsr.w	.LFF7CF0
-.LFF7A2A
+	blt.w	.LFF87F0
+	bsr.w	FlushDeferredSoundEvents
+.LFF8A2A
 	andi.b	#$FE,ccr
 	movem.l	(sp)+,d0-d7/a0-a6
 	rts
+StartSoundSequence
 	movem.l	d1-d4/a0-a1,-(sp)
-	lea	.LFF841A(pc),a0
+	lea	X_FF941A(pc),a0
 	move.w	d1,$1C8(a0)
 	move.w	d2,$1CA(a0)
 	move.w	d3,$1CC(a0)
 	move.w	d4,$1CE(a0)
-	lea	.LFF841C(pc),a1
+	lea	X_FF941C(pc),a1
 	clr.w	d0
-.LFF7A52
+.LFF8A52
 	cmpi.l	#$FFFFFFFF,(a1)+
-	beq.s	.LFF7A6A
+	beq.s	.LFF8A6A
 	addi.w	#$1,d0
 	cmpi.w	#$8,d0
-	bne.s	.LFF7A52
+	bne.s	.LFF8A52
 	move.w	#$7,d0
-	bra.s	.LFF7AD4
-.LFF7A6A
+	bra.s	.LFF8AD4
+.LFF8A6A
 	move.w	d0,$1C6(a0)
 	move.w	#$3,d0
-	bsr.w	.LFF80CA
-	bcs.s	.LFF7AD4
+	bsr.w	FindSoundResource
+	bcs.s	.LFF8AD4
 	clr.l	d1
 	move.b	$1(a0),d1
 	lsl.w	#$8,d1
 	move.b	(a0),d1
 	lsl.w	#$1,d1
 	addi.w	#$2,d1
-	lea	.LFF841A(pc),a1
+	lea	X_FF941A(pc),a1
 	move.w	#$0,$0(a1)
 	move.w	$1C6(a1),d0
 	lsl.w	#$2,d0
 	move.l	a0,$2(a1,d0.w)
 	move.l	d1,$22(a1,d0.w)
-	lea	.LFF849C(pc),a0
+	lea	X_FF949C(pc),a0
 	move.l	#$0,(a0,d0.w)
 	move.w	$1C6(a1),d0
 	lsl.w	#$1,d0
@@ -275,69 +293,70 @@ X_FF904F	equ	$FF904F
 	move.w	$1C8(a1),$42(a1,d0.w)
 	move.w	#$1234,$0(a1)
 	clr.w	d0
-	bra.s	.LFF7AD8
-.LFF7AD4
+	bra.s	.LFF8AD8
+.LFF8AD4
 	ori.b	#$1,ccr
-.LFF7AD8
+.LFF8AD8
 	movem.l	(sp)+,d1-d4/a0-a1
 	rts
+StopSoundSequence
 	movem.l	d1-d2/a0,-(sp)
-	lea	.LFF845C(pc),a0
+	lea	X_FF945C(pc),a0
 	clr.w	d0
-.LFF7AE8
+.LFF8AE8
 	cmp.w	(a0)+,d1
-	beq.s	.LFF7B00
+	beq.s	.LFF8B00
 	addi.w	#$1,d0
 	cmpi.w	#$8,d0
-	bne.s	.LFF7AE8
+	bne.s	.LFF8AE8
 	move.w	#$3,d0
 	ori.b	#$1,ccr
-	bra.s	.LFF7B30
-.LFF7B00
-	lea	.LFF841A(pc),a0
+	bra.s	.LFF8B30
+.LFF8B00
+	lea	X_FF941A(pc),a0
 	move.w	d0,$1C6(a0)
 	lsl.w	#$1,d0
-	lea	.LFF845C(pc),a0
+	lea	X_FF945C(pc),a0
 	move.w	#$FFFF,(a0,d0.w)
 	lsl.w	#$1,d0
-	lea	.LFF841C(pc),a0
+	lea	X_FF941C(pc),a0
 	move.l	#$FFFFFFFF,(a0,d0.w)
-	lea	.LFF841A(pc),a0
+	lea	X_FF941A(pc),a0
 	move.w	$1C6(a0),d0
-	bsr.w	.LFF7E52
+	bsr.w	ExpireSequenceNoteOffs
 	clr.w	d0
-.LFF7B30
+.LFF8B30
 	movem.l	(sp)+,d1-d2/a0
 	rts
 	movem.l	d1-d2/a0,-(sp)
 	move.w	sr,-(sp)
 	move.w	#$2700,sr
-	bsr.w	.LFF833E
+	bsr.w	AcquireSoundZ80Bus
 	lea	$A00000.l,a0
 	move.b	$A00028.l,d0
 	lsl.w	#$8,d0
 	move.b	$A00029.l,d0
 	move.b	d1,$3(a0,d0.w)
-	bsr.w	.LFF8352
+	bsr.w	ReleaseSoundZ80Bus
 	move.w	(sp)+,sr
 	move.l	#$0,d0
 	move.b	#$7F,d0
 	lsl.w	#$8,d0
 	move.b	#$CF,d0
-	bsr.w	.LFF7C76
+	bsr.w	QueueZ80SoundEvent
 	move.l	#$7F0000,d0
 	move.w	d2,d0
 	lsl.w	#$8,d0
 	move.b	#$9F,d0
-	bsr.w	.LFF7C76
+	bsr.w	QueueZ80SoundEvent
 	clr.w	d0
 	movem.l	(sp)+,d1-d2/a0
 	rts
-.LFF7B90
+ClearZ80SoundBuffers
 	movem.l	a0-a1,-(sp)
-	lea	.LFF841A(pc),a0
+	lea	X_FF941A(pc),a0
 	move.w	#$0,$0(a0)
-	bsr.w	.LFF833E
+	bsr.w	AcquireSoundZ80Bus
 	clr.l	d0
 	move.b	$A00024.l,d0
 	lsl.w	#$8,d0
@@ -345,9 +364,9 @@ X_FF904F	equ	$FF904F
 	addi.l	#$A00000,d0
 	movea.l	d0,a1
 	move.w	#$1FF,d0
-.LFF7BBE
+.LFF8BBE
 	move.b	#$0,(a1)+
-	dbf	d0,.LFF7BBE
+	dbf	d0,.LFF8BBE
 	clr.l	d0
 	move.b	$A00026.l,d0
 	lsl.w	#$8,d0
@@ -355,17 +374,17 @@ X_FF904F	equ	$FF904F
 	addi.l	#$A00000,d0
 	movea.l	d0,a1
 	move.w	#$1FF,d0
-.LFF7BE2
+.LFF8BE2
 	move.b	#$0,(a1)+
-	dbf	d0,.LFF7BE2
-	bsr.w	.LFF8352
+	dbf	d0,.LFF8BE2
+	bsr.w	ReleaseSoundZ80Bus
 	move.w	#$1234,$0(a0)
 	clr.w	d0
 	movem.l	(sp)+,a0-a1
 	rts
-.LFF7BFC
+RouteSoundEvent
 	movem.l	d1-d3/a0,-(sp)
-	lea	.LFF854A(pc),a0
+	lea	X_FF954A(pc),a0
 	move.l	d0,d1
 	swap	d1
 	lsr.w	#$8,d1
@@ -374,62 +393,62 @@ X_FF904F	equ	$FF904F
 	move.w	d0,d3
 	andi.w	#$F,d3
 	btst	d3,d2
-	bne.s	.LFF7C20
-	bsr.w	.LFF7C76
-	bra.s	.LFF7C24
-.LFF7C20
-	bsr.w	.LFF7C2A
-.LFF7C24
+	bne.s	.LFF8C20
+	bsr.w	QueueZ80SoundEvent
+	bra.s	.LFF8C24
+.LFF8C20
+	bsr.w	QueueDeferredSoundEvent
+.LFF8C24
 	movem.l	(sp)+,d1-d3/a0
 	rts
-.LFF7C2A
+QueueDeferredSoundEvent
 	movem.l	d1-d2/a0,-(sp)
-	lea	.LFF841A(pc),a0
+	lea	X_FF941A(pc),a0
 	move.w	#$0,(a0)
-	lea	.LFF855E(pc),a0
+	lea	X_FF955E(pc),a0
 	move.w	(a0),d2
 	cmpi.w	#$20,d2
-	bne.s	.LFF7C54
-	lea	.LFF841A(pc),a0
+	bne.s	.LFF8C54
+	lea	X_FF941A(pc),a0
 	move.w	#$1234,(a0)
 	move.w	#$FFFF,d0
 	ori.b	#$1,ccr
-	bra.s	.LFF7C70
-.LFF7C54
+	bra.s	.LFF8C70
+.LFF8C54
 	move.w	d2,d1
 	lsl.w	#$2,d1
 	addi.w	#$2,d1
 	move.l	d0,(a0,d1.w)
 	addi.w	#$1,d2
 	move.w	d2,(a0)
-	lea	.LFF841A(pc),a0
+	lea	X_FF941A(pc),a0
 	move.w	#$1234,(a0)
 	clr.w	d0
-.LFF7C70
+.LFF8C70
 	movem.l	(sp)+,d1-d2/a0
 	rts
-.LFF7C76
+QueueZ80SoundEvent
 	movem.l	d1/a0,-(sp)
-	lea	.LFF841A(pc),a0
+	lea	X_FF941A(pc),a0
 	move.w	#$0,$0(a0)
-.LFF7C84
-	bsr.w	.LFF833E
+.LFF8C84
+	bsr.w	AcquireSoundZ80Bus
 	lea	$A00030.l,a0
 	tst.b	(a0)
-	beq.s	.LFF7CA2
-	bsr.w	.LFF8352
+	beq.s	.LFF8CA2
+	bsr.w	ReleaseSoundZ80Bus
 	move.w	#$64,d1
-.LFF7C9A
+.LFF8C9A
 	subi.w	#$1,d1
-	bne.s	.LFF7C9A
-	bra.s	.LFF7C84
-.LFF7CA2
+	bne.s	.LFF8C9A
+	bra.s	.LFF8C84
+.LFF8CA2
 	adda.l	#$1,a0
 	cmpi.b	#$18,(a0)
-	blt.s	.LFF7CB4
+	blt.s	.LFF8CB4
 	move.w	#$FFFF,d0
-	bra.s	.LFF7CDC
-.LFF7CB4
+	bra.s	.LFF8CDC
+.LFF8CB4
 	clr.w	d1
 	move.b	(a0),d1
 	lsl.w	#$2,d1
@@ -444,33 +463,33 @@ X_FF904F	equ	$FF904F
 	addi.b	#$1,d1
 	move.b	d1,(a0)
 	move.w	#$0,d0
-.LFF7CDC
-	bsr.w	.LFF8352
-	lea	.LFF841A(pc),a0
+.LFF8CDC
+	bsr.w	ReleaseSoundZ80Bus
+	lea	X_FF941A(pc),a0
 	move.w	#$1234,$0(a0)
 	movem.l	(sp)+,d1/a0
 	rts
-.LFF7CF0
+FlushDeferredSoundEvents
 	movem.l	d0-d1/a0-a1,-(sp)
-	lea	.LFF855E(pc),a1
+	lea	X_FF955E(pc),a1
 	cmpi.w	#$0,(a1)
-	beq.s	.LFF7D54
-	movea.l	X_FF855A(pc),a0
-	bsr.w	.LFF835C
-	bsr.w	.LFF83FC
-.LFF7D0A
+	beq.s	.LFF8D54
+	movea.l	X_FF955A(pc),a0
+	bsr.w	AcquireSoundSubProgramRam
+	bsr.w	MapSoundSubProgramPointer
+.LFF8D0A
 	cmpi.w	#$FFFF,(a0)
-	bne.s	.LFF7D2E
-	movea.l	X_FF855A(pc),a0
-	bsr.w	.LFF83B0
+	bne.s	.LFF8D2E
+	movea.l	X_FF955A(pc),a0
+	bsr.w	ReleaseSoundSubProgramRam
 	move.w	#$1F4,d0
-.LFF7D1C
-	dbf	d0,.LFF7D1C
-	movea.l	X_FF855A(pc),a0
-	bsr.w	.LFF835C
-	bsr.w	.LFF83FC
-	bra.s	.LFF7D0A
-.LFF7D2E
+.LFF8D1C
+	dbf	d0,.LFF8D1C
+	movea.l	X_FF955A(pc),a0
+	bsr.w	AcquireSoundSubProgramRam
+	bsr.w	MapSoundSubProgramPointer
+	bra.s	.LFF8D0A
+.LFF8D2E
 	move.w	(a1),d0
 	move.w	(a0),d1
 	add.w	d1,d0
@@ -479,46 +498,45 @@ X_FF904F	equ	$FF904F
 	ext.l	d1
 	adda.l	d1,a0
 	move.w	(a1)+,d0
-.LFF7D3E
+.LFF8D3E
 	move.l	(a1)+,(a0)+
-	dbf	d0,.LFF7D3E
-	lea	.LFF855E(pc),a1
+	dbf	d0,.LFF8D3E
+	lea	X_FF955E(pc),a1
 	move.w	#$0,(a1)
-	movea.l	X_FF855A(pc),a0
-	bsr.w	.LFF83B0
-.LFF7D54
+	movea.l	X_FF955A(pc),a0
+	bsr.w	ReleaseSoundSubProgramRam
+.LFF8D54
 	movem.l	(sp)+,d0-d1/a0-a1
 	rts
-.LFF7D5A
 	movem.l	d0-d2/a0-a1,-(sp)
-	lea	.LFF841A(pc),a1
+	lea	X_FF941A(pc),a1
 	move.w	#$0,(a1)
-	bsr.w	.LFF833E
+	bsr.w	AcquireSoundZ80Bus
 	move.b	$A00022.l,d2
 	lsl.w	#$8,d2
 	move.b	$A00023.l,d2
 	add.w	d1,d2
 	cmpi.w	#$1F00,d2
-	bcs.s	.LFF7D8C
+	bcs.s	.LFF8D8C
 	move.w	#$4,d0
 	ori.b	#$1,ccr
-	bra.w	.LFF7E18
-.LFF7D8C
+	bra.w	.LFF8E18
+.LFF8D8C
 	lea	$A00100.l,a1
 	move.w	#$40,d2
-.LFF7D96
+.LFF8D96
 	cmpi.b	#$FF,(a1)
-	beq.s	.LFF7DC0
+	beq.s	.LFF8DC0
 	adda.l	#$4,a1
 	subi.w	#$1,d2
-	bne.s	.LFF7D96
-	bsr.w	.LFF8352
-	lea	.LFF841A(pc),a1
+	bne.s	.LFF8D96
+	bsr.w	ReleaseSoundZ80Bus
+	lea	X_FF941A(pc),a1
 	move.w	#$1234,(a1)
 	move.w	#$7,d0
 	ori.b	#$1,ccr
-	bra.w	.LFF7E18
-.LFF7DC0
+	bra.w	.LFF8E18
+.LFF8DC0
 	move.b	d0,(a1)
 	move.b	d1,$1(a1)
 	move.b	$A00022.l,d2
@@ -530,78 +548,79 @@ X_FF904F	equ	$FF904F
 	move.b	$A00022.l,d2
 	lsl.w	#$8,d2
 	move.b	$A00023.l,d2
-.LFF7DF0
+.LFF8DF0
 	move.b	(a0)+,(a1,d2.w)
 	addi.w	#$1,d2
-	dbf	d1,.LFF7DF0
+	dbf	d1,.LFF8DF0
 	move.b	d2,$A00023.l
 	lsr.w	#$8,d2
 	move.b	d2,$A00022.l
-	bsr.w	.LFF8352
-	lea	.LFF841A(pc),a1
+	bsr.w	ReleaseSoundZ80Bus
+	lea	X_FF941A(pc),a1
 	move.w	#$1234,(a1)
 	clr.w	d0
-.LFF7E18
+.LFF8E18
 	movem.l	(sp)+,d0-d2/a0-a1
 	rts
+ClearPendingNoteOffs
 	movem.l	d0-d1/a0-a1,-(sp)
-	lea	.LFF841A(pc),a0
+	lea	X_FF941A(pc),a0
 	move.w	#$0,$0(a0)
 	move.w	#$0,$122(a0)
-	lea	.LFF84BC(pc),a1
+	lea	X_FF94BC(pc),a1
 	move.w	#$1F,d1
 	move.l	#$FFFFFFFF,d0
-.LFF7E40
+.LFF8E40
 	move.l	d0,(a1)+
-	dbf	d1,.LFF7E40
+	dbf	d1,.LFF8E40
 	move.w	#$1234,$0(a0)
 	movem.l	(sp)+,d0-d1/a0-a1
 	rts
-.LFF7E52
+ExpireSequenceNoteOffs
 	movem.l	d0-d2/a0-a1,-(sp)
-	lea	.LFF841A(pc),a0
+	lea	X_FF941A(pc),a0
 	move.w	#$0,$0(a0)
-	lea	.LFF84BC(pc),a1
+	lea	X_FF94BC(pc),a1
 	move.w	$122(a0),d1
 	clr.w	d2
-.LFF7E6A
+.LFF8E6A
 	cmpi.w	#$0,d1
-	beq.s	.LFF7E8A
+	beq.s	.LFF8E8A
 	move.b	$3(a1),d2
 	lsr.b	#$4,d2
 	cmp.w	d0,d2
-	bne.s	.LFF7E7E
+	bne.s	.LFF8E7E
 	move.w	#$1,(a1)
-.LFF7E7E
+.LFF8E7E
 	adda.l	#$4,a1
 	subi.w	#$1,d1
-	bra.s	.LFF7E6A
-.LFF7E8A
+	bra.s	.LFF8E6A
+.LFF8E8A
 	move.w	#$1234,$0(a0)
 	movem.l	(sp)+,d0-d2/a0-a1
 	rts
-.LFF7E96
+QueueTimedNoteOff
 	movem.l	d0-d1/a0,-(sp)
-	lea	.LFF841A(pc),a0
+	lea	X_FF941A(pc),a0
 	move.w	$122(a0),d1
 	lsl.w	#$2,d1
-	lea	.LFF84BC(pc),a0
+	lea	X_FF94BC(pc),a0
 	move.l	d0,(a0,d1.w)
-	lea	.LFF841A(pc),a0
+	lea	X_FF941A(pc),a0
 	addi.w	#$1,$122(a0)
 	movem.l	(sp)+,d0-d1/a0
 	rts
-.LFF7EBC
+TickPendingNoteOffs
 	movem.l	d0-d1/a0-a2,-(sp)
-	lea	.LFF841A(pc),a2
+	lea	X_FF941A(pc),a2
 	cmpi.w	#$0,$122(a2)
-	beq.s	.LFF7F2A
-	lea	.LFF84BC(pc),a0
-.LFF7ED0
+	beq.s	.LFF8F2A
+	lea	X_FF94BC(pc),a0
+.LFF8ED0
 	cmpi.w	#$FFFF,(a0)
-	beq.s	.LFF7F2A
+	beq.s	.LFF8F2A
 	subi.w	#$1,(a0)
-	bne.s	.LFF7F24
+	bne.s	.LFF8F24
 	move.b	$3(a0),d0
 	andi.b	#$F0,d0
 	lsl.w	#$8,d0
@@ -609,59 +628,59 @@ X_FF904F	equ	$FF904F
 	move.w	$2(a0),d0
 	andi.b	#$F,d0
 	ori.b	#$80,d0
-	bsr.w	.LFF7BFC
+	bsr.w	RouteSoundEvent
 	tst.w	d0
-	beq.s	.LFF7F02
+	beq.s	.LFF8F02
 	addi.w	#$1,(a0)
-	bra.s	.LFF7F24
-.LFF7F02
-	lea	.LFF84BC(pc),a1
-	move.w	X_FF853C(pc),d0
+	bra.s	.LFF8F24
+.LFF8F02
+	lea	X_FF94BC(pc),a1
+	move.w	X_FF953C(pc),d0
 	subi.w	#$1,d0
 	lsl.w	#$2,d0
 	move.l	(a1,d0.w),(a0)
 	move.l	#$FFFFFFFF,(a1,d0.w)
 	subi.w	#$1,$122(a2)
-	bra.s	.LFF7ED0
-.LFF7F24
+	bra.s	.LFF8ED0
+.LFF8F24
 	adda.w	#$4,a0
-	bra.s	.LFF7ED0
-.LFF7F2A
+	bra.s	.LFF8ED0
+.LFF8F2A
 	movem.l	(sp)+,d0-d1/a0-a2
 	rts
-.LFF7F30
+ServiceZ80DataRequest
 	movem.l	d1-d2/a0,-(sp)
-	bsr.w	.LFF833E
+	bsr.w	AcquireSoundZ80Bus
 	tst.b	$A00072.l
-	beq.w	.LFF80B8
+	beq.w	.LFF90B8
 	cmpi.b	#$1,$A00072.l
-	bne.s	.LFF7FCA
+	bne.s	.LFF8FCA
 	clr.w	d1
 	move.b	$A00073.l,d1
 	move.w	#$1,d0
-	bsr.w	.LFF80CA
-	bcs.w	.LFF80B8
+	bsr.w	FindSoundResource
+	bcs.w	.LFF90B8
 	cmpa.l	#$FFFFFFFF,a0
-	beq.w	.LFF80B8
-	lea	.LFF841A(pc),a1
+	beq.w	.LFF90B8
+	lea	X_FF941A(pc),a1
 	move.l	a0,$126(a1)
 	move.l	a0,-(sp)
-	bsr.w	.LFF835C
-	bsr.w	.LFF83FC
-.LFF7F7C
+	bsr.w	AcquireSoundSubProgramRam
+	bsr.w	MapSoundSubProgramPointer
+.LFF8F7C
 	move.b	(a0),d0
 	cmp.b	(a0),d0
-	bne.s	.LFF7F7C
+	bne.s	.LFF8F7C
 	lsl.w	#$8,d0
 	adda.l	#$1,a0
-.LFF7F8A
+.LFF8F8A
 	move.b	(a0),d0
 	cmp.b	(a0),d0
-	bne.s	.LFF7F8A
+	bne.s	.LFF8F8A
 	move.w	d0,$12E(a1)
 	adda.l	#$1,a0
 	movea.l	(sp)+,a0
-	bsr.w	.LFF83B0
+	bsr.w	ReleaseSoundSubProgramRam
 	movea.l	$126(a1),a0
 	adda.l	#$2,a0
 	move.l	a0,$12A(a1)
@@ -671,215 +690,218 @@ X_FF904F	equ	$FF904F
 	move.b	$A00025.l,d0
 	addi.l	#$A00000,d0
 	movea.l	d0,a1
-	bra.w	.LFF804A
-.LFF7FCA
+	bra.w	.LFF904A
+.LFF8FCA
 	cmpi.b	#$2,$A00072.l
-	bne.s	.LFF800A
-	movea.l	X_FF8544(pc),a0
+	bne.s	.LFF900A
+	movea.l	X_FF9544(pc),a0
 	cmpa.l	#$0,a0
-	bne.s	.LFF7FF0
-	bsr.w	.LFF8352
-	bsr.w	.LFF7B90
-	bsr.w	.LFF833E
-	bra.w	.LFF80B8
-.LFF7FF0
+	bne.s	.LFF8FF0
+	bsr.w	ReleaseSoundZ80Bus
+	bsr.w	ClearZ80SoundBuffers
+	bsr.w	AcquireSoundZ80Bus
+	bra.w	.LFF90B8
+.LFF8FF0
 	clr.l	d0
 	move.b	$A00024.l,d0
 	lsl.w	#$8,d0
 	move.b	$A00025.l,d0
 	addi.l	#$A00000,d0
 	movea.l	d0,a1
-	bra.s	.LFF804A
-.LFF800A
+	bra.s	.LFF904A
+.LFF900A
 	cmpi.b	#$3,$A00072.l
-	bne.w	.LFF80B8
-	movea.l	X_FF8544(pc),a0
+	bne.w	.LFF90B8
+	movea.l	X_FF9544(pc),a0
 	cmpa.l	#$0,a0
-	bne.s	.LFF8032
-	bsr.w	.LFF8352
-	bsr.w	.LFF7B90
-	bsr.w	.LFF833E
-	bra.w	.LFF80B8
-.LFF8032
+	bne.s	.LFF9032
+	bsr.w	ReleaseSoundZ80Bus
+	bsr.w	ClearZ80SoundBuffers
+	bsr.w	AcquireSoundZ80Bus
+	bra.w	.LFF90B8
+.LFF9032
 	clr.l	d0
 	move.b	$A00026.l,d0
 	lsl.w	#$8,d0
 	move.b	$A00027.l,d0
 	addi.l	#$A00000,d0
 	movea.l	d0,a1
-.LFF804A
+.LFF904A
 	move.l	a0,-(sp)
-	bsr.w	.LFF835C
-	bsr.w	.LFF83FC
+	bsr.w	AcquireSoundSubProgramRam
+	bsr.w	MapSoundSubProgramPointer
 	move.w	#$1FF,d1
-.LFF8058
+.LFF9058
 	move.b	(a0)+,(a1)+
-	beq.s	.LFF807A
-	dbf	d1,.LFF8058
-	lea	.LFF841A(pc),a1
+	beq.s	.LFF907A
+	dbf	d1,.LFF9058
+	lea	X_FF941A(pc),a1
 	move.l	$12A(a1),d0
 	addi.l	#$200,d0
 	move.l	d0,$12A(a1)
 	movea.l	(sp)+,a0
-	bsr.w	.LFF83B0
-	bra.s	.LFF80B8
-.LFF807A
+	bsr.w	ReleaseSoundSubProgramRam
+	bra.s	.LFF90B8
+.LFF907A
 	suba.l	#$1,a1
 	movea.l	(sp)+,a0
-	bsr.w	.LFF83B0
+	bsr.w	ReleaseSoundSubProgramRam
 	clr.l	d0
-	move.w	X_FF8548(pc),d0
+	move.w	X_FF9548(pc),d0
 	cmpi.w	#$FFFF,d0
-	beq.s	.LFF80AC
+	beq.s	.LFF90AC
 	move.b	#$FF,(a1)
-	lea	.LFF841A(pc),a1
+	lea	X_FF941A(pc),a1
 	movea.l	$126(a1),a0
 	adda.l	#$2,a0
 	adda.l	d0,a0
 	move.l	a0,$12A(a1)
-	bra.s	.LFF80B8
-.LFF80AC
-	lea	.LFF841A(pc),a1
+	bra.s	.LFF90B8
+.LFF90AC
+	lea	X_FF941A(pc),a1
 	move.l	#$0,$12A(a1)
-.LFF80B8
+.LFF90B8
 	move.b	#$0,$A00072.l
-	bsr.w	.LFF8352
+	bsr.w	ReleaseSoundZ80Bus
 	movem.l	(sp)+,d1-d2/a0
 	rts
-.LFF80CA
+FindSoundResource
 	movem.l	d1-d4/a1-a2,-(sp)
-	lea	.LFF85EC(pc),a1
+	lea	X_FF95EC(pc),a1
 	move.w	#$4,d2
-.LFF80D6
+.LFF90D6
 	cmpi.l	#$FFFFFFFF,(a1)
-	beq.w	.LFF8180
+	beq.w	.LFF9180
 	movea.l	(a1),a0
 	movea.l	a0,a2
 	move.l	a0,-(sp)
-	bsr.w	.LFF835C
-	bsr.w	.LFF83FC
+	bsr.w	AcquireSoundSubProgramRam
+	bsr.w	MapSoundSubProgramPointer
 	clr.l	d3
-.LFF80F0
+.LFF90F0
 	move.b	(a0),d3
 	cmp.b	(a0),d3
-	bne.s	.LFF80F0
+	bne.s	.LFF90F0
 	adda.l	#$1,a0
 	lsl.w	#$8,d3
-.LFF80FE
+.LFF90FE
 	move.b	(a0),d3
 	cmp.b	(a0),d3
-	bne.s	.LFF80FE
+	bne.s	.LFF90FE
 	adda.l	#$1,a0
 	move.l	d3,d4
 	lsl.w	#$2,d4
 	adda.l	d4,a2
 	adda.l	#$2,a2
-.LFF8116
+.LFF9116
 	move.b	(a0),d4
 	cmp.b	(a0),d4
-	bne.s	.LFF8116
+	bne.s	.LFF9116
 	cmp.b	d4,d0
-	bne.s	.LFF8154
-.LFF8120
+	bne.s	.LFF9154
+.LFF9120
 	move.b	$1(a0),d4
 	cmp.b	$1(a0),d4
-	bne.s	.LFF8120
+	bne.s	.LFF9120
 	cmp.b	d4,d1
-	bne.s	.LFF8154
+	bne.s	.LFF9154
 	clr.w	d0
-.LFF8130
+.LFF9130
 	move.b	$2(a0),d0
 	cmp.b	$2(a0),d0
-	bne.s	.LFF8130
+	bne.s	.LFF9130
 	lsl.w	#$8,d0
-.LFF813C
+.LFF913C
 	move.b	$3(a0),d0
 	cmp.b	$3(a0),d0
-	bne.s	.LFF813C
+	bne.s	.LFF913C
 	movea.l	(sp)+,a0
-	bsr.w	.LFF83B0
+	bsr.w	ReleaseSoundSubProgramRam
 	movea.l	a2,a0
 	andi.b	#$FE,ccr
-	bra.s	.LFF8196
-.LFF8154
+	bra.s	.LFF9196
+.LFF9154
 	clr.l	d4
 	move.b	$2(a0),d4
 	cmp.b	$2(a0),d4
-	bne.s	.LFF8154
+	bne.s	.LFF9154
 	lsl.w	#$8,d4
-.LFF8162
+.LFF9162
 	move.b	$3(a0),d4
 	cmp.b	$3(a0),d4
-	bne.s	.LFF8162
+	bne.s	.LFF9162
 	adda.l	d4,a2
 	adda.l	#$4,a0
 	subi.w	#$1,d3
-	bne.s	.LFF8116
+	bne.s	.LFF9116
 	movea.l	(sp)+,a0
-	bsr.w	.LFF83B0
-.LFF8180
+	bsr.w	ReleaseSoundSubProgramRam
+.LFF9180
 	adda.l	#$4,a1
 	subi.w	#$1,d2
-	bne.w	.LFF80D6
+	bne.w	.LFF90D6
 	move.w	#$3,d0
 	ori.b	#$1,ccr
-.LFF8196
+.LFF9196
 	movem.l	(sp)+,d1-d4/a1-a2
 	rts
+RegisterSoundResourceBank
 	movem.l	d1/a1,-(sp)
 	lsl.w	#$2,d1
-	lea	.LFF85EC(pc),a1
+	lea	X_FF95EC(pc),a1
 	move.l	a0,(a1,d1.w)
 	movem.l	(sp)+,d1/a1
 	rts
+LoadZ80SoundResources
 	movem.l	d1/a0-a1,-(sp)
 	movea.l	a0,a1
-.LFF81B6
+.LFF91B6
 	cmpi.w	#$FFFF,(a1)
-	bne.s	.LFF81C0
+	bne.s	.LFF91C0
 	clr.w	d0
-	bra.s	.LFF81F4
-.LFF81C0
+	bra.s	.LFF91F4
+.LFF91C0
 	move.w	(a1),d0
 	move.w	$2(a1),d1
-	bsr.w	.LFF80CA
-	bcs.s	.LFF81F0
+	bsr.w	FindSoundResource
+	bcs.s	.LFF91F0
 	cmpi.w	#$0,(a1)
-	bne.s	.LFF81E8
+	bne.s	.LFF91E8
 	cmpi.b	#$6,(a0)
-	bcc.s	.LFF81E8
+	bcc.s	.LFF91E8
 	move.w	d0,d1
 	move.w	$2(a1),d0
-	bsr.w	.LFF7D5A
-	bcs.s	.LFF81F0
-	bra.w	.LFF81E8
-.LFF81E8
+	bsr.w	X_FF8D5A
+	bcs.s	.LFF91F0
+	bra.w	.LFF91E8
+.LFF91E8
 	adda.l	#$4,a1
-	bra.s	.LFF81B6
-.LFF81F0
+	bra.s	.LFF91B6
+.LFF91F0
 	ori.b	#$1,ccr
-.LFF81F4
+.LFF91F4
 	movem.l	(sp)+,d1/a0-a1
 	rts
+RemoveZ80SoundResources
 	movem.l	d1-d3/a0-a2,-(sp)
-	lea	.LFF841A(pc),a1
+	lea	X_FF941A(pc),a1
 	move.w	#$0,(a1)
-	bsr.w	.LFF833E
-.LFF820A
+	bsr.w	AcquireSoundZ80Bus
+.LFF920A
 	cmpi.w	#$FFFF,(a0)
-	beq.w	.LFF82E4
+	beq.w	.LFF92E4
 	cmpi.w	#$6,(a0)
-	bcc.w	.LFF82DA
+	bcc.w	.LFF92DA
 	lea	$A00100.l,a1
 	move.w	$2(a0),d0
 	move.w	#$3F,d1
-.LFF8228
+.LFF9228
 	cmp.b	(a1),d0
-	beq.s	.LFF823A
+	beq.s	.LFF923A
 	adda.l	#$4,a1
-	dbf	d1,.LFF8228
-	bra.w	.LFF82DA
-.LFF823A
+	dbf	d1,.LFF9228
+	bra.w	.LFF92DA
+.LFF923A
 	clr.w	d0
 	move.b	$1(a1),d0
 	clr.w	d1
@@ -889,14 +911,14 @@ X_FF904F	equ	$FF904F
 	move.w	d1,d2
 	add.w	d0,d2
 	lea	$A00000.l,a2
-.LFF8256
+.LFF9256
 	cmpi.w	#$1F00,d2
-	beq.s	.LFF826C
+	beq.s	.LFF926C
 	move.b	(a2,d2.w),(a2,d1.w)
 	addi.w	#$1,d2
 	addi.w	#$1,d1
-	bra.s	.LFF8256
-.LFF826C
+	bra.s	.LFF9256
+.LFF926C
 	clr.w	d1
 	move.b	$2(a1),d1
 	lsl.w	#$8,d1
@@ -907,21 +929,21 @@ X_FF904F	equ	$FF904F
 	move.b	#$FF,$3(a1)
 	lea	$A00100.l,a1
 	move.w	#$3F,d2
-.LFF8298
+.LFF9298
 	cmpi.b	#$FF,(a1)
-	bne.w	.LFF82BC
+	bne.w	.LFF92BC
 	clr.w	d3
 	move.b	$2(a1),d3
 	lsl.w	#$8,d3
 	move.b	$3(a1),d3
 	cmp.w	d1,d3
-	bcc.s	.LFF82BC
+	bcc.s	.LFF92BC
 	sub.w	d0,d3
 	move.b	d3,$3(a1)
 	lsr.w	#$8,d3
 	move.b	d3,$2(a1)
-.LFF82BC
-	dbf	d2,.LFF8298
+.LFF92BC
+	dbf	d2,.LFF9298
 	lea	$A00022.l,a1
 	clr.w	d1
 	move.b	(a1),d1
@@ -931,135 +953,122 @@ X_FF904F	equ	$FF904F
 	move.b	d1,$1(a1)
 	lsr.w	#$8,d1
 	move.b	d1,(a1)
-.LFF82DA
+.LFF92DA
 	adda.l	#$4,a0
-	bra.w	.LFF820A
-.LFF82E4
-	bsr.w	.LFF8352
-	lea	.LFF841A(pc),a1
+	bra.w	.LFF920A
+.LFF92E4
+	bsr.w	ReleaseSoundZ80Bus
+	lea	X_FF941A(pc),a1
 	move.w	#$1234,(a1)
 	clr.w	d0
 	movem.l	(sp)+,d1-d3/a0-a2
 	rts
+ClearZ80SoundResourceDirectory
 	movem.l	a0-a1,-(sp)
-	lea	.LFF841A(pc),a0
+	lea	X_FF941A(pc),a0
 	move.w	#$0,(a0)
-	bsr.w	.LFF833E
+	bsr.w	AcquireSoundZ80Bus
 	lea	$A00100.l,a0
 	move.w	#$FF,d0
-.LFF8312
+.LFF9312
 	move.b	#$FF,(a0)+
-	dbf	d0,.LFF8312
+	dbf	d0,.LFF9312
 	lea	$A00020.l,a0
 	lea	$A00022.l,a1
 	move.b	(a0)+,(a1)+
 	move.b	(a0),(a1)
-	bsr.w	.LFF8352
-	lea	.LFF841A(pc),a0
+	bsr.w	ReleaseSoundZ80Bus
+	lea	X_FF941A(pc),a0
 	move.w	#$1234,(a0)
 	clr.w	d0
 	movem.l	(sp)+,a0-a1
 	rts
-.LFF833E
+AcquireSoundZ80Bus
 	move.w	#$100,$A11100.l
-.LFF8346
+.LFF9346
 	btst.b	#$8,$A11100.l
-	bne.s	.LFF8346
+	bne.s	.LFF9346
 	rts
-.LFF8352
+ReleaseSoundZ80Bus
 	move.w	#$0,$A11100.l
 	rts
-.LFF835C
+AcquireSoundSubProgramRam
 	movem.l	d0-d1/a1,-(sp)
 	cmpa.l	#$80000,a0
-	bcc.w	.LFF83AA
+	bcc.w	.LFF93AA
 	move.b	#$3,$A12001.l
-.LFF8372
+.LFF9372
 	move.w	$A12000.l,d0
 	btst	#$1,d0
-	beq.s	.LFF8372
+	beq.s	.LFF9372
 	move.l	a0,d0
 	swap	d0
 	andi.w	#$6,d0
 	lsl.w	#$5,d0
-	lea	.LFF85EA(pc),a1
+	lea	X_FF95EA(pc),a1
 	move.w	$A12002.l,d1
 	move.w	d1,(a1)
 	btst	#$2,d1
-	beq.s	.LFF839E
+	beq.s	.LFF939E
 	bset	#$1,d0
-.LFF839E
+.LFF939E
 	andi.w	#$FF00,d1
 	or.w	d0,d1
 	move.w	d1,$A12002.l
-.LFF83AA
+.LFF93AA
 	movem.l	(sp)+,d0-d1/a1
 	rts
-.LFF83B0
+ReleaseSoundSubProgramRam
 	move.l	d0,-(sp)
 	cmpa.l	#$80000,a0
-	bcc.s	.LFF83F8
-	move.w	.LFF85EA(pc),d0
+	bcc.s	.LFF93F8
+	move.w	X_FF95EA(pc),d0
 	btst	#$2,d0
-	beq.s	.LFF83CE
+	beq.s	.LFF93CE
 	andi.w	#$FFC0,d0
 	bset	#$1,d0
-	bra.s	.LFF83D2
-.LFF83CE
+	bra.s	.LFF93D2
+.LFF93CE
 	andi.w	#$FFC0,d0
-.LFF83D2
+.LFF93D2
 	move.w	d0,$A12002.l
 	move.w	#$1,$A12000.l
-.LFF83E0
+.LFF93E0
 	move.w	$A12000.l,d0
 	btst	#$1,d0
-	bne.s	.LFF83E0
+	bne.s	.LFF93E0
 	move.w	$A12000.l,d0
 	btst	#$1,d0
-	bne.s	.LFF83E0
-.LFF83F8
+	bne.s	.LFF93E0
+.LFF93F8
 	move.l	(sp)+,d0
 	rts
-.LFF83FC
+MapSoundSubProgramPointer
 	move.l	d0,-(sp)
 	cmpa.l	#$80000,a0
-	bcc.s	.LFF8416
+	bcc.s	.LFF9416
 	move.l	a0,d0
 	andi.l	#$1FFFF,d0
 	ori.l	#$20000,d0
 	movea.l	d0,a0
-.LFF8416
+.LFF9416
 	move.l	(sp)+,d0
 	rts
-.LFF841A
 	dc.w	$0000
-.LFF841C
 	dcb.b	32,0
-.LFF843C
 	dcb.b	32,0
-.LFF845C
 	dcb.b	16,0
-.LFF846C
 	dcb.b	16,0
-.LFF847C
 	dcb.b	16,0
-.LFF848C
 	dcb.b	16,0
-.LFF849C
 	dcb.b	32,0
-.LFF84BC
 	dcb.b	130,0
-.LFF853E
 	ori.b	#$0,d0
 	ori.b	#$0,d0
 	ori.b	#$0,d0
-.LFF854A
 	dcb.b	20,0
-.LFF855E
 	dcb.b	140,0
-.LFF85EA
 	dc.w	$0000
-.LFF85EC
 	dcb.b	81,0
 	dc.b	$4F
 	btst.b	d1,-(a6)
@@ -1156,9 +1165,9 @@ X_FF904F	equ	$FF904F
 	ori.l	#$3E7F6E00,(a1)
 	asl.w	d0,d5
 	dc.w	$00E0
-	beq.w	X_FF6906
+	beq.w	X_FF7906
 	bset.b	d0,-(a0)
-	bls.w	X_FF6908
+	bls.w	X_FF7908
 	bset.b	d0,-(a0)
 	addq.b	#$7,d0
 	roxl.w	#$8,d7
@@ -1168,7 +1177,7 @@ X_FF904F	equ	$FF904F
 	dc.w	$00E0
 	addq.b	#$3,d0
 	lsl.w	#$8,d7
-.LFF87C0
+.LFF97C0
 	bset.b	d0,-(a0)
 	subq.b	#$8,d0
 	lsl.w	#$8,d2
@@ -1184,14 +1193,14 @@ X_FF904F	equ	$FF904F
 	bset.b	d0,-(a0)
 	negx.b	d0
 	rol.b	d0,d1
-	bvc.s	.LFF87C0
+	bvc.s	.LFF97C0
 	negx.b	d0
 	asl.w	#$8,d0
 	dc.w	$00FF
 	ori.b	#$B0,d0
 	move.b	d1,d1
 	dc.w	$00C0
-	ble.w	X_FF182C
+	ble.w	X_FF282C
 	dc.w	$7F1E
 	dc.w	$1EFF
 	ori.b	#$B0,d0
@@ -1211,8 +1220,8 @@ X_FF904F	equ	$FF904F
 	ori.b	#$B0,d0
 	move.b	d1,d1
 	dc.w	$00C0
-	bmi.w	X_FF185A
-	bra.s	.LFF887E
+	bmi.w	X_FF285A
+	bra.s	.LFF987E
 	dc.w	$5AFF
 	ori.b	#$B0,d0
 	move.b	d1,d1
@@ -1221,25 +1230,25 @@ X_FF904F	equ	$FF904F
 	sub.w	(a3)+,d0
 	dc.w	$7F1E
 	move.b	d0,(sp)+
-	bge.w	X_FF1880
+	bge.w	X_FF2880
 	dc.w	$7F50
 	dc.w	$50FF
 	ori.b	#$B0,d0
 	move.b	d1,d1
 	dc.w	$00C0
-	beq.w	X_FF1884
+	beq.w	X_FF2884
 	dc.w	$7F04
 	dc.w	$04C0
-	bcs.w	X_FF189A
+	bcs.w	X_FF289A
 	dc.w	$7F28
 	dc.w	$28FF
 	ori.b	#$B0,d0
 	move.b	d1,d1
 	dc.w	$00C0
-	beq.w	X_FF1892
+	beq.w	X_FF2892
 	dc.w	$7F0A
 	dc.w	$0AC0
-	bcc.w	X_FF18AA
+	bcc.w	X_FF28AA
 	dc.w	$7F28
 	dc.w	$28FF
 	ori.b	#$B0,d0
@@ -1249,8 +1258,8 @@ X_FF904F	equ	$FF904F
 	dc.w	$9037
 	subq.b	#$7,d4
 	dc.w	$04C0
-.LFF887E
-	bcs.w	X_FF18C6
+.LFF987E
+	bcs.w	X_FF28C6
 	dc.w	$5F32,$32FF
 	ori.b	#$B0,d0
 	move.b	d1,d1
@@ -1260,7 +1269,7 @@ X_FF904F	equ	$FF904F
 	dc.w	$063C
 	negx.b	d3
 	bset	d1,d0
-	bcc.w	X_FF18D8
+	bcc.w	X_FF28D8
 	subq.b	#$7,(a6)+
 	dc.w	$1EFF
 	ori.b	#$B0,d0
@@ -1295,7 +1304,7 @@ X_FF904F	equ	$FF904F
 	btst	d0,d0
 	and.w	$90(a4),d0
 	dc.w	$467F
-	bcc.s	.LFF8954
+	bcc.s	.LFF9954
 	dc.w	$FF00
 	dc.w	$0000,$B012
 	btst	d0,d0
@@ -1328,7 +1337,7 @@ X_FF904F	equ	$FF904F
 	dc.w	$FF00
 	dc.w	$0000,$B012
 	btst	d0,d0
-.LFF8954
+.LFF9954
 	and.w	-(a6),d0
 	ori.l	#$43692000,(a0)
 	eor.b	d0,(a2)
@@ -1541,7 +1550,7 @@ X_FF904F	equ	$FF904F
 	dc.w	$033E
 	dc.w	$033D
 	dc.w	$033B
-	btst.b	d1,X_FF904F(pc)
+	btst.b	d1,X_FFA04F(pc)
 	dc.w	$0337
 	dc.w	$0336
 	dc.w	$0334
@@ -1850,9 +1859,9 @@ X_FF904F	equ	$FF904F
 	dc.w	$35C0
 	dc.w	$00F0
 	ori.b	#$2,d0
-.LFF8F5C
+.LFF9F5C
 	ori.b	#$0,d0
-	bra.w	.LFF96C6
+	bra.w	.LFFA6C6
 	dc.w	$0016,$0800
 	move.b	(sp)+,-(a3)
 	move.b	(a2),-(a4)
@@ -1860,11 +1869,11 @@ X_FF904F	equ	$FF904F
 	move.b	(sp)+,d1
 	dc.w	$0403,$060F
 	dc.w	$540A
-	bpl.s	.LFF8F80
+	bpl.s	.LFF9F80
 	dc.w	$29C0
 	dc.w	$00F0
 	dc.w	$0002,$0202
-.LFF8F80
+.LFF9F80
 	ori.b	#$0,d0
 	dc.w	$3730,$3638
 	dc.w	$001F,$4A00
@@ -1931,9 +1940,9 @@ X_FF904F	equ	$FF904F
 	dc.w	$00F0
 	dc.w	$0002,$0202
 	ori.b	#$0,d0
-	ble.s	.LFF903C
+	ble.s	.LFFA03C
 	dc.w	$6F00
-.LFF903C
+.LFFA03C
 	move.l	d2,-(a5)
 	move.l	d0,-(a3)
 	move.b	(a4)+,d7
@@ -1976,7 +1985,7 @@ X_FF904F	equ	$FF904F
 	ori.b	#$0,d0
 	dc.w	$6151
 	dc.w	$0131,$1663
-	bls.w	.LFF99BA
+	bls.w	.LFFA9BA
 	btst	d5,d7
 	dc.w	$040A
 	ori.b	#$0,d6
@@ -2018,8 +2027,8 @@ X_FF904F	equ	$FF904F
 	ori.b	#$1F,d0
 	dc.w	$FFFF
 	dcb.b	1410,0
-.LFF96C6
+.LFFA6C6
 	dcb.b	756,0
-.LFF99BA
+.LFFA9BA
 	dcb.b	8580,0
 	dcb.b	12482,0

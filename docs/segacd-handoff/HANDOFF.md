@@ -2,7 +2,7 @@
 
 ## Now
 - Unit: none in progress. Branch `mcmarkis/segacd-hockey` (fork Mhopkinsinc/NHL94Genesis), PR abdulahmad/NHL94Genesis#239.
-- Last check: 2026-11-10, Windows: `npm run build:segacd` MATCH 121 fragments; `tools/verify_all.sh -q` ALL MATCH.
+- Last check: 2026-11-10, Windows: `npm run build:segacd` MATCH 123 fragments; `tools/verify_all.sh -q` ALL MATCH.
   `tools/segacd_check.sh`: all four code files match in full, 410,162 of 410,162 bytes. Of those, 43,120 (HOCKEY.BIN),
   25,806 (PLAYER.BIN) and about 87 KB (STARTER.BIN) are graphics, pictures, licensed names or credits read from the
   disc with incbin; the rest is source. GRAPH2.BIN and GTABLE.BIN (PLAN step 5) match too: all six disc files are
@@ -27,7 +27,10 @@
      loader of every other resource is noted (HOCKEY, STARTER or PLAYER; 6-33 and 68-95 are per team). Left: the
      formats of 5, 34, 64, 68-95 and 97, and the sub CPU code that reads GTABLE.
   2. Names: STARTER's driver module is named (`docs/segacd_starter_driver.md`). PLAYER's code is named
-     (`docs/segacd_player.md`). Left: MAIN's start-up and the module at `$77B8`. HOCKEY's header and TeamList are source now; the graphics
+     (`docs/segacd_player.md`), and so are MAIN's shell, command table and sound engine
+     (`docs/segacd_main_shell.md`; MAIN.BIN runs at `$FF1000`, not `$FF0000`). Left: the older interface's
+     handlers in Abdul's MAIN fragments, the two STARTER start-up stages, and what `$6044` does (its code is
+     not in the six files). HOCKEY's header and TeamList are source now; the graphics
      pointer table has 34 of 44 entries named (`--cdname` in `tools/segacd_hockey.sh`), the rest have no cartridge
      label (their comments say what they hold).
   3. Formats: STARTER's data is five `.map.jim` screens and a block for driver function 5 (`startergfx.asm`);

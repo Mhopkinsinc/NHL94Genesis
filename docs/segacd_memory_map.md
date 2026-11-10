@@ -33,4 +33,6 @@ The team struct is one word longer than the cartridge's. Every offset from `tmap
 
 ## Open
 
+On the main CPU, `MAIN.BIN` runs at `$FF1000`-`$FFFBFF` (file + `$FF1000`; `docs/segacd_main_shell.md`): its `$EC00` bytes end exactly at `$FFFC00`, the stack top MainShellEntry sets, and the file ends in zeros.
+
 `STARTER.BIN` runs at `$B000`-`$285B7` (file + `$B000`; `docs/segacd.md`). Its tail code jumps back to the boot at `$B00E`, which loads HOCKEY.BIN at `$1B000` with BIOS function 0, over STARTER's top part (file `$10000` on), and jumps to it. The driver module (`$C000`-`$ED93`) and the C part below `$1B000` stay. What the driver module does for each BIOS function (`$6044`, d7) is not traced.

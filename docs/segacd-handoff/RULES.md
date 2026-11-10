@@ -30,5 +30,6 @@
 - 2026-11-10 hockey: a shared name (ram94 / teamdata94 / macros) defined inside a fragment is a comment there and a value in hockey.inc, whatever order the fragments are written in. (teamdata94: NumTeams multiply defined)
 - 2026-11-10 starter: STARTER.BIN file `$1000`-`$3D93` runs at file + `$B000`, not `$21300`; test a base by checking that absolute call targets fall just after an `rts`. (17 of 19 at `$B000`, 0 at `$21300`)
 - 2026-11-10 starter: test a base on every part of a file, data addresses too, not on one jump: the whole of STARTER.BIN runs at `$B000`. A single target that fits another base (the boot's `jmp` onto a `link a6` at `$21300`) can be chance. (crt `lea $104EC.l`, the tail's calls, the boot's `$B090`)
+- 2026-11-10 main: MAIN.BIN runs at `$FF1000`, not `$FF0000`: a pointer table is the best base test (61 of 64 entries on routine starts at `$FF1000`, 1 at `$FF0000`). (maintable.asm, the first `jmp $FF45A8`)
 - 2026-11-10 starter: Sierra C puts a function's string literals after its name tag; the next function starts at the next `link a6`. (heapalloc: the ffree messages between ffree and findSmallestBlock)
 - 2026-11-10 starter: the STARTER credits text names real people (one matches a player name); text runs there are incbin from the disc (`--text-incbin`). (startertail)

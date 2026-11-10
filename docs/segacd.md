@@ -11,7 +11,7 @@ The six disc files used here live in `cdbin/` locally (`MAIN.BIN`, `STARTER.BIN`
 | `STARTER.BIN` | Sub | SDK boot. Heap, film player, main/sub commands, the sub CPU driver. Runs at `$B000` (file + `$B000`): the opening `jmp $262A8` lands on its main entry (`movea.l #$C41C,sp`), and it loads HOCKEY.BIN at the end. |
 | `HOCKEY.BIN` | Sub | The game. Linked at `0` (its own branches land inside the file). About 181 KB. |
 | `PLAYER.BIN` | Sub | A second module, also linked at `0`, with a relocating startup (`lea 0(pc,a6.l),a6`). Career stats, the team page, and player photos. The "Power play advantage" lines are this page, not the Ron Barr script. |
-| `MAIN.BIN` | Main | SDK shell in Genesis RAM at `$FF0000`. Talks to the VDP and to the sub CPU through `$A120xx`. |
+| `MAIN.BIN` | Main | The main CPU shell and sound engine. Runs at `$FF1000` (file + `$FF1000`: its first instruction jumps to MainShellEntry at `$FF45A8`, and its command table sits at `$FF471C`). Talks to the VDP and to the sub CPU through `$A120xx`. `docs/segacd_main_shell.md`. |
 | `GTABLE.BIN` | | The index of GRAPH2.BIN: 99 entries of start sector (word) and byte size (long). |
 | `GRAPH2.BIN` | | 3 MB graphics archive: 99 resources, each on its own sectors, found through GTABLE.BIN. |
 
@@ -132,13 +132,15 @@ Verified bytes are 410,162 of the 410,162 bytes in the four code files (all of t
 | `src/segacd/main/mainfont_2.asm` | `cdbin/MAIN.BIN` `$4F6A` | the second copy of `mainfont.asm` (768) |
 | `src/segacd/main/maintext_2.asm` | `cdbin/MAIN.BIN` `$526A` | the second copy of `maintext.asm` (1,166) |
 | `src/segacd/main/maincrt.asm` | `cdbin/MAIN.BIN` `$34B8` | Sierra C run-time helpers (240) |
-| `src/segacd/main/mainstart.asm` | `cdbin/MAIN.BIN` `$35A8` | main CPU start-up: stack `$FFFC00`, comm words cleared (1,428) |
-| `src/segacd/main/mainwram.asm` | `cdbin/MAIN.BIN` `$3C3E` | word RAM to VDP copies (1,170) |
+| `src/segacd/main/mainstart.asm` | `cdbin/MAIN.BIN` `$35A8` | MainShellEntry and the command loop (372) |
+| `src/segacd/main/maintable.asm` | `cdbin/MAIN.BIN` `$371C` | the game shell's 64 command handler pointers, by name; by hand (256) |
+| `src/segacd/main/mainstart_2.asm` | `cdbin/MAIN.BIN` `$381C` | interrupt handlers, start-up handshake, commands `$01`-`$08` (800) |
+| `src/segacd/main/mainwram.asm` | `cdbin/MAIN.BIN` `$3C3E` | commands `$1D`-`$26`, `$2C`, `$3E`: fades, DMA, sound, pads (1,170) |
 | `src/segacd/main/maincrt_2.asm` | `cdbin/MAIN.BIN` `$56F8` | the second copy of `maincrt.asm` (240) |
-| `src/segacd/main/mainvdpinit.asm` | `cdbin/MAIN.BIN` `$57E8` | VDP set-up and vectors (3,108) |
-| `src/segacd/main/mainz80.asm` | `cdbin/MAIN.BIN` `$640C` | the Z80 sound program, as bytes (3,400) |
-| `src/segacd/main/maincmd.asm` | `cdbin/MAIN.BIN` `$7154` | a command dispatch into `mainmod` (1,396) |
-| `src/segacd/main/mainmod.asm` | `cdbin/MAIN.BIN` `$77B8` | a module (`$1234` check), its tables, zeros to the end (29,768) |
+| `src/segacd/main/mainvdpinit.asm` | `cdbin/MAIN.BIN` `$57E8` | commands `$27`-`$40`: interrupts, sound driver, V interrupt channel, screens (3,108) |
+| `src/segacd/main/mainz80.asm` | `cdbin/MAIN.BIN` `$640C` | the Z80 sound program: includes the asm80 build of `mainz80.z80` (3,400) |
+| `src/segacd/main/maincmd.asm` | `cdbin/MAIN.BIN` `$7154` | DispatchSoundOperation (1,396) |
+| `src/segacd/main/mainmod.asm` | `cdbin/MAIN.BIN` `$77B8` | the sound sequence engine, its tables, zeros to the end (29,768) |
 | `src/segacd/starter/subhdr.asm` | `cdbin/STARTER.BIN` `$90` | zeros, the driver module's file record and entry table (5,298) |
 | `src/segacd/starter/subdrv.asm` | `cdbin/STARTER.BIN` `$1542` | the sub CPU driver module, runtime file + `$B000` (9,418) |
 | `src/segacd/starter/subdrv_2.asm` | `cdbin/STARTER.BIN` `$3A8A` | the end of the driver module (778) |
