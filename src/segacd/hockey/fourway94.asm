@@ -10,6 +10,7 @@
 
 	org	$22DDC
 
+ReadJoySwapPad4						;CD: its first lines have no twin; the rest of it starts here
 	rts
 Set4WayPlayerStub					;An empty Set4WayPlayer (just rts): forcepldata calls it with SCnum $F
 									;when a goalie is pulled

@@ -20,6 +20,7 @@ KNOWN=(
   --name TeamList=0x1B00C      # file $C: the 28 team record pointers
   --name tmgoals=0xB6          # cards94 UpdatePlayerRecords: addi.w #$B6,d0 for addi.w #tmgoals,d0
   --name tmpshots=0xEA         # cards94 UpdatePlayerRecords: addi.w #$EA,d0 for addi.w #tmpshots,d0
+  --name LineDataBase=0xE20    # shootoutpath94 ReadLineData / WriteLineData: move.l #$E20,d0 for #LineDataBase
 )
 port() {  # name start end [options...]
   local n=$1 s=$2 e=$3; shift 3
@@ -36,5 +37,15 @@ port fourway94 0x7DDC 0x7E38 --note 'CD: Detect4WayPlay and the ReadJoySwapPad r
 port crowd94 0x7E38 0x83CC --note 'Same code as the cartridge, with one change in checkcornercoll: the corner-circle test compares\nthe squared distance with $42 where the cartridge has $1000 (the radius $40 squared).'
 port optsetup94 0x83CC 0x9B5E --note 'The option logic and strings are the cartridge'"'"'s. CD: the graphics are not ROM labels any more:\neach movea.l #map / lea of a tile set became a load from a pointer table at $47D00-$47D8C\n(file $2CD00, zeros on the disc, filled at run time), and the beam-counter seed is command $1B\nto the main CPU (the word comes back in $FF8010). The New York full names are read from the disc file.'
 port cards94 0x9B5E 0xB348 --note 'The record bookkeeping (GetRecordValue, UpdateRecords ...) and CalcAttrib are the cartridge code.\nCD: the save RAM readers (ReadPlayerRecord ... NameLogIO) moved next to sram94 (file $7534);\nFeaturedPictures and the player card screen (PlayerCards ... BuildCardPlayerList) are gone;\nTeamPalettes stay (read from the disc file); pictures come through a list at $47D88;\nMenuWaitVblank became the BIOS call at $6044.'
+port records94 0xB348 0xC860 --note 'Name entry is the cartridge code. CD: the Record Holders screen was redone: new title Strings,\nand PrintWinRecords and the record pages build their lines in word RAM ($BC000).'
+port shootout94 0xC860 0xD1D4 --note 'The shootout logic is the cartridge code. CD: the shooter list is kept in word RAM at $BBD30,\nand the logo comes through the graphics pointer table ($47D0C).'
+# scout94 0xD1D4 0xE1CE: not yet (src/segacd/scoutopen.asm covers $D2B6-$D397)
+port period94 0xE1CE 0xF1AA --note 'Period stats, game statistics and Manual Goalie are the cartridge code. CD: the team logos come\nthrough the graphics pointer table ($47D8C) and BIOS calls ($6044 with d7 = 2), and a stat line\nis sent to the main CPU with command $B; the first lines of PrintStatValue have no twin.'
+port arena94 0xF1AA 0xF58C --note 'The arena / faceoff animations are the cartridge code; NHLPALogoMap is in HOCKEY.BIN.'
+port shootoutpath94 0xF58C 0xF902 --note 'Saved lines and the shootout skate paths are the cartridge code. The saved lines sit at $E20\nin the backup RAM image (LineDataBase; the cartridge save RAM has them at $1EF6).'
+port ui94 0xF902 0xFE68 --note 'Most of it is the cartridge code. CD: PlayedByText and the playoff sprites use the graphics\npointer table ($47D90-$47DA8) and word RAM ($BBD30); the first lines of DrawPlayoffSprite and\nCountButtonPress have no twin.'
+port helpers94 0xFE68 0xFF56 --note 'Same code as the cartridge. (title94, the title screen and credits, is not on the disc: the\nCD has its own title, and logos94 follows straight on.)'
+port logos94 0xFF56 0x104E2 --note 'TeamLogoPalettes, the lead song and ClearPenalties are the cartridge'"'"'s. CD: a few palette\nwords differ, and the hot / cold icons come through the graphics pointer table ($47D98, $47D9C).'
+port chgplayer94 0x104E2 0x10614 --note 'chgplayer and its far thunks are the cartridge code, with a few lines changed (CD blocks).'
 
 exit $fail

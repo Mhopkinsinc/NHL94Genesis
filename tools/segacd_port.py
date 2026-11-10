@@ -260,7 +260,7 @@ def decode(blob, pc, end, base):
     if key in _cache:
         return _cache[key]
     got = None
-    if pc + 2 <= len(blob):
+    if pc + 2 <= len(blob) and not (base + pc) & 1:      # no instruction at an odd address
         for insn in md.disasm(blob[pc:pc + 10], base + pc):
             got = insn
             break
@@ -270,6 +270,11 @@ def decode(blob, pc, end, base):
             got = None
         elif got.mnemonic.startswith("ori") and got.size == 2:
             got = None                       # capstone reads 0000 as a two-byte ori
+        elif "*" in got.op_str or "[" in got.op_str or "{" in got.op_str or "invalid" in got.op_str:
+            got = None                       # a 68020 form (scaled index, memory indirect): data here
+        elif got.mnemonic.split(".")[0] in BRANCHES | DBCC and re.search(r"\$([0-9a-f]+)$", got.op_str) \
+                and int(re.search(r"\$([0-9a-f]+)$", got.op_str).group(1), 16) & 1:
+            got = None                       # a branch to an odd address: data here
     _cache[key] = got
     return got
 
@@ -619,13 +624,29 @@ def item_matches(it, disc, p, end):
 
 
 def soft_matches(it, disc, p, end):
-    """Data that carries addresses: same length, bytes may differ."""
-    if it.kind == "data" and it.len and has_ident(it.ops) and p + it.len <= end:
-        return it.len
-    return None
+    """Data that carries addresses: same length; each address element must point into HOCKEY.BIN
+    or the game RAM, a label difference may shift a little, a constant element must be equal."""
+    if not (it.kind == "data" and it.len and has_ident(it.ops) and p + it.len <= end):
+        return None
+    size = {"dc.b": 1, "dc.w": 2, "dc.l": 4, "dc": 2}.get(it.mnem.lower())
+    ops = split_ops(it.ops)
+    if size is None or size == 1 or len(ops) * size != it.len:
+        return None
+    for k, o in enumerate(ops):
+        c = int.from_bytes(it.cart[k * size:(k + 1) * size], "big")
+        d = int.from_bytes(disc[p + k * size:p + (k + 1) * size], "big")
+        if not has_ident(o):
+            if c != d:
+                return None
+        elif size == 4:
+            if not (c == d or BASE <= d < BASE + len(disc) or 0x17000 <= d < BASE):
+                return None
+        elif abs(d - c) >= 0x800:
+            return None
+    return it.len
 
 
-def run_ok(items, i, disc, p, end, k, used=()):
+def run_ok(items, i, disc, p, end, k, used=(), soft=False):
     n = 0
     while n < k:
         if i in used:
@@ -634,6 +655,8 @@ def run_ok(items, i, disc, p, end, k, used=()):
             return n > 0
         it = items[i]
         ln = item_matches(it, disc, p, end)
+        if ln is None and soft:
+            ln = soft_matches(it, disc, p, end)     # a table of addresses: same length, other values
         if ln is None:
             return False
         if it.kind not in ("dir", "align") or ln:
@@ -682,7 +705,7 @@ def align(items, disc, start, end, nmain=None):
                 p += ln
                 continue
             ln = soft_matches(it, disc, p, end)
-            if ln is not None and run_ok(items, nxt + 1, disc, p + ln, end, 2):
+            if ln is not None and run_ok(items, nxt + 1, disc, p + ln, end, 2, soft=True):
                 flush_cd(p)
                 walk.append(("s", it, p, ln))
                 used.add(nxt)
@@ -697,7 +720,9 @@ def align(items, disc, start, end, nmain=None):
         cands += idx.get(("d", bytes(disc[p:p + 4])), [])
         best = None
         for j in cands:
-            if j in used or not run_ok(items, j, disc, p, end, K if j < nmain else K + 2, used):
+            # a short skip forward needs K lines; any other jump (back, far, another file) needs more
+            need = K if (j < nmain and (nxt < j <= nxt + 40 or not in_run and walk == [])) else K + 2
+            if j in used or not run_ok(items, j, disc, p, end, need, used):
                 continue
             # prefer the run that follows on, then lines of this file, then the nearest after
             key = (0 if j == nxt else 1, 0 if j < nmain else 1, 0 if j > nxt else 1, abs(j - nxt))
@@ -786,19 +811,20 @@ class Fragment:
         self.constraints = []
         self.force_numeric = set()
         self.evidence = set()
+        self.restored = set()
+        self.targets = set()
+        self.cd_pcs = set()
 
     # -- labels from aligned items
     def place_labels(self):
+        self.find_targets()
         self.starts = set()
         for w in self.walk:
             if w[0] in ("m", "s") and w[1].kind in ("insn", "data", "macro"):
                 self.starts.add(BASE + w[2])
             elif w[0] == "cd":
-                pc = w[1]
-                while pc < w[2]:
-                    self.starts.add(BASE + pc)
-                    d = decode(self.disc, pc, w[2], BASE)
-                    pc += d.size if d is not None else 2
+                for u in self.cd_units(w[1], w[2]):
+                    self.starts.add(BASE + u[1])
         for w in self.walk:
             if w[0] in ("m", "s"):
                 it, p = w[1], w[2]
@@ -809,6 +835,20 @@ class Fragment:
                         self.add_label(lab, rt, it.scope)
                 if it.label:
                     self.add_label(it.label, rt, it.scope)
+        self.restore_scopes()
+
+    def restore_scopes(self):
+        """A routine whose first lines were cut keeps its later lines: put its name at the first of
+        them, so its local labels stay in its own scope (not in the routine before it)."""
+        self.restored = set()
+        for w in self.walk:
+            if w[0] in ("m", "s"):
+                sc = w[1].scope
+                if sc and sc not in self.label_at and self.ckind.get(sc) == "label" and w[1].kind != "dir":
+                    rt = BASE + w[2]
+                    if not any(not lab.startswith(".") for lab in self.labels.get(rt, [])):
+                        self.add_label(sc, rt, sc)
+                        self.restored.add((rt, sc))
 
     def add_label(self, lab, rt, scope):
         key = (scope, lab) if lab.startswith(".") else lab
@@ -1076,6 +1116,8 @@ class Fragment:
             mn = base + ".s"
         if base in ("btst", "bset", "bclr", "bchg") and re.search(r",\s*d[0-7]$", insn.op_str):
             mn = base
+        elif base in ("btst", "bset", "bclr", "bchg"):
+            mn = base + ".b"                # a memory bit is always a byte (capstone may say .l)
         if base in DBCC:
             mn = "dbf" if base == "dbra" else base
         # keep the cartridge spelling when it is the same instruction
@@ -1194,7 +1236,8 @@ class Fragment:
         for k, o in enumerate(ops):
             v = int.from_bytes(self.disc[p + k * size:p + (k + 1) * size], "big")
             key = (it.ln.n, k)
-            if has_ident(o) and key not in self.force_numeric and self.solve(o, v, size * 8, it.scope):
+            mode = "disp" if re.fullmatch(r"tm\w+", o.strip()) and size >= 2 else None   # a team struct offset
+            if has_ident(o) and key not in self.force_numeric and self.solve(o, v, size * 8, it.scope, mode):
                 self.constraints.append((key, o, v, size * 8, it.scope))
                 out.append(o)
             else:
@@ -1203,20 +1246,80 @@ class Fragment:
                     self.stats["numeric"] += 1
         return f"\t{it.mnem}\t" + ",".join(out)
 
+    def cd_units(self, p, q):
+        """Split a CD block into instructions, text and raw words. Decoding starts again at every
+        branch target inside the block, and a printable run of 6+ bytes is text."""
+        out = []
+        pc = p
+        while pc < q:
+            k = pc
+            while k < q and 0x20 <= self.disc[k] < 0x7F and self.disc[k] not in (0x27,):
+                k += 1
+            if k - pc >= 6 and not any(pc < t - BASE < k for t in self.targets):
+                out.append(("text", pc, k - pc))
+                pc = k
+                continue
+            d = decode(self.disc, pc, q, BASE)
+            if d is not None:
+                cut = [t - BASE for t in self.targets if pc < t - BASE < pc + d.size]
+                if cut:
+                    d = None
+                    n = min(cut) - pc
+                else:
+                    out.append(("insn", pc, d))
+                    pc += d.size
+                    continue
+            else:
+                n = 2 if pc + 2 <= q and not pc & 1 else 1     # dc.w would be padded to even
+            n = max(1, n)
+            if n >= 2 and pc & 1:
+                n = 1
+            out.append(("raw", pc, min(n, 2) if not pc & 1 else 1))
+            pc += out[-1][2]
+        return out
+
+    def find_targets(self):
+        """Branch / pc-relative / absolute code targets inside the fragment (from every disc
+        instruction the walk decodes), so CD blocks can be decoded in step with them."""
+        self.targets = set()
+        lo, hi = BASE + self.start, BASE + self.end
+        for _ in range(3):
+            found = set(self.targets)
+            for w in self.walk:
+                if w[0] in ("m", "s") and w[1].kind == "insn":
+                    insns = [decode(self.disc, w[2], self.end, BASE)]
+                elif w[0] == "cd":
+                    insns = [u[2] for u in self.cd_units(w[1], w[2]) if u[0] == "insn"]
+                else:
+                    continue
+                for d in insns:
+                    if d is None:
+                        continue
+                    base = d.mnemonic.split(".")[0]
+                    if base in BRANCHES | DBCC or base in ("jsr", "jmp", "lea", "pea"):
+                        for m in re.finditer(r"\$([0-9a-f]+)", d.op_str):
+                            t = int(m.group(1), 16)
+                            if lo <= t < hi and not t & 1:
+                                found.add(t)
+            if found == self.targets:
+                break
+            self.targets = found
+
     def emit_cd(self, body, p, q):
         body.append(("text", ";CD: no cartridge twin"))
-        pc = p
         self.stats["cd_bytes"] += q - p
-        while pc < q:
-            d = decode(self.disc, pc, q, BASE)
-            if d is None:
-                n = 2 if pc + 2 <= q else 1
+        for u in self.cd_units(p, q):
+            if u[0] == "text":
+                pc, n = u[1], u[2]
                 body.append(("raw", self.disc[pc:pc + n], pc))
-                pc += n
-                continue
-            mn, ops, _ = self.insn_line(d, None, self.scope_of(BASE + pc))
-            body.append(("insn", None, mn, ops, "", pc, d.size))
-            pc += d.size
+            elif u[0] == "raw":
+                pc, n = u[1], u[2]
+                body.append(("raw", self.disc[pc:pc + n], pc))
+            else:
+                pc, d = u[1], u[2]
+                mn, ops, _ = self.insn_line(d, None, self.scope_of(BASE + pc))
+                body.append(("insn", None, mn, ops, "", pc, d.size))
+                self.cd_pcs.add(pc)
 
     def render(self, markers=False):
         out = []
@@ -1245,6 +1348,10 @@ class Fragment:
                     if rt == BASE + sp[0] and (rt, name) not in placed:
                         out.append(name + "\t\t\t\t\t\t;CD: placed where the disc branches to it")
                         placed.add((rt, name))
+                for rt, name in sorted(self.restored):
+                    if rt == BASE + sp[0] and (rt, name) not in placed:
+                        out.append(name + "\t\t\t\t\t\t;CD: its first lines have no twin; the rest of it starts here")
+                        placed.add((rt, name))
             if markers and sp is not None:
                 out.append(f".zzm{k}")
             if e[0] == "text":
@@ -1267,7 +1374,10 @@ class Fragment:
                 _, lab, raw, what, com, p = e
                 if BASE + p in self.auto:
                     out.append(f".L{BASE + p:X}")
-                out.append(f"{lab or ''}\t{raw_dc(raw)}\t\t;{what.strip()}: SNASM encodes it another way" + (" " + com.strip().lstrip(";") if com else ""))
+                if p in self.cd_pcs:
+                    out.append(f"{lab or ''}\t{raw_dc(raw)}")       # CD-only bytes that are data, not code
+                else:
+                    out.append(f"{lab or ''}\t{raw_dc(raw)}\t\t;{what.strip()}: SNASM encodes it another way" + (" " + com.strip().lstrip(";") if com else ""))
             elif e[0] == "raw":
                 raw, p = e[1], e[2]
                 rt = BASE + p
@@ -1480,6 +1590,8 @@ def same_mnem(cart, disc):
 
 
 def raw_dc(raw):
+    if len(raw) >= 6 and all(0x20 <= b < 0x7F and b != 0x27 for b in raw):
+        return "dc.b\t'" + raw.decode("ascii") + "'"
     if len(raw) % 2 == 0:
         return "dc.w\t" + ",".join(f"${int.from_bytes(raw[i:i + 2], 'big'):04X}" for i in range(0, len(raw), 2))
     return "dc.b\t" + ",".join(f"${b:02X}" for b in raw)

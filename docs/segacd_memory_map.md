@@ -28,7 +28,7 @@
 
 The RAM is not the cartridge layout moved by a constant: `printx` (`$FFB028`) is `$18D58` but `disflags` (`$FFBF78`) is `$18D64`. Each name is placed from a disc operand, never by offset.
 
-The team struct is one word longer than the cartridge's, and the extra word sits below `tmgoals`: `tmgoals` `$B6`, `tmpshots` `$EA`, `tmHotCold` `$1A4`, `tmPerGoals` `$344`, `tmOneTimers` `$35E`, `tmsize` `$366` (each two more than the cartridge). Which field grew is not known yet; `hockey.inc` notes every struct offset whose disc value differs.
+The team struct is one word longer than the cartridge's. Every offset from `tmap` on is two more (`tmap` `$26`, `tmgoalie` `$28`, `tmteam` `$2A`, `tmgoals` `$B6`, `tmpshots` `$EA`, `tmHotCold` `$1A4`, `tmPerGoals` `$344`, the game-statistics rows in `period94`, `tmsize` `$366`); `tmdata` (`$1E`) and everything below it are unchanged. The extra word is therefore between `$1E` and `$24`, where the cartridge has `tmsort`, a word holding a RAM address (`$FFxxxx` in short form). On the sub CPU the RAM is above `$FFFF`, so `tmsort` is probably a long there; no fragment has used `tmsort` yet to confirm it. `hockey.inc` notes every struct offset whose disc value differs.
 
 ## Open
 

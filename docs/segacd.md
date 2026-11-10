@@ -129,6 +129,15 @@ Verified bytes are 22,690 of the 410,162 bytes in the four code files (5.5%). `M
 | `src/segacd/hockey/crowd94.asm` | `cdbin/HOCKEY.BIN` `$7E38` | `crowd94.asm`: crowd records, hot and cold players, corner collisions (1,428) |
 | `src/segacd/hockey/optsetup94.asm` | `cdbin/HOCKEY.BIN` `$83CC` | `optsetup94.asm`: game setup and options (6,034) |
 | `src/segacd/hockey/cards94.asm` | `cdbin/HOCKEY.BIN` `$9B5E` | `cards94.asm`: user records bookkeeping, ratings; no player card screen (6,122) |
+| `src/segacd/hockey/records94.asm` | `cdbin/HOCKEY.BIN` `$B348` | `records94.asm`: name entry; Record Holders redone (5,400) |
+| `src/segacd/hockey/shootout94.asm` | `cdbin/HOCKEY.BIN` `$C860` | `shootout94.asm`: shootout (2,420) |
+| `src/segacd/hockey/period94.asm` | `cdbin/HOCKEY.BIN` `$E1CE` | `period94.asm`: period stats, game statistics, Manual Goalie (4,060) |
+| `src/segacd/hockey/arena94.asm` | `cdbin/HOCKEY.BIN` `$F1AA` | `arena94.asm`: arena / faceoff animations (994) |
+| `src/segacd/hockey/shootoutpath94.asm` | `cdbin/HOCKEY.BIN` `$F58C` | `shootoutpath94.asm`: saved lines, shootout skate paths (886) |
+| `src/segacd/hockey/ui94.asm` | `cdbin/HOCKEY.BIN` `$F902` | `ui94.asm`: unpack, rink graphics, HiScore, played-by (1,382) |
+| `src/segacd/hockey/helpers94.asm` | `cdbin/HOCKEY.BIN` `$FE68` | `helpers94.asm` (238) |
+| `src/segacd/hockey/logos94.asm` | `cdbin/HOCKEY.BIN` `$FF56` | `logos94.asm`: logo palettes, lead song, hot / cold icon (1,420) |
+| `src/segacd/hockey/chgplayer94.asm` | `cdbin/HOCKEY.BIN` `$104E2` | `chgplayer94.asm`: chgplayer and far thunks (306) |
 
 `maincd.asm` is the main CPU command loop: read `$A12020` when sub flag bit 6 is set, dispatch through the long table at `$FF01BE`, and put the VBlank vector at `$FD08` back when the command finishes. Past the handshake it clears the eight command words, waits on memory-mode bit 2, and hands word RAM back and forth (DMNA / RET in `$A12003`). Two commands add `$180000` to a sub CPU pointer so the main CPU sees the same word RAM (`$080000` there, `$200000` here).
 
@@ -170,4 +179,4 @@ python tools/segacd_port.py --file onetimer94.asm --disc-start 0x76A8 --disc-end
 
 What the cartridge build takes from the ROM (the licensed New York team nicknames in `optsetup94`, the asset files it `incbin`s from `Extracted/`, such as the matchup palettes in `cards94`) is `incbin ..\cdbin\HOCKEY.BIN,offset,length` here, read from your own disc file. The Sega CD build never reads `Extracted/`, and `segacd_port.py` stops if a written fragment would contain a player name or team nickname.
 
-What the CD changed so far: graphics are no longer ROM labels (each `movea.l #map` became a load from a pointer table at `$47D00`, inside HOCKEY.BIN but zeros on the disc, filled at run time), the beam-counter seed is command `$1B` to the main CPU, the corner-collision radius test in `checkcornercoll` compares with `$42` instead of `$1000`, and the team struct is one word longer below `tmgoals` (`$B4`). `cards94` lost the whole player card screen and its save RAM readers moved next to `sram94`. `fourway94` is the first file the CD cut: `Detect4WayPlay` and the `ReadJoySwapPad` routines are gone, and one `rts` that nothing calls is left in their place.
+What the CD changed so far: graphics are no longer ROM labels (each `movea.l #map` became a load from a pointer table at `$47D00`, inside HOCKEY.BIN but zeros on the disc, filled at run time), the beam-counter seed is command `$1B` to the main CPU, the corner-collision radius test in `checkcornercoll` compares with `$42` instead of `$1000`, and the team struct is one word longer from `tmap` on (`docs/segacd_memory_map.md`). `title94` (title screen and credits) is not on the disc. `cards94` lost the whole player card screen and its save RAM readers moved next to `sram94`. `fourway94` is the first file the CD cut: `Detect4WayPlay` and the `ReadJoySwapPad` routines are gone, and one `rts` that nothing calls is left in their place.

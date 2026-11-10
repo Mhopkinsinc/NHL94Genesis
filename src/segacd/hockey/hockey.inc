@@ -5,6 +5,7 @@
 
 ; RAM
 M68K_RAM	equ	$C45C
+recbpr	equ	$17470
 Vcount	equ	$17474
 OldVcount	equ	$17476
 SortCords	equ	$17480
@@ -16,6 +17,10 @@ puckvz	equ	$17BAC
 puckc	equ	$17BE0
 Crowdlevel	equ	$17CD2
 CwdExciteLvl	equ	$17CD8
+playoffspritex	equ	$17CE4
+playoffspritey	equ	$17CE6
+Vpos	equ	$17CEA
+Hpos	equ	$17CEE
 wcradiusx	equ	$17CF4
 wcradiusy	equ	$17CF6
 PadControlBits	equ	$17DC8
@@ -38,10 +43,19 @@ homecoldplayer	equ	$17EB2
 onetimerplayer	equ	$17EBC
 onetimerclock	equ	$17EBE
 onetimerflags	equ	$17EC6
+xc1	equ	$17EDC
+yc1	equ	$17EDE
+fox	equ	$17EE2
+foy	equ	$17EE4
 mesarea	equ	$17EF2
+lastsfx	equ	$17F64
+Sattsize	equ	$17F66
 gmode	equ	$17F68
 sflags	equ	$17F6A
+sflags2	equ	$17F6C
 sflags3	equ	$17F6E
+BA_PS_flags	equ	$17F70
+sflags4	equ	$17F72
 sflags5	equ	$17F74
 sflags6	equ	$17F76
 gmode2	equ	$17F78
@@ -54,6 +68,7 @@ CurCrowdMeter	equ	$17F8C
 CrowdRecord	equ	$17F8E
 CrowdAvg	equ	$17F90
 CrowdPeak	equ	$17F92
+msgtimer	equ	$17F98
 c1playernum	equ	$17F9E
 c2playernum	equ	$17FA0
 c3playernum	equ	$17FA2
@@ -64,6 +79,11 @@ cont3team	equ	$17FAA
 cont4team	equ	$17FAC
 HomeTeam	equ	$17FAE
 VisTeam	equ	$17FB0
+PenBuf	equ	$18022
+PenCntDwn	equ	$18064
+Penaltytimer	equ	$18066
+PBnum	equ	$18068
+gsp	equ	$180E4
 tmstruct	equ	$1834C
 awtmstruct	equ	$186B2
 bosgames	equ	$18A9C
@@ -89,6 +109,7 @@ seed	equ	$18C18
 PalMode	equ	$18C20
 TmpOptLine2	equ	$18C22
 TempOptPlayMode	equ	$18C24
+databuffer	equ	$18C26
 passbits	equ	$18C38
 VSCRLPM	equ	$18D30
 VSPRITES	equ	$18D32
@@ -99,17 +120,24 @@ Map2col	equ	$18D3A
 VmMAP3	equ	$18D3C
 Map3col	equ	$18D3E
 smallfontchars	equ	$18D42
+logochars	equ	$18D46
 framercset	equ	$18D4E
 printx	equ	$18D58
 printy	equ	$18D5A
 printa	equ	$18D5C
 printm	equ	$18D5E
+printfontset	equ	$18D60
 palcount	equ	$18D62
 disflags	equ	$18D64
 VBint	equ	$18D66
+BA_Team	equ	$19366
+BA_Sktr_SCnum	equ	$19368
+BA_Goalie_SCnum	equ	$1936A
+BA_Skater_Offset	equ	$1936C
 onetimertargetx	equ	$19376
 onetimertargety	equ	$19378
 onetimerheight	equ	$1937A
+FallXPos	equ	$1937E
 setupfirstline	equ	$19384
 setupprevline	equ	$19386
 setupmenuchars	equ	$19388
@@ -117,6 +145,7 @@ logoteam	equ	$1938A
 setuphome	equ	$1938C
 setupvis	equ	$1938E
 setupcardflags	equ	$19390
+BigFontchars	equ	$19392
 homepicchars	equ	$19392
 vispicchars	equ	$19394
 cardroster	equ	$19396
@@ -132,28 +161,94 @@ homegoalies	equ	$193AA
 awaygoalies	equ	$193AC
 homeplayers	equ	$193AE
 awayplayers	equ	$193B0
+shootoutclock	equ	$193B6
 ValidSRAM	equ	$193BA
 namelog	equ	$1A2FC
+nameentrybuf	equ	$1A37C
+namelength	equ	$1A38A
+namelogsel	equ	$1A38C
+namelogarrows	equ	$1A38E
+nameentryvis	equ	$1A390
+nameframechars	equ	$1A3D2
+shootoutstate	equ	$1A414
+homeshootgoals	equ	$1A416
+awayshootgoals	equ	$1A418
+shootoutround	equ	$1A41A
+homeshooters	equ	$1A41C
+homeshootnum	equ	$1A428
+awayshooters	equ	$1A42A
+shootoutteam	equ	$1A436
+matchup	equ	$1A43A
+matchupvis	equ	$1A440
+matchuptimer	equ	$1A44A
+DispAttribCtr	equ	$1A44E
+VertLineScrolling	equ	$1A450
+PlayerScrollCtr	equ	$1A452
+screentimer	equ	$1A458
+TestList	equ	$1A45A
+arenaanimchars	equ	$1A54E
+arenaframe	equ	$1A550
+arenaframeidx	equ	$1A552
+arenaframetime	equ	$1A554
+arenaanim	equ	$1A556
+arenaframelist	equ	$1A558
+arenaspritelist	equ	$1A55C
+faceoffanim	equ	$1A560
+cursoron	equ	$1A566
+SongNum	equ	$1A56A
+HmTeam	equ	$1A56C
+SongIndex	equ	$1A56E
 OvrDivisor	equ	$1A570
 OvrDividend	equ	$1A572
+sopath	equ	$1A8B4
+sopathpoint	equ	$1A8B6
+sopathx	equ	$1A8B8
+sopathy	equ	$1A8BA
+sopathdir	equ	$1A8BC
+sopathend	equ	$1A8BE
 picturebuf	equ	$1A8C0
+picturebits	equ	$1AD42
+homepresses	equ	$1AD46
+awaypresses	equ	$1AD4E
+lognametext	equ	$1AD5C
+shootoutdelay	equ	$1AD72
 inputjoy	equ	$1AD7A
 TmpJoyPuckCarrier	equ	$1AD7C
+hoticonchars	equ	$1AD86
+iconplayer	equ	$1AD8A
+iconx	equ	$1AD8C
 palfadenew	equ	$BBCB0
+Satt	equ	$BBD30
+ThreeStars	equ	$BC000
 recordbuf	equ	$BC000
 
 ; constants
 attribute	equ	$4
 Blueline	equ	$58
 cbut	equ	$5
+CC_AddY	equ	$FA
 CC_Font1	equ	$FF
 CC_Font1Pal1	equ	$EF
 CC_Font1Pal3	equ	$CF
+CC_Font1Pal3Pri	equ	$8F
 CC_Font1Pri	equ	$BF
 CC_Font2	equ	$FE
+CC_Font2Pal2Pri	equ	$9E
+CC_Font2Pal3Pri	equ	$8E
+CC_Font2Pri	equ	$BE
+CC_Font3	equ	$FD
+CC_Font3Pri	equ	$BD
+CC_SetAttribute	equ	$FE
+CC_SetFont	equ	$F9
+CC_SetMap	equ	$FF
+CC_SetMapAndPosition	equ	$F8
+CC_SetX	equ	$FD
+CC_SetY	equ	$FC
 crgoalsopp	equ	$2
 crgoalsoppuser	equ	$3
 crgoalsuser	equ	$1
+CrowdRecBase	equ	$B60
+CrowdRecBytes	equ	$10
 crpeak	equ	$8
 crpeakopp	equ	$A
 crpeakoppuser	equ	$B
@@ -167,14 +262,90 @@ df32c	equ	$1
 dfng	equ	$2
 dfok	equ	$0
 facedir	equ	$54
+fighting	equ	$74
 gmclock	equ	$0
+gmhl	equ	$4
 GoalieOdds	equ	$A
+handed	equ	$76
 jimdata	equ	$4
 lbut	equ	$2
+LineDataBase	equ	$E20		;the cartridge has $1EF6
 LineSets	equ	$6
+mapheight	equ	$2
+NHL94_music_001	equ	$30
+NHL94_music_002	equ	$31
+NHL94_music_003	equ	$32
+NHL94_music_004	equ	$33
+NHL94_music_005	equ	$34
+NHL94_music_006	equ	$35
+NHL94_music_007	equ	$36
+NHL94_music_008	equ	$37
+NHL94_music_009	equ	$38
+NHL94_music_010	equ	$39
+NHL94_music_011	equ	$3A
+NHL94_music_012	equ	$3B
+NHL94_music_013	equ	$3C
+NHL94_music_014	equ	$3D
+NHL94_music_015	equ	$3E
+NHL94_music_016	equ	$3F
+NHL94_music_017	equ	$40
+NHL94_music_018	equ	$41
+NHL94_music_019	equ	$42
+NHL94_music_020	equ	$43
+NHL94_music_021	equ	$44
+NHL94_music_022	equ	$45
+NHL94_music_023	equ	$46
+NHL94_music_024	equ	$47
+NHL94_music_025	equ	$48
+NHL94_music_026	equ	$49
+NHL94_music_027	equ	$4A
+NHL94_music_028	equ	$4B
+NHL94_music_029	equ	$4C
+NHL94_music_030	equ	$4D
+NHL94_music_031	equ	$4E
+NHL94_music_032	equ	$4F
+NHL94_music_033	equ	$50
+NHL94_music_034	equ	$51
+NHL94_music_035	equ	$52
+NHL94_music_036	equ	$53
+NHL94_music_037	equ	$54
+NHL94_music_038	equ	$55
+NHL94_music_039	equ	$56
+NHL94_music_040	equ	$57
+NHL94_music_041	equ	$58
+NHL94_music_042	equ	$59
+NHL94_music_043	equ	$5A
+NHL94_music_044	equ	$5B
+NHL94_music_045	equ	$5C
+NHL94_music_046	equ	$5D
+NHL94_music_047	equ	$5E
+NHL94_music_048	equ	$5F
+NHL94_music_049	equ	$60
+NHL94_music_050	equ	$61
+NHL94_music_052	equ	$63
+NHL94_music_053	equ	$64
+NHL94_music_054	equ	$65
+NHL94_music_055	equ	$66
+NHL94_music_056	equ	$67
+NHL94_music_057	equ	$68
+NHL94_music_058	equ	$69
+NHL94_music_059	equ	$6A
+NHL94_music_060	equ	$6B
+NHL94_music_061	equ	$6C
+NHL94_music_062	equ	$6D
+NHL94_music_063	equ	$6E
+NHL94_music_064	equ	$6F
+NHL94_music_065	equ	$70
+NHL94_music_066	equ	$71
+NHL94_music_068	equ	$73
+NHL94_music_069	equ	$74
+NHL94_music_070	equ	$75
+NHL94_music_071	equ	$76
+NHL94_music_072	equ	$77
 NumPlayoffTeams	equ	$1A
 NumTeams	equ	$1C
 pf2aip	equ	$1
+pf2unav	equ	$2
 pf3onetimer	equ	$3
 pf3wall	equ	$4
 pfalock	equ	$5
@@ -184,35 +355,86 @@ pflags	equ	$62
 pflags2	equ	$63
 pflags3	equ	$64
 pfna	equ	$1
+pfnc	equ	$2
 pfteam	equ	$6
 pnum	equ	$66
 position	equ	$34
 propp	equ	$2
 proppuser	equ	$3
 pruser	equ	$1
+puckscnum	equ	$E		;not checked on the disc yet
 radiusx	equ	$4A
 radiusy	equ	$4C
 rbut	equ	$3
 rosxoff	equ	$1C		;not checked on the disc yet
+satLen	equ	$8		;not checked on the disc yet
+satLink	equ	$3		;not checked on the disc yet
 sbut	equ	$7
 SCnum	equ	$52
 SCstruct	equ	$80		;not checked on the disc yet
+seAttr	equ	$6
+seSize	equ	$7
+seTile	equ	$4
+seY	equ	$2
+sf2drec	equ	$2
+sf2pwrplay	equ	$5
+sf2pwrtm	equ	$6
+sf2replay	equ	$3
 sf3llcs	equ	$0
 sfhor	equ	$7
+sfpj	equ	$1
+sfslock	equ	$6
+sfwrap	equ	$4
 Sideline	equ	$88
+SngPP	equ	$4
+SngPPAway	equ	$1
+SPA	equ	$58
+SPAbenchcheckl	equ	$193E
+SPAbenchcheckr	equ	$1A00
+SPAboardback	equ	$185A
+SPAboardfront	equ	$1776
+SPAboardleft	equ	$18CC
+SPAboardright	equ	$17E8
 SPAcnt	equ	$5C
+SPAglide	equ	$50C
 SPAnum	equ	$5A
 SPAshotb	equ	$92E
 SPAshotf	equ	$7FC
 Teamname	equ	$4
+TeamRecBase	equ	$D20
+temp3	equ	$44
+temp4	equ	$46
+tmap	equ	$26		;the cartridge has $24
+tmassists	equ	$D0		;the cartridge has $CE
+tmATOP	equ	$A
+tmBreakawayGoals	equ	$35C		;the cartridge has $35A
+tmBreakaways	equ	$35A		;the cartridge has $358
+tmchecks	equ	$10
 tmdata	equ	$1E
+tmfowon	equ	$E
+tmgoalie	equ	$28		;the cartridge has $26
 tmgoals	equ	$B6		;the cartridge has $B4
 tmHotCold	equ	$1A4		;the cartridge has $1A2
+tmOneTimerGoals	equ	$360		;the cartridge has $35E
 tmOneTimers	equ	$35E		;the cartridge has $35C
+tmpasscomp	equ	$14
+tmpasses	equ	$12
+tmPenalties	equ	$6
+tmPenmin	equ	$8
+tmPenShotGoals	equ	$364		;the cartridge has $362
+tmPenShots	equ	$362		;the cartridge has $360
 tmPerGoals	equ	$344		;the cartridge has $342
+tmPerShots	equ	$34C		;the cartridge has $34A
+tmPPShots	equ	$356		;the cartridge has $354
 tmpshots	equ	$EA		;the cartridge has $E8
+tmPwrGoals	equ	$2
+tmPwrPlays	equ	$4
+tmPwrPlayTime	equ	$354		;the cartridge has $352
 tmscore	equ	$C
+tmSHGoals	equ	$358		;the cartridge has $356
+tmshots	equ	$0
 tmsize	equ	$366		;the cartridge has $364
+tmteam	equ	$2A		;the cartridge has $28
 tmtouch1	equ	$18
 tmtouch2	equ	$1A
 tmtouch3	equ	$1C
@@ -227,6 +449,7 @@ ursavesoppuser	equ	$7
 ursavesteam	equ	$5
 urties	equ	$C
 urwins	equ	$8
+Vdata	equ	$C00000
 Wallcos	equ	$4E
 Wallsin	equ	$50
 Xvel	equ	$28

@@ -12,7 +12,6 @@
 	include	segacd\hockey\hockey.inc
 
 TeamList	equ	$1B00C
-ProcessInputWithRepeat	equ	$21FC8
 ReadPlayerRecord	equ	$22534
 WritePlayerRecord	equ	$22582
 ReadCrowdRecord	equ	$2258E
@@ -23,7 +22,6 @@ checkcornercoll	equ	$22FBE
 LogoBoxRight	equ	$24AD6
 LogoBoxLeft	equ	$24AFA
 UnpackPicture	equ	$2A902
-getpzjoy	equ	$2B614
 GetGoalieCount	equ	$2ED60
 GetPlayerCount	equ	$2EDBC
 dobitmap	equ	$387E2
@@ -1027,11 +1025,9 @@ NoNameTxt	dc.b	0				;AppendUserName data
 	move.w	(Opt2team).l,d1
 	move.w	(FourWayPlay).l,d2
 	move.w	#$5,d7
-.loop								;each frame: read the pad
-	jsr	$6044.w				;wait for the next frame (CD: the cartridge has (MenuWaitVblank).l)
-	jsr	(getpzjoy).l				;read the pads
-	jsr	(ProcessInputWithRepeat).l
-;CD: no cartridge twin
+	jsr	$6044.w
+	jsr	$2B614.l
+	jsr	$21FC8.l
 	move.w	#$2,d0
 	jsr	$5F22.w
 .L26014
