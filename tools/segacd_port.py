@@ -500,6 +500,7 @@ def main():
     ap.add_argument("--plain", action="store_true", help="not a HOCKEY.BIN fragment: no hockey.inc / macros include")
     ap.add_argument("--raw", action="store_true", help="CD-only bytes as dc.b rows (a Z80 program, tables), not decoded")
     ap.add_argument("--raw-text", action="store_true", help="with --raw: printable runs of 4 or more as text")
+    ap.add_argument("--text-incbin", action="store_true", help="text runs in decoded output are incbin from the disc (credits)")
     ap.add_argument("--tags", action="store_true",
                     help="Sierra C: each function ends with rts, a tag byte ($80 + length) and its name")
     ap.add_argument("--no-text", action="store_true",
@@ -558,7 +559,7 @@ def main():
                 a.label.append(f"{name}=0x{start:X}")
         # the first function of the fragment starts at the fragment start
         first = min((sp for sp in frag.tagspans if a.disc_start <= sp < a.disc_end), default=None)
-        if first is not None:
+        if first is not None and first > a.disc_start:       # its code is in this fragment, not only its tag
             n = frag.tagspans[first][1]
             if all(not l.startswith(n + "=") for l in a.label):
                 # its start: the last link a6 before its rts in the fragment, else the fragment start
@@ -596,12 +597,15 @@ def main():
     open(a.out, "w", newline="\n").write(text)
     if not a.plain:
         frag.write_inc()             # hockey.inc is the HOCKEY.BIN RAM map; other discs files leave it alone
+    matched = True
     if not a.no_assemble:
-        frag.fix_by_assembly(a.out)
+        matched = frag.fix_by_assembly(a.out)
     frag.report()
     licensed_check(a.out, required=not a.plain)
-    if a.register:
+    if a.register and matched:
         register(a, frag)
+    elif a.register:
+        print("not registered: the fragment does not match the disc")
 
 
 def licensed_check(path, required=True):
@@ -1543,6 +1547,11 @@ class Fragment:
                 name = raw[1:1 + ln].decode()
                 pad = ",".join("0" for _ in raw[1 + ln:])
                 body.append(("data", None, f"\tdc.b\t${raw[0]:02X},'{name}'" + ("," + pad if pad else ""), pc, n))
+            elif u[0] == "text" and self.a.text_incbin:
+                # text that may name real people (credits): read from the disc file, never written here
+                pc, n = u[1], u[2]
+                body.append(("src", f"\tincbin\t..\\cdbin\\{os.path.basename(self.a.disc)},${pc:X},{n}\t;text, read from the disc file",
+                             pc, n))
             elif u[0] == "text":
                 pc, n = u[1], u[2]
                 body.append(("raw", self.disc[pc:pc + n], pc))
@@ -1599,6 +1608,8 @@ class Fragment:
             if markers and sp is not None:
                 out.append(f".zzm{k}")
             if e[0] in ("text", "src"):
+                if e[0] == "src" and BASE + e[2] in self.auto:
+                    out.append(f".L{BASE + e[2]:X}")       # a string a lea / pea points at
                 m = re.match(r"(" + ID + r")\s*(\s(equ|set)\b|=)", split_comment(e[1])[0], re.I)
                 if m and (m.group(1) in self.inc_old or m.group(1) in self.shared) and not m.group(1).startswith("."):
                     out.append(";" + e[1] + "\t(defined in hockey.inc)")   # shared with other fragments
@@ -1763,7 +1774,7 @@ class Fragment:
                 ok2, binp2, log2 = assemble(path)
                 b2 = open(binp2, "rb").read() if ok2 else b""
                 print(("MATCH" if b2 == want else "MISMATCH (final build)") + f" {len(want)} bytes")
-                return
+                return b2 == want
             lst = os.path.join(ROOT, "output", "port", "_chk .lst")
             got = {}
             for line in open(lst, encoding="latin1"):

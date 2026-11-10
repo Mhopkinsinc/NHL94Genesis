@@ -30,3 +30,4 @@
 - 2026-11-10 hockey: a shared name (ram94 / teamdata94 / macros) defined inside a fragment is a comment there and a value in hockey.inc, whatever order the fragments are written in. (teamdata94: NumTeams multiply defined)
 - 2026-11-10 starter: STARTER.BIN file `$1000`-`$3D93` runs at file + `$B000`, not `$21300`; test a base by checking that absolute call targets fall just after an `rts`. (17 of 19 at `$B000`, 0 at `$21300`)
 - 2026-11-10 starter: Sierra C puts a function's string literals after its name tag; the next function starts at the next `link a6`. (heapalloc: the ffree messages between ffree and findSmallestBlock)
+- 2026-11-10 starter: the STARTER credits text names real people (one matches a player name); text runs there are incbin from the disc (`--text-incbin`). (startertail)

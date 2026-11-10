@@ -177,3 +177,11 @@ compareAt('output/segacd/player/playerinit.bin', 'cdbin/PLAYER.BIN', 0x0, 0x1D54
 compareAt('output/segacd/player/playercode.bin', 'cdbin/PLAYER.BIN', 0x281C, 0x1768);
 compareAt('output/segacd/player/playertext.bin', 'cdbin/PLAYER.BIN', 0x3F84, 0x142);
 compareAt('output/segacd/player/playerphotos.bin', 'cdbin/PLAYER.BIN', 0x40C6, 0x6DAA);
+compareAt('output/segacd/starter/filmopen_tag.bin', 'cdbin/STARTER.BIN', 0x4538, 0x54);
+compareAt('output/segacd/starter/filmtask_tag.bin', 'cdbin/STARTER.BIN', 0x472E, 0xC);
+compareAt('output/segacd/starter/filmclose_tag.bin', 'cdbin/STARTER.BIN', 0x477C, 0xC);
+compareAt('output/segacd/starter/filmcmd_tag.bin', 'cdbin/STARTER.BIN', 0x4DCA, 0x14);
+compareAt('output/segacd/starter/filmbuf_tag.bin', 'cdbin/STARTER.BIN', 0x4EC0, 0xE);
+compareAt('output/segacd/starter/startertext.bin', 'cdbin/STARTER.BIN', 0x556E, 0x892);
+compareAt('output/segacd/starter/startergfx.bin', 'cdbin/STARTER.BIN', 0x5E00, 0x1510E);
+compareAt('output/segacd/starter/startertail.bin', 'cdbin/STARTER.BIN', 0x1AF0E, 0x26AA);

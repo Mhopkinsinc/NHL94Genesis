@@ -30,6 +30,13 @@ port subinit 0x4C84 0x4D9E --note 'InitWorld (prints SUBCPU is alive), GetTicks,
 port copydata 0x4DDE 0x4E26 --note 'CopyData (after SendCommandToMain in filmcmd.asm).'
 port engine 0x4ECE 0x4FA8 --note 'DisposeEngine, GetSectDst, PeekSectDst: the CD read engine (InitEngine is in filmbuf.asm,\nEngineIdle and GetData in subheap.asm).'
 port readdata 0x5068 0x508C --note 'ReadData (between GetData in subheap.asm and the audio stream in audiostream.asm).'
+port filmopen_tag 0x4538 0x458C --note 'The FilmOpen name tag after filmopen.asm and the strings FilmOpen prints.'
+port filmtask_tag 0x472E 0x473A --note 'The FilmTask name tag after filmtask.asm.'
+port filmclose_tag 0x477C 0x4788 --note 'The FilmClose name tag after filmclose.asm.'
+port filmcmd_tag 0x4DCA 0x4DDE --note 'The SendCommandToMain name tag after filmcmd.asm.'
+port filmbuf_tag 0x4EC0 0x4ECE --note 'The InitEngine name tag after filmbuf.asm.'
+port startertext 0x556E 0x5E00 --raw --raw-text --note 'After cdfade.asm: tables, the SDK demo strings (Example Line 0-7) and more tables, as bytes.\nstartergfx.asm (by hand) follows.'
+port startertail 0x1AF0E 0x1D5B8 --text-incbin --note 'After startergfx.asm to the end of the file: the credits text (read from the disc file: it names\nreal people) and small pieces of code and data, decoded as found. Not worked out yet.'
 port crt 0x5304 0x54F6 --note 'The Sierra C run-time helpers after AudioBusy: 32-bit multiply ($26604) and the divide /\nmodulo entries with their jump table. No name tags here; cdfade.asm follows.'
 
 exit $fail
