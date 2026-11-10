@@ -11,6 +11,8 @@
   work; align code, symbols and file names with 94G where possible. So the older hand fragments in `src/segacd/`
   stay as they are, and a 94G twin whose disc range holds one is written in parts around it (`name.asm`,
   `name_2.asm`, ... in `src/segacd/hockey/`; `port name:2 ...` in `tools/segacd_hockey.sh`).
+- Owner update (Abdul, 2026-11-10): the older fragments can be corrected (done: STARTER and MAIN ones moved to
+  `$B000` / `$FF1000`, same bytes); CD-only names are fine for now; hwread.asm's handlers get names.
 - Done: PLAN step 0 (`tools/segacd_check.sh`), step 2 (`docs/segacd_memory_map.md`), and step 1: all of HOCKEY.BIN,
   one twin per 94G file in `src/segacd/hockey/` (some in parts around the older fragments), the team data with
   `--no-text`, and two CD-only files (`cdgfxptrs.asm`, `cdpads.asm`). title94 is not on the disc.

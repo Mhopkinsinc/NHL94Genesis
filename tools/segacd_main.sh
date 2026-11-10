@@ -3,8 +3,8 @@
 # MAIN.BIN runs at file + $FF1000 (main CPU): its first instruction jumps to MainShellEntry ($FF45A8, file
 # $35A8), the command loop reads ShellCommandTable at $FF471C (file $371C; file $471C is zeros), 61 of that
 # table's 64 pointers land on routine starts at this base and 1 at $FF0000, and the code stores the
-# literal $FF1006 for the pc-relative address of file $6. The older hand fragments in src/segacd/ (left as
-# they are) give runtimes at $FF0000; their bytes match either way. These fill the gaps between them.
+# literal $FF1006 for the pc-relative address of file $6. The older hand fragments in src/segacd/ were
+# first written at $FF0000 and are at $FF1000 now (same bytes). These fill the gaps between them.
 # Needs only cdbin/MAIN.BIN. maindisp_2.asm, mainfont_2.asm, maintext_2.asm and maincrt_2.asm are written
 # by hand (each includes the file it copies), and so are maintable.asm and mainz80.asm.
 #

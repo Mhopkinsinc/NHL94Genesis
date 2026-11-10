@@ -1,16 +1,17 @@
-;	NHL 94 Sega CD, main CPU shell (MAIN.BIN). Linked at $FF0000 in Genesis work RAM.
+;	NHL 94 Sega CD, main CPU shell (MAIN.BIN). Runs at $FF1000 in Genesis work RAM
+;	(file + $FF1000; docs/segacd_main_shell.md).
 ;	Official Sega CD SDK code: Sierra C (link a6) plus the SDK's main/sub command
 ;	protocol. The cartridge game does not have this file.
 ;
 ;	The sub CPU owns the game. This CPU drives the VDP and trades commands through
 ;	the gate array ($A1200E flags, $A12010 command words, $A12020 status words).
 ;
-;	$FF0000-$FF34B7 is transcribed and verified. This file is $FF0000-$FF0271.
+;	File $0-$34B7 is transcribed here and in the files after it. This file is $FF1000-$FF1271.
 ;	maindma.asm through maintext.asm continue it.
 
-	org	$FF0000
+	org	$FF1000
 
-MainEntry	jmp	$FF45A8				;slot at $FF45A8 is zero in MAIN.BIN (filled at load, or unused)
+MainEntry	jmp	$FF45A8				;MainShellEntry (main/mainstart.asm, file $35A8)
 
 ; Run one sub command. Stack is saved in work RAM because the handler borrows a7.
 RunSubCommand	move.l	a7,$FF2840
@@ -128,7 +129,7 @@ GiveWordRAM	move	sr,-(sp)
 	rts
 
 ; Distances from this table. DispatchSubCommand adds the long to the table address.
-; The last two entries fall inside this shell ($FF006C and $FF01BD).
+; The last two entries fall inside this shell ($FF106C and $FF11BD).
 CmdJumpTable	dc.l	$248,$22E,$36C,$1EC
 	dc.l	$96,$80,$59C,$5FE
 	dc.l	$7AA,$812,$82E,$93C
@@ -159,13 +160,13 @@ CallLinkedPtr	lea	$23A450,a0
 
 ; Bodies live later in MAIN.BIN. The labels keep the branches above honest.
 LinkedCall
-	org	$FF0F2C
+	org	$FF1F2C
 DispatchPrep
-	org	$FF0F52
+	org	$FF1F52
 DispatchBody
-	org	$FF0F78
+	org	$FF1F78
 DispatchAfter
-	org	$FF0F9E
+	org	$FF1F9E
 DispatchTail
-	org	$FF1884
+	org	$FF2884
 LinkedPtr

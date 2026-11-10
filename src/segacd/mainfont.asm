@@ -1,6 +1,6 @@
 ; MAIN.BIN $2D2A-$3029. Font bitmaps that follow the display-init rts.
 
-	org	$FF2D2A
+	org	$FF3D2A
 
 	dcb.b	$8,0
 	dc.b	$20,$20,$20,$20,$00,$20,$00,$00,$50,$50,$00,$00,$00,$00,$00,$00	;     . ..PP......

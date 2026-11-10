@@ -1,8 +1,8 @@
-; MAIN.BIN $1840-$1E8F. Zero pad after the rts at $FF183E, then the byte table
-; in front of the display init. The $01 at $FF188D is the only nonzero byte
+; MAIN.BIN $1840-$1E8F. Zero pad after the rts at $FF283E, then the byte table
+; in front of the display init. The $01 at $FF288D is the only nonzero byte
 ; in the first 1404 bytes.
 
-	org	$FF1840
+	org	$FF2840
 
 	dcb.b	$4D,0
 	dc.b	$01						; .

@@ -2,7 +2,7 @@
 
 STARTER.BIN runs at file + `$B000` (`docs/segacd.md`). The driver module is file `$1000`-`$3D93`, runtime `$C000`-`$ED93`: a PCM sound driver, the start-up sequence (two animated stages, the film, the credits), pad readers, frame timing and the commands it sends to the main CPU. The source is `src/segacd/starter/subhdr.asm`, `subdrv.asm`, the older `pcmclear.asm` and `cdcwait.asm`, and `subdrv_2.asm`. The names are given here (none comes from the disc); `tools/segacd_starter.sh` holds them with a one-line reason each, and passes them to the other STARTER fragments so their calls into the driver use them.
 
-`pcmclear.asm` and `cdcwait.asm` keep their `org` at the old `$21300` view (`$24D0C`, `$24D76`); in the driver they run at `$EA0C` and `$EA76`. `filmrun.asm` likewise: `StarterFilmEntry` (`$ECB4`) branches to `$ED94`, where it starts.
+`pcmclear.asm` and `cdcwait.asm` run at `$EA0C` and `$EA76`; `StarterFilmEntry` (`$ECB4`) branches to `filmrun.asm` at `$ED94`.
 
 ## Entry points
 

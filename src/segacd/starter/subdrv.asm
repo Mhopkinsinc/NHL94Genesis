@@ -4,7 +4,7 @@
 ;	channels, envelopes), then the start-up sequence (screens, samples, two stages, film, credits), the commands
 ;	it sends to the main CPU, word RAM handover, frames, pads. Names given here; docs/segacd_starter_driver.md.
 ;	Tables between routines (the pitch table near $CF5E, inline command words) show as instructions.
-;	pcmclear.asm follows (its bytes match; its comment gives a runtime at $21300, STARTER.BIN runs at $B000).
+;	pcmclear.asm follows.
 
 
 DispatchPcmCommandEntry	equ	$C4BC

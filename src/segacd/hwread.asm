@@ -1,8 +1,8 @@
-; MAIN.BIN hardware readers, $FF3B3C-$FF3C3B.
+; MAIN.BIN hardware readers, $FF4B3C-$FF4C3B.
 ; One rts each. Argument is $A12022. Reply is $A12010.
 ; Includes move.w $C00008,$A12010 (HV counter). See docs/segacd_film.md.
 
-	org	$FF3B3C
+	org	$FF4B3C
 
 	move.b	$A12022.l,$C00004.l
 	rts
