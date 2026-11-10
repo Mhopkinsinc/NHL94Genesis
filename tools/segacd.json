@@ -70,5 +70,11 @@
   {"name": "hockey/penalty94", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
   {"name": "hockey/collide94", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
   {"name": "hockey/penalty94_2", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
-  {"name": "hockey/collide94_2", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]}
+  {"name": "hockey/collide94_2", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
+  {"name": "hockey/video94", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
+  {"name": "hockey/setup94", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
+  {"name": "hockey/setup94_2", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
+  {"name": "hockey/setup94_3", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
+  {"name": "hockey/tables94", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
+  {"name": "hockey/graphics94", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]}
 ]

@@ -13,6 +13,7 @@ DecompressGraphicsPlain	equ	$38958
 rtss2	equ	$3C000
 Fprintsmall	equ	$3CEBE
 bfasciicon	equ	$419BA
+X_38958	equ	$38958
 
 	org	$38BD4
 
@@ -691,14 +692,16 @@ AddSmallFont						;transfer smallfont.map tiles to vram. d4 = char to start tile
 ;CD: no cartridge twin
 	movea.l	$47D3C.l,a2
 	addq.l	#$8,a2
-AddTeamBlock						;CD: its first lines have no twin; the rest of it starts here
-	bra.w	DecompressGraphicsPlain
-;CD: no cartridge twin
+	bra.w	X_38958
 	movea.l	$47D10.l,a2
 	addq.l	#$8,a2
-	move.w	d4,(framercset).l
+AddFramer						;CD: its first lines have no twin; the rest of it starts here
+	move.w	d4,(framercset).l		;frame chars
 	bra.w	DecompressGraphicsPlain
-	moveq	#$2,d4
+AddTeamBlock						;transfer TeamBlocks.map tiles to vram at char 2. Return d4 = end of tiles
+									;+ 1. Goes through DecompressGraphics
+	moveq	#2,d4
+;CD: no cartridge twin
 	movea.l	$47D44.l,a2
 	addq.l	#$8,a2
 	bra.w	DecompressGraphicsPlain

@@ -13,13 +13,13 @@ ReadCrowdRecord	equ	$2258E
 CopyString	equ	$25818
 GetLogName	equ	$26E0E
 randomd0	equ	$37050
+DecompressGraphicsPlain	equ	$38958
 printz	equ	$38F6E
 print	equ	$38F80
 PushNumberWidth	equ	$3919A
 appendz	equ	$39200
 appstring	equ	$39208
 SetSframe	equ	$3E028
-X_2A9EC	equ	$2A9EC
 SPAbenchcheckl	equ	$193E
 SPAbenchcheckr	equ	$1A00
 SPAboardback	equ	$185A
@@ -104,14 +104,15 @@ LoadHomeTeamGfx						;Load the HomeTeam graphics of TeamGfxList to VRAM d4 - $18
 	tst.w	$17468.l
 	beq.s	.L2A9E6
 	movea.l	$47DA8.l,a2
-	bra.s	X_2A9EC			;share the body (CD: the cartridge has PlayedByText)
-;CD: no cartridge twin
+	bra.s	.L2A9EC
 .L2A9E6
 	movea.l	$47D90.l,a2
+.L2A9EC
 	adda.w	#$8,a2
-	jsr	$38958.l
+	jsr	(DecompressGraphicsPlain).l
 	move.w	(sp)+,d0
 	rts
+;CD: no cartridge twin
 	ori.b	#$23,d0
 	ori.b	#$3C,d0
 	ori.b	#$24,d0
@@ -432,5 +433,4 @@ PlayedByNone						;PlayedByHome: no name
 PlayedByAway						;As PlayedByHome for awayuser. Called from UpdateScoutingDisplay
 	movem.l	d0-d7/a0/a2-a6,-(sp)
 	move.w	(awayuser).l,d0
-;CD: no cartridge twin
-	bra.w	PlayedByText
+	bra.w	PlayedByText			;share the body

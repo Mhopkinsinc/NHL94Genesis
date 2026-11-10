@@ -332,7 +332,6 @@ CopyPaletteToCRAM					;Copy all 64 palfadenew colours to colour ram, protected f
 	st.b	(palcount).l
 	move.w	(sp)+,(disflags).l
 	movem.l	(sp)+,d0/a0-a1
-dobitmap						;CD: its first lines have no twin; the rest of it starts here
 	rts
 ; d0 = range
 ; return d0 = random number (-range < d0 < range)

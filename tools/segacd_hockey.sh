@@ -67,5 +67,11 @@ port penalty94 0x1E41A 0x1F0FA --note 'Part 1 of penalty94. On the disc penalty9
 port collide94 0x1F0FA 0x212D0 --note 'Part 1 of collide94 (see penalty94.asm for the interleaving).'
 port penalty94:2 0x212D0 0x22426 --note 'Part 2 of penalty94, from updatepwrplay (see penalty94.asm).'
 port collide94:2 0x22426 0x22AB8 --note 'Part 2 of collide94, from setpersonel (see penalty94.asm).'
+port video94 0x22AB8 0x238CE --note 'The vblank, clock and rink scroll code (part 1; $238CE-$2391B after it is src/segacd/cdcrowd.asm).\nCD: VBlank is called as a subroutine (rts, not rte) and the music vblank call is gone; screen\nwrites go to the main CPU.'
+port setup94 0x2391C 0x2486C --note 'Part 1 of setup94 (ice setup, attract, menus). $2486C-$24C09 after it is src/segacd/scouttext.asm\nand scouttok.asm.'
+port setup94:2 0x24C0A 0x24C12 --note 'Part 2 of setup94: the 8 bytes between scouttok.asm and scoutload.asm (a zero word, then the\njsr $37598 that opens the scouting file load).'
+port setup94:3 0x24DE8 0x2654C --note 'Part 3 of setup94, after src/segacd/scoutload.asm and cdstart.asm ($24C12-$24DE7): menus and\nthe playoff data. $2654C-$265CB after it is src/segacd/crowdtable.asm (the start of tables94).'
+port tables94 0x265CC 0x278A0 --note 'tables94 after the crowd frame table (src/segacd/crowdtable.asm): asstab, penalties, the\nplayoff tree and the menu lists, the cartridge tables with disc addresses.'
+port graphics94 0x278A0 0x28A7E --note 'Part 1 of graphics94: the player picture palette and the four no-picture cards cards94 draws,\nread from the disc file. The rest of the file (from $28A7E: arena sprites, the graphics pointer\ntable at $2CD00, code at $2CDAE) is not done yet.'
 
 exit $fail

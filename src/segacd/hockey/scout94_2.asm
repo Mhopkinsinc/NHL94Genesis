@@ -428,7 +428,6 @@ ScoutingReport						;CD: its first lines have no twin; the rest of it starts her
 	move.w	#$0,(printfontset).l
 	movea.l	$47D00.l,sp
 	rts
-;CD: no cartridge twin
 .L289EC
 	cmpi.w	#$1A,d0
 	bne.s	.L28A1C
@@ -884,5 +883,4 @@ GetTeamArena						;The text player's '^' (a2 = tmstruct) and ';' (awtmstruct): r
 ScoutStub							;An empty routine
 	movem.l	d0-d7/a0-a6,-(sp)
 	movem.l	(sp)+,d0-d7/a0-a6
-;CD: no cartridge twin
 	rts

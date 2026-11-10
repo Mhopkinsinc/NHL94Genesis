@@ -5,6 +5,8 @@
 
 ; RAM
 M68K_RAM	equ	$0
+statsbuffer	equ	$B000
+Stack	equ	$C458
 replaystart	equ	$C45C
 replayend	equ	$173B0
 GoalieStruct	equ	$17400
@@ -39,6 +41,7 @@ SumCwdExciteLvl	equ	$17CDE
 Zamx	equ	$17CE2
 playoffspritex	equ	$17CE4
 playoffspritey	equ	$17CE6
+logoslide	equ	$17CE8
 Vpos	equ	$17CEA
 Oldrow	equ	$17CEC
 Hpos	equ	$17CEE
@@ -48,11 +51,17 @@ wcradiusx	equ	$17CF4
 wcradiusy	equ	$17CF6
 fofdata2	equ	$17CF8
 fofdata	equ	$17D00
+pads	equ	$17D04
+Joy1Struct	equ	$17D20
 CameraPosStruct	equ	$17D58
 replayactive	equ	$17D6E
+Joy3Struct	equ	$17D74
+Joy4Struct	equ	$17D90
+glovestruct	equ	$17DAC
 PadControlBits	equ	$17DC8
 padcont	equ	$17DCA
 PadControlBits34	equ	$17DD6
+sso	equ	$17DD8
 shotplayer	equ	$17E28
 lastplayer	equ	$17E2A
 passdir	equ	$17E2C
@@ -84,6 +93,7 @@ TempMaxSpd	equ	$17E68
 TempEnergySpd	equ	$17E6C
 TempLegSpd	equ	$17E6E
 TempBuffer	equ	$17E70
+scorergoalies	equ	$17E98
 recties	equ	$17E9A
 reclosses	equ	$17E9C
 recwins	equ	$17E9E
@@ -108,6 +118,7 @@ ltx	equ	$17ECA
 lty	equ	$17ECC
 iflags	equ	$17ECE
 icingPlayer	equ	$17ECF
+clockram	equ	$17ED4
 xc1	equ	$17EDC
 yc1	equ	$17EDE
 yleader	equ	$17EE0
@@ -187,9 +198,12 @@ awtmstruct	equ	$186B2
 AwGoals	equ	$186BE
 gstruct	equ	$18A18
 gamenum	equ	$18A98
+postarts	equ	$18A9A
 bosgames	equ	$18A9C
 gamelevel	equ	$18A9E
 potreeteam	equ	$18AA0
+pojoy	equ	$18AA2
+WinBits	equ	$18AA4
 potree	equ	$18AA6
 PlList	equ	$18AC6
 menuitem	equ	$18AD2
@@ -202,6 +216,7 @@ ThirdPBonus	equ	$18AE2
 HmAwBonus	equ	$18AE3
 remapTablePtr	equ	$18AE4
 nibblebuffer	equ	$18BE8
+varend	equ	$18BF0
 homeuser	equ	$18BF4
 awayuser	equ	$18BF6
 FourWayPlay	equ	$18BF8
@@ -227,6 +242,7 @@ TempOptPlayMode	equ	$18C24
 databuffer	equ	$18C26
 passbits	equ	$18C38
 outputbuffer	equ	$18C42
+tpassbits	equ	$18D26
 VSCRLPM	equ	$18D30
 VSPRITES	equ	$18D32
 VmMAP1	equ	$18D34
@@ -241,8 +257,12 @@ smallfont2chars	equ	$18D44
 energybarchars	equ	$18D46
 logochars	equ	$18D46
 rinkvrcset	equ	$18D48
+crowdvrcset	equ	$18D4A
+faceoffvrcset	equ	$18D4C
 framercset	equ	$18D4E
 EASNcset	equ	$18D50
+basetileoffset	equ	$18D52
+spritechars	equ	$18D54
 ExtraChars	equ	$18D56
 printx	equ	$18D58
 printy	equ	$18D5A
@@ -252,6 +272,8 @@ printfontset	equ	$18D60
 palcount	equ	$18D62
 disflags	equ	$18D64
 VBint	equ	$18D66
+DMAList	equ	$18D6A
+DMAlistend	equ	$191CA
 BA_Team	equ	$19366
 BA_Sktr_SCnum	equ	$19368
 BA_Goalie_SCnum	equ	$1936A
@@ -279,6 +301,7 @@ vispicchars	equ	$19394
 cardroster	equ	$19396
 logobox1chars	equ	$19398
 logobox2chars	equ	$1939A
+teambitmapchars	equ	$1939C
 cardtimer	equ	$1939E
 featuredplayer	equ	$193A0
 carddelay	equ	$193A2
@@ -290,6 +313,7 @@ awaygoalies	equ	$193AC
 homeplayers	equ	$193AE
 awayplayers	equ	$193B0
 shootoutclock	equ	$193B6
+shootoutjiffy	equ	$193B8
 ValidSRAM	equ	$193BA
 namelog	equ	$1A2FC
 nameentrybuf	equ	$1A37C
@@ -323,6 +347,7 @@ advcount	equ	$1A448
 matchuptimer	equ	$1A44A
 matchupslot	equ	$1A44C
 DispAttribCtr	equ	$1A44E
+playoffscroll	equ	$1A44E
 VertLineScrolling	equ	$1A450
 PlayerScrollCtr	equ	$1A452
 SelectedPlayerIdx	equ	$1A454
@@ -343,6 +368,8 @@ HmTeam	equ	$1A56C
 SongIndex	equ	$1A56E
 OvrDivisor	equ	$1A570
 OvrDividend	equ	$1A572
+homehotcoldsave	equ	$1A574
+awayhotcoldsave	equ	$1A714
 sopath	equ	$1A8B4
 sopathpoint	equ	$1A8B6
 sopathx	equ	$1A8B8
@@ -380,6 +407,7 @@ Satt	equ	$BBD30
 ThreeStars	equ	$BC000
 decompbuffer	equ	$BC000
 recordbuf	equ	$BC000
+starscores	equ	$BC000
 teamrecbuf	equ	$BC0C8
 
 ; constants
@@ -405,11 +433,14 @@ CC_Font1Pri	equ	$BF
 CC_Font2	equ	$FE
 CC_Font2Pal2	equ	$DE
 CC_Font2Pal2Pri	equ	$9E
+CC_Font2Pal3	equ	$CE
 CC_Font2Pal3Pri	equ	$8E
 CC_Font2Pri	equ	$BE
 CC_Font3	equ	$FD
+CC_Font3Pal3	equ	$CD
 CC_Font3Pal3Pri	equ	$8D
 CC_Font3Pri	equ	$BD
+CC_ListEnd	equ	$FF
 CC_SetAttribute	equ	$FE
 CC_SetFont	equ	$F9
 CC_SetMap	equ	$FF
@@ -438,6 +469,8 @@ dfng	equ	$2
 dfok	equ	$0
 endurance	equ	$72
 facedir	equ	$54
+ffonum	equ	$7		;not checked on the disc yet
+ffosize	equ	$1C
 fighting	equ	$74
 foattr	equ	$2
 foframe	equ	$0		;not checked on the disc yet
@@ -452,6 +485,7 @@ gmhl	equ	$4
 gmoffs	equ	$5
 gmpen	equ	$2
 gmpendel	equ	$3
+gmstars	equ	$7
 GoalieOdds	equ	$A
 goalline	equ	$B0		;not checked on the disc yet
 gsfhl	equ	$1
@@ -459,10 +493,12 @@ gsflags	equ	$E
 gsfso	equ	$2
 gsftf	equ	$0
 gsper	equ	$8
+gspobwins	equ	$6
 gspotwins	equ	$4
 gss1	equ	$A
 gss2	equ	$C
 gssize	equ	$10
+gst1	equ	$0		;not checked on the disc yet
 gst2	equ	$2
 handed	equ	$76
 ifcgl	equ	$0
@@ -470,8 +506,10 @@ ifdir	equ	$1
 ifok	equ	$2
 impact	equ	$32
 impactp	equ	$2E
+jiffy	equ	$AAA
 jimdata	equ	$4
 jimtilecount	equ	$8
+jimtiles	equ	$A
 jps	equ	$18
 lbut	equ	$2
 legspd	equ	$69
@@ -482,6 +520,7 @@ LineSets	equ	$6
 mapheight	equ	$2
 mapwords	equ	$4
 maxros	equ	$1A		;not checked on the disc yet
+MaxSprites	equ	$40
 newpnum	equ	$61
 newpos	equ	$60
 nopuck	equ	$5E
@@ -492,6 +531,8 @@ oldframe	equ	$8
 OldXpos	equ	$1C
 OldYpos	equ	$20
 OldZpos	equ	$24
+osflag	equ	$4E20
+Palettedata	equ	$2
 passacc	equ	$6E
 pbscnum	equ	$1
 pcframes	equ	$2
@@ -521,6 +562,8 @@ pfna	equ	$1
 pfnc	equ	$2
 pfrev	equ	$4
 pfteam	equ	$6
+PlayoffRows	equ	$20
+PlayoffRowTeams	equ	$10		;not checked on the disc yet
 pldaidef	equ	$3
 pldcheck	equ	$4
 pldendur	equ	$6
@@ -543,10 +586,14 @@ radiusx	equ	$4A
 radiusy	equ	$4C
 rbut	equ	$3
 replaysize	equ	$62
+RosterSlots	equ	$1A
 rostnum	equ	$6F
 rosxoff	equ	$1C		;not checked on the disc yet
 satLen	equ	$8		;not checked on the disc yet
-satLink	equ	$3		;not checked on the disc yet
+satLink	equ	$3
+satSize	equ	$2
+satTile	equ	$4
+satX	equ	$6
 sbut	equ	$7
 SCnum	equ	$52
 ScoutReport	equ	$8
@@ -564,6 +611,7 @@ sf2pwrtm	equ	$6
 sf2refref	equ	$1
 sf2replay	equ	$3
 sf2shot	equ	$4
+sf3alttree	equ	$2
 sf3fo	equ	$4
 sf3fosong	equ	$7
 sf3icetime	equ	$6
@@ -585,6 +633,7 @@ SFXbglass	equ	$E
 SFXcheck	equ	$1C
 SFXcrowdboo	equ	$C
 SFXcrowdcheer	equ	$B
+SFXhomewin	equ	$F
 SFXhorn	equ	$4
 SFXoooh2	equ	$D
 SFXplayerwall	equ	$20
@@ -618,6 +667,8 @@ srpppk	equ	$1
 ssassist1	equ	$4
 ssassist2	equ	$5
 ssflags	equ	$2
+ssonum	equ	$4		;not checked on the disc yet
+ssosize	equ	$14
 ssscorer	equ	$3
 stickhand	equ	$71
 strtext	equ	$2
@@ -663,6 +714,7 @@ tmPenShotGoals	equ	$364		;the cartridge has $362
 tmPenShots	equ	$362		;the cartridge has $360
 tmPerGoals	equ	$344		;the cartridge has $342
 tmPerShots	equ	$34C		;the cartridge has $34A
+tmpice	equ	$138		;the cartridge has $136
 tmPPShots	equ	$356		;the cartridge has $354
 tmpshots	equ	$EA		;the cartridge has $E8
 tmPwrGoals	equ	$2
@@ -687,12 +739,17 @@ ursavesoppuser	equ	$7
 ursavesteam	equ	$5
 urties	equ	$C
 urwins	equ	$8
+Vctrl	equ	$C00004
 Vdata	equ	$C00000
+VRchar	equ	$12
+VRoffs	equ	$A
 Wallcos	equ	$4E
 Wallsin	equ	$50
 weight	equ	$67
+Xcord	equ	$0
 Xpos	equ	$0
 Xvel	equ	$28
+Ycord	equ	$2
 Ypos	equ	$14
 Yvel	equ	$2A
 Zpos	equ	$18

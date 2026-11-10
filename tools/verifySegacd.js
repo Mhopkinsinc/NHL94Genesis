@@ -138,3 +138,9 @@ compareAt('output/segacd/hockey/penalty94.bin', 'cdbin/HOCKEY.BIN', 0x1E41A, 0xC
 compareAt('output/segacd/hockey/collide94.bin', 'cdbin/HOCKEY.BIN', 0x1F0FA, 0x21D6);
 compareAt('output/segacd/hockey/penalty94_2.bin', 'cdbin/HOCKEY.BIN', 0x212D0, 0x1156);
 compareAt('output/segacd/hockey/collide94_2.bin', 'cdbin/HOCKEY.BIN', 0x22426, 0x692);
+compareAt('output/segacd/hockey/video94.bin', 'cdbin/HOCKEY.BIN', 0x22AB8, 0xE16);
+compareAt('output/segacd/hockey/setup94.bin', 'cdbin/HOCKEY.BIN', 0x2391C, 0xF50);
+compareAt('output/segacd/hockey/setup94_2.bin', 'cdbin/HOCKEY.BIN', 0x24C0A, 0x8);
+compareAt('output/segacd/hockey/setup94_3.bin', 'cdbin/HOCKEY.BIN', 0x24DE8, 0x1764);
+compareAt('output/segacd/hockey/tables94.bin', 'cdbin/HOCKEY.BIN', 0x265CC, 0x12D4);
+compareAt('output/segacd/hockey/graphics94.bin', 'cdbin/HOCKEY.BIN', 0x278A0, 0x11DE);

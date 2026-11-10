@@ -1986,7 +1986,6 @@ GetStatsValue						;d2 += word d0 of the RAM table at StatsOffsetTbl2+d1 (0 = no
 	move.l	(sp)+,d7
 	add.w	(a1,d0.w),d2
 	rts
-;CD: no cartridge twin
 	cmp.b	d0,d0
 	dc.w	$0000,$B034
 	dc.w	$0000,$B000
@@ -2573,5 +2572,5 @@ Pausemode_rjoy						;Wait for Vcount to change and for a new button press (d1)
 ;CD: no cartridge twin
 	jsr	(nodiag).l
 	tst.b	d1
-	beq.w	Pausemode_rjoy
+	beq.w	Pausemode_rjoy			;nothing new pressed: wait again
 	rts

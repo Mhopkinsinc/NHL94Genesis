@@ -18,6 +18,7 @@ PeriodOver_sp	equ	$35A94
 assreplace	equ	$362E4
 randomd0	equ	$37050
 ReadJoy1	equ	$374F0
+InitSaveRAM	equ	$37598
 InitScores	equ	$3CB50
 setupice	equ	$3E91C
 clearTeamStats	equ	$3F11E
@@ -25,8 +26,9 @@ p_turnoff	equ	$47DAC
 
 	org	$2B614
 
+Begin						;CD: its first lines have no twin; the rest of it starts here
+	jsr	(InitSaveRAM).l
 ;CD: no cartridge twin
-	jsr	$37598.l
 	move.w	#$D,d7
 	jsr	$6044.w
 	movem.l	d0-d2/d7/a0-a1,-(sp)
@@ -40,7 +42,7 @@ p_turnoff	equ	$47DAC
 	lea	$222EA.l,a3
 	move.w	#$8,d7
 	jsr	$6044.w
-	jsr	$37598.l
+	jsr	(InitSaveRAM).l
 	movem.l	d0-d2/d7/a0-a1,-(sp)
 	move.w	#$1,d7
 	move.w	#$1,d0
@@ -117,9 +119,7 @@ p_turnoff	equ	$47DAC
 	movem.l	(sp)+,d0-d2/d7/a0-a1
 	move.w	#$2,d0
 	jsr	$5F22.w
-seta2						;CD: its first lines have no twin; the rest of it starts here
-.x	rts								;exit (also the end of the code above)
-;CD: no cartridge twin
+	rts
 	move.w	#$2,d0
 	jsr	$5F22.w
 	bclr.b	#$5,$FF800F.l
@@ -132,7 +132,7 @@ StartGame							;reset game state for a new game, then start the first period
 	clr.l	(awaydirpresses).l
 ;CD: no cartridge twin
 	clr.w	$191CE.l
-	jsr	$37598.l
+	jsr	(InitSaveRAM).l
 	jsr	$376F2.l
 	move.l	a6,-(sp)
 	movea.l	$19360.l,a6
@@ -146,7 +146,7 @@ StartGame							;reset game state for a new game, then start the first period
 	bclr.b	#$5,$FF800F.l
 	move.l	a6,$19360.l
 	movea.l	(sp)+,a6
-	jsr	$2B614.l
+	jsr	(Begin).l
 	move.l	a6,-(sp)
 	movea.l	$19360.l,a6
 	tst.w	(a6)+

@@ -667,7 +667,7 @@ def run_ok(items, i, disc, p, end, k, used=(), soft=False):
         if i in used:
             return False
         if i >= len(items):
-            return n > 0
+            return n >= (1 if soft else min(k, 2))   # a jump to a file's last line alone (an rts) proves nothing
         it = items[i]
         ln = item_matches(it, disc, p, end)
         if ln is None and soft:
