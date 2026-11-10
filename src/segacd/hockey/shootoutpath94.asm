@@ -28,7 +28,7 @@ ReadLineData						;Read the $100 bytes at save RAM LineDataBase to databuffer; s
 	jsr	(ReadSRAM).l
 	bclr.b	#sfwrap,(sflags).l		;the SRAM routines leave these set: reset them
 	move.w	#$FFFF,(lastsfx).l
-	move.l	#M68K_RAM,(recbpr).l
+	move.l	#$C45C,(recbpr).l	;CD: the cartridge has #M68K_RAM
 	movem.l	(sp)+,d0-d1/a0
 	rts
 WriteLineData						;Write databuffer back to save RAM at LineDataBase (WriteSRAM,
@@ -41,7 +41,7 @@ WriteLineData						;Write databuffer back to save RAM at LineDataBase (WriteSRAM
 	jsr	(WriteSRAM).l
 	bclr.b	#sfwrap,(sflags).l
 	move.w	#$FFFF,(lastsfx).l
-	move.l	#M68K_RAM,(recbpr).l
+	move.l	#$C45C,(recbpr).l	;CD: the cartridge has #M68K_RAM
 	movem.l	(sp)+,d0-d1/a0
 	rts
 ClearWinRecords						;Clear bytes 8-$B of the 8 ThreeStars records and write the $80 bytes at

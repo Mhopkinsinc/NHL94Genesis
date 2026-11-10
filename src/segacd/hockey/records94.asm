@@ -2,8 +2,9 @@
 ;	The cartridge source with long addresses and no short or quick forms. Lines under ;CD: have
 ;	no cartridge twin. Names are the cartridge's; segacd\hockey\hockey.inc has the disc RAM map.
 ;
-;	Name entry is the cartridge code. CD: the Record Holders screen was redone: new title Strings,
-;	and PrintWinRecords and the record pages build their lines in word RAM ($BC000).
+;	Name entry and the Record Holders screen are the cartridge code. CD: the graphics come through
+;	the pointer table ($47D0C ...), the screen setup sets / clears bit 5 of $FF800F (the sub CPU flag)
+;	where the cartridge masks interrupts, and the goal and save record titles differ slightly.
 
 	include	macros\genesis.mac
 	include	segacd\hockey\hockey.inc
@@ -13,14 +14,15 @@ ReadSRAM	equ	$22452
 WriteSRAM	equ	$2246C
 WriteNameLog	equ	$22622
 ReadNameLog	equ	$2262E
-SaveRecTitles	equ	$27346
+CopyString	equ	$25818
+AppendUserName	equ	$25DE8
+AppendTeamName	equ	$260E0
 ClearWinRecords	equ	$2A604
 TeamLogoPalettes	equ	$2AF56
 MenuWaitVblank	equ	$2C63A
 SetupScreen	equ	$2E728
 ExitStatsScreen	equ	$2E980
 getpzjoy	equ	$2F2F0
-DecompressGraphicsPlain	equ	$36F72
 ProcessInputWithRepeat	equ	$374BE
 ReadJoy1	equ	$374F0
 ReadJoy2	equ	$3750E
@@ -33,14 +35,12 @@ printsmallz	equ	$38D8C
 printsmall	equ	$38D9E
 printz	equ	$38F6E
 print	equ	$38F80
+PushNumberWidth	equ	$3919A
+appstring	equ	$39208
 printbigz	equ	$39258
 AddSmallFont	equ	$393E8
 setupIceRinkPal	equ	$3EC60
 VBlank_SetOptions	equ	$400D0
-X_25818	equ	$25818
-X_25DE8	equ	$25DE8
-X_260E0	equ	$260E0
-X_27666	equ	$27666
 
 	org	$26348
 
@@ -105,11 +105,12 @@ NameEntryScreen						;"NAME ENTRY" screen for the user records (own vblank VBlan
 	moveq	#$1C,d3
 	moveq	#$D,d5
 	jsr	(dobitmap).l
-	jsr	(DecompressGraphicsPlain).l
-	move.w	d4,(BigFontchars).l		;the big font for the title
 ;CD: no cartridge twin
-	addi.w	#$24,d4
-	move.w	d4,(logobox1chars).l
+	jsr	$36F72.l
+	move.w	d4,(homepicchars).l		;tile base for the team logo
+	addi.w	#$24,d4					;36 logo chars
+	move.w	d4,(logobox1chars).l	;logo box tiles
+;CD: no cartridge twin
 	movea.l	$47D7C.l,a2
 	addq.l	#$8,a2
 	jsr	$38958.l
@@ -382,8 +383,7 @@ NameLetterGrid						;Name entry: the letter grid ("D-Pad to a letter.", "C to se
 	move.b	(a0)+,(a1)+
 	move.b	#$20,(a1)+
 	dbf	d1,.loop2					;next letter
-;CD: no cartridge twin
-	movea.l	#mesarea,a1
+	movea.l	#(mesarea-M68K_RAM),a1
 	jsr	(print).l
 	addi.w	#2,(printy).l			;two rows down
 	subi.w	#$C,(printx).l			;back to the row start
@@ -1095,104 +1095,167 @@ WinRecTitles	dc.b	0			;PrintRecordTitles Strings
 GoalRecTitles	dc.b	0			;PrintRecordTitles Strings
 ;CD: no cartridge twin
 	dc.b	$52
-	dc.w	$F806
-	btst.b	d1,(a2)
-	dc.w	$08F9,$0147,$6F61,$6C73
-	dc.b	'         Teams    '
-	dc.w	$FD04
-	dc.w	$FC19
-	dc.b	'    TEAM MUST WIN TO QUALIFY    '
-	dc.w	$FD10
-	dc.w	$FC1A
-	dc.b	'[ More ]'
-	dc.w	$F900
-	ori.w	#$F806,(a2)
-	btst.b	d1,(a2)
-	dc.w	$08F9,$0153,$6176,$6573
-	dc.b	'         Teams    '
-	dc.w	$FD04
-	dc.w	$FC19
-	dc.b	'    TEAM MUST WIN TO QUALIFY    '
-	dc.w	$FD10
-	dc.w	$FC1A
-	dc.b	'[ More  '
-	dc.w	$F900
-PrintWinRecords						;CD: placed where the disc branches to it
+	dc.b	$F8,6,3,$12,8,$F9,1
+	dc.b	$47						;G
+	dc.b	$6F						;o
+	dc.b	$61						;a
+	dc.b	$6C						;l
+	dc.b	$73						;s
+	dc.b	$20,$20,$20,$20,$20,$20,$20
+;CD: no cartridge twin
+	dc.b	'  Teams'
+	dc.b	$20,$20,$20,$20,$FD,4,$FC,$19,$20,$20,$20,$20
+	dc.b	$54						;T
+	dc.b	$45						;E
+	dc.b	$41						;A
+	dc.b	$4D						;M
+	dc.b	$20
+	dc.b	$4D						;M
+	dc.b	$55						;U
+	dc.b	$53						;S
+	dc.b	$54						;T
+	dc.b	$20
+	dc.b	$57						;W
+	dc.b	$49						;I
+	dc.b	$4E						;N
+	dc.b	$20
+	dc.b	$54						;T
+	dc.b	$4F						;O
+	dc.b	$20
+	dc.b	$51						;Q
+	dc.b	$55						;U
+	dc.b	$41						;A
+	dc.b	$4C						;L
+	dc.b	$49						;I
+	dc.b	$46						;F
+	dc.b	$59						;Y
+	dc.b	$20,$20,$20,$20,$FD,$10,$FC,$1A
+	dc.b	$5B						;[
+	dc.b	$20
+	dc.b	$4D						;M
+	dc.b	$6F						;o
+	dc.b	$72						;r
+	dc.b	$65						;e
+	dc.b	$20
+	dc.b	$5D						;]
+	dc.b	$F9,0
+SaveRecTitles	dc.b	0			;PrintRecordTitles Strings
+;CD: no cartridge twin
+	dc.b	$52
+	dc.b	$F8,6,3,$12,8,$F9,1
+	dc.b	$53						;S
+	dc.b	$61						;a
+	dc.b	$76						;v
+	dc.b	$65						;e
+	dc.b	$73						;s
+	dc.b	$20,$20,$20,$20,$20,$20,$20
+;CD: no cartridge twin
+	dc.b	'  Teams'
+	dc.b	$20,$20,$20,$20,$FD,4,$FC,$19,$20,$20,$20,$20
+	dc.b	$54						;T
+	dc.b	$45						;E
+	dc.b	$41						;A
+	dc.b	$4D						;M
+	dc.b	$20
+	dc.b	$4D						;M
+	dc.b	$55						;U
+	dc.b	$53						;S
+	dc.b	$54						;T
+	dc.b	$20
+	dc.b	$57						;W
+	dc.b	$49						;I
+	dc.b	$4E						;N
+	dc.b	$20
+	dc.b	$54						;T
+	dc.b	$4F						;O
+	dc.b	$20
+	dc.b	$51						;Q
+	dc.b	$55						;U
+	dc.b	$41						;A
+	dc.b	$4C						;L
+	dc.b	$49						;I
+	dc.b	$46						;F
+	dc.b	$59						;Y
+	dc.b	$20,$20,$20,$20,$FD,$10,$FC,$1A
+	dc.b	$5B						;[
+	dc.b	$20
+	dc.b	$4D						;M
+	dc.b	$6F						;o
+	dc.b	$72						;r
+	dc.b	$65						;e
+	dc.b	$20,$20,$F9,0
+PrintWinRecords						;Record Holders: the rows (PrintRecordName)
 	movem.l	d0-d7/a0-a6,-(sp)
 	jsr	(printsmallz).l
-	dc.w	$000A
-	dc.w	$F804
-	dc.w	$0202,$0AF9
-	dc.w	$0000,$3E3C
-	dc.w	$0006,$207C
-	dc.w	$0001,$A3E4
-	movea.l	#$1A3EC,a2
-	movea.l	#$BC000,a5
-.L273C2
-	move.w	#$2,(printx).l
+	String	CC_SetMapAndPosition,4,2,2,$A,CC_SetFont,0
+	move.w	#6,d7					;7 rows
+	movea.l	#winsort,a0				;users in win order
+	movea.l	#winpcts,a2
+	movea.l	#recordbuf,a5
+.loop								;each row: the user in sort order
+	move.w	#2,(printx).l
 	move.b	(a0)+,d0
 	ext.w	d0
-	move.b	(a2,d0.w),d5
-	asl.w	#$4,d0
-	move.b	$A(a5,d0.w),d4
-	lsl.w	#$8,d4
-	move.b	$B(a5,d0.w),d4
+	move.b	(a2,d0.w),d5			;his win %
+	asl.w	#4,d0					;16 bytes per user record
+	move.b	urgames(a5,d0.w),d4		;games, big endian
+	lsl.w	#8,d4
+	move.b	urgames+1(a5,d0.w),d4
 	move.w	d4,-(sp)
-	move.b	$C(a5,d0.w),d4
-	lsl.w	#$8,d4
-	move.b	$D(a5,d0.w),d4
-	move.w	d4,$17E9A.l
-	move.b	$8(a5,d0.w),d4
-	lsl.w	#$8,d4
-	move.b	$9(a5,d0.w),d4
-	move.w	d4,$17E9E.l
-	add.w	$17E9A.l,d4
+	move.b	urties(a5,d0.w),d4		;ties, big endian
+	lsl.w	#8,d4
+	move.b	urties+1(a5,d0.w),d4
+	move.w	d4,(recties).l
+	move.b	urwins(a5,d0.w),d4		;wins, big endian
+	lsl.w	#8,d4
+	move.b	urwins+1(a5,d0.w),d4
+	move.w	d4,(recwins).l
+	add.w	(recties).l,d4			;losses = games - wins - ties
 	sub.w	(sp),d4
 	neg.w	d4
-	move.w	d4,$17E9C.l
+	move.w	d4,(reclosses).l
 	move.w	(sp)+,d4
-	tst.w	d4
-	beq.w	.L27492
-	bsr.w	X_27666
-	move.w	#$13,(printx).l
+	tst.w	d4						;no games: "( )" instead
+	beq.w	.0
+	bsr.w	PrintRecordName
+	move.w	#$13,(printx).l			;win %, wins, losses and ties columns
 	move.w	d0,-(sp)
 	move.w	d5,d0
-	move.w	#$3,d1
-	jsr	$3919A.l
-	jsr	(printsmall).l
+	move.w	#3,d1					;3 digits
+	jsr	(PushNumberWidth).l
+	jsr	(printsmall).l				;print it
 	move.w	#$1A,(printx).l
-	move.w	$17E9E.l,d0
-	move.w	#$4,d1
-	jsr	$3919A.l
-	jsr	(printsmall).l
+	move.w	(recwins).l,d0
+	move.w	#4,d1					;4 digits
+	jsr	(PushNumberWidth).l
+	jsr	(printsmall).l				;print it
 	move.w	#$1F,(printx).l
-	move.w	$17E9C.l,d0
-	move.w	#$4,d1
-	jsr	$3919A.l
-	jsr	(printsmall).l
+	move.w	(reclosses).l,d0
+	move.w	#4,d1					;4 digits
+	jsr	(PushNumberWidth).l
+	jsr	(printsmall).l				;print it
 	move.w	#$24,(printx).l
-	move.w	$17E9A.l,d0
-	move.w	#$3,d1
-	jsr	$3919A.l
+	move.w	(recties).l,d0
+	move.w	#3,d1					;3 digits
+	jsr	(PushNumberWidth).l
 	move.w	(sp)+,d0
-	bra.w	.L27498
-.L27492
-	movea.l	#$27630,a1
-.L27498
+	bra.w	.1
+.0									;user has no games
+	movea.l	#RecParenTxt,a1
+.1									;print the last part
 	jsr	(printsmall).l
-	addi.w	#$2,(printy).l
-	dbf	d7,.L273C2
+	addi.w	#2,(printy).l			;rows are 2 apart
+	dbf	d7,.loop					;next row
 	movem.l	(sp)+,d0-d7/a0-a6
 	rts
-ClearRecordArea						;CD: placed where the disc branches to it
+ClearRecordArea						;Record Holders: erase the record rows ($28 x $12), keeping printx /
+									;printy / printm
 	movem.l	d0-d7/a0-a6,-(sp)
 	move.w	(printx).l,-(sp)
 	move.w	(printy).l,-(sp)
 	move.w	(printm).l,-(sp)
 	jsr	(printsmallz).l
-	dc.w	$0008
-	dc.w	$F804
-	dc.w	$0200,$0A00
+	String	CC_SetMapAndPosition,4,2,0,$A
 	move.w	#$28,d0
 	move.w	#$12,d1
 	jsr	(eraser).l
@@ -1201,245 +1264,252 @@ ClearRecordArea						;CD: placed where the disc branches to it
 	move.w	(sp)+,(printx).l
 	movem.l	(sp)+,d0-d7/a0-a6
 	rts
-PrintPlayerRecords						;CD: placed where the disc branches to it
+PrintPlayerRecords					;Record Holders: the rows of the other page (PrintRecordName)
 	movem.l	d0-d7/a0-a6,-(sp)
 	jsr	(printsmallz).l
-	dc.w	$000A
-	dc.w	$F804
-	dc.w	$0202,$0AF9
-	dc.w	$0000,$3E3C
-	dc.w	$0006,$207C
-	dc.w	$0001,$A3D4
-	cmpi.w	#$1,(TempWord1).l
-	beq.w	.L2752A
-	movea.l	#$1A3DC,a0
-.L2752A
-	movea.l	#$BC000,a2
-.L27530
-	move.w	#$2,(printx).l
+	String	CC_SetMapAndPosition,4,2,2,$A,CC_SetFont,0
+	move.w	#6,d7					;7 rows
+	movea.l	#recsort1,a0			;page 1: the goals sort
+	cmpi.w	#1,(TempWord1).l
+	beq.w	.0
+	movea.l	#recsort2,a0
+.0									;sort list chosen
+	movea.l	#recordbuf,a2
+.loop								;each row
+	move.w	#2,(printx).l
 	move.b	(a0)+,d0
 	ext.w	d0
-	asl.w	#$4,d0
-	move.b	(a2,d0.w),d5
-	cmpi.w	#$1,(TempWord1).l
-	beq.w	.L27552
-	move.b	$4(a2,d0.w),d5
-.L27552
+	asl.w	#4,d0					;16 bytes per user record
+	move.b	(a2,d0.w),d5			;goals record, or the saves one on page 2
+	cmpi.w	#1,(TempWord1).l
+	beq.w	.1
+	move.b	ursaves(a2,d0.w),d5
+.1									;record value chosen
 	tst.b	d5
-	beq.w	.L27612
-	bsr.w	.L27666
+	beq.w	.none					;no record: "( )"
+	bsr.w	PrintRecordName
 	move.w	#$12,(printx).l
 	move.w	d0,-(sp)
-	cmpi.w	#$1,(TempWord1).l
-	bne.w	.L2757A
+	cmpi.w	#1,(TempWord1).l		;page 1?
+	bne.w	.2						;page 2: saves
 	move.b	(a2,d0.w),d0
-	bra.w	.L2757E
-.L2757A
-	move.b	$4(a2,d0.w),d0
-.L2757E
+	bra.w	.3
+.2									;page 2: the saves value
+	move.b	ursaves(a2,d0.w),d0
+.3									;value chosen: print it
 	andi.w	#$FF,d0
-	move.w	#$3,d1
-	jsr	$3919A.l
-	jsr	(printsmall).l
+	move.w	#3,d1					;3 digits
+	jsr	(PushNumberWidth).l
+	jsr	(printsmall).l				;print it
 	move.w	(sp)+,d0
 	move.w	#$19,(printx).l
-	movea.l	#$27658,a1
+	movea.l	#RecHolderByTxt,a1
 	movea.l	#mesarea,a3
-	bsr.w	X_25818
+	bsr.w	CopyString
 	move.w	d0,-(sp)
-	cmpi.w	#$1,(TempWord1).l
-	bne.w	.L275C2
-	move.b	$1(a2,d0.w),d0
-	bra.w	.L275C6
-.L275C2
-	move.b	$5(a2,d0.w),d0
-.L275C6
+	cmpi.w	#1,(TempWord1).l		;page 1?
+	bne.w	.4						;page 2: the saves team
+	move.b	urgoalsteam(a2,d0.w),d0
+	bra.w	.5
+.4									;page 2: the saves team
+	move.b	ursavesteam(a2,d0.w),d0
+.5									;team chosen
 	andi.w	#$FF,d0
 	movea.l	#mesarea,a1
-	bsr.w	X_260E0
-	movea.l	#$2765E,a1
+	bsr.w	AppendTeamName			;append the team name
+	movea.l	#RecHolderVsTxt,a1
 	movea.l	#mesarea,a3
-	jsr	$39208.l
+	jsr	(appstring).l
 	movea.l	#mesarea,a1
 	move.w	(sp)+,d0
-	cmpi.w	#$1,(TempWord1).l
-	bne.w	.L27602
-	move.b	$2(a2,d0.w),d0
-	bra.w	.L27606
-.L27602
-	move.b	$6(a2,d0.w),d0
-.L27606
+	cmpi.w	#1,(TempWord1).l		;page 1?
+	bne.w	.6						;page 2: the saves opponent
+	move.b	urgoalsopp(a2,d0.w),d0
+	bra.w	.7
+.6									;page 2: the saves opponent
+	move.b	ursavesopp(a2,d0.w),d0
+.7									;opponent chosen
 	andi.w	#$FF,d0
-	bsr.w	X_260E0
-	bra.w	.L27618
-.L27612
-	movea.l	#$27630,a1
-.L27618
+	bsr.w	AppendTeamName			;append the team name
+	bra.w	.print
+.none								;no record: "( )"
+	movea.l	#RecParenTxt,a1
+.print								;print the row
 	jsr	(printsmall).l
-	addi.w	#$2,(printy).l
-	dbf	d7,.L27530
+	addi.w	#2,(printy).l
+	dbf	d7,.loop					;loop
 	movem.l	(sp)+,d0-d7/a0-a6
 	rts
-	dc.w	$0028,$2020,$2020
-	dc.b	'                                  '
-	dc.w	$0006,$6279
-	move.l	d0,d0
-	dc.w	$0008
-	dc.w	$2076
-	dc.w	$732E
-	move.l	d0,d0
-.L27666
-	move.w	d7,-(sp)
-	neg.w	d7
-	addi.w	#$7,d7
+RecParenTxt	dc.b	0				;PrintWinRecords data
+	dc.b	$28						;(
+	dc.b	$20,$20,$20,$20,$20,$20,$20,$20,$20,$20,$20,$20,$20,$20,$20,$20
+	dc.b	$20,$20,$20,$20,$20,$20,$20,$20,$20,$20,$20,$20,$20,$20,$20,$20
+	dc.b	$20,$20,$20,$20,$20,$20
+RecHolderByTxt	dc.b	0			;PrintPlayerRecords data
+	dc.b	6
+	dc.b	$62						;b
+	dc.b	$79						;y
+	dc.b	$20,0
+RecHolderVsTxt	dc.b	0			;PrintPlayerRecords data
+	dc.b	8,$20
+	dc.b	$76						;v
+	dc.b	$73						;s
+	dc.b	$2E
+	dc.b	$20,0
+PrintRecordName						;Record Holders: print a value (AppendUserName)
+	move.w	d7,-(sp)				;save the row counter
+	neg.w	d7						;row number = 7 - d7
+	addi.w	#7,d7
 	addi.w	#$30,d7
 	movea.l	#mesarea,a1
-	move.w	#$6,(a1)
-	move.b	d7,$2(a1)
-	move.b	#$2E,$3(a1)
-	move.b	#$20,$4(a1)
-	move.b	#$0,$5(a1)
-	jsr	(printsmall).l
+	move.w	#6,(a1)
+	move.b	d7,2(a1)				;row digit
+	move.b	#$2E,3(a1)
+	move.b	#$20,4(a1)
+	move.b	#0,5(a1)
+	jsr	(printsmall).l				;print it
 	move.w	(sp)+,d7
-	move.b	-$1(a0),d2
+	move.b	-1(a0),d2				;user number of this row
 	ext.w	d2
 	movea.l	#mesarea,a1
-	bclr.b	#$7,(sflags6).l
-	bsr.w	X_25DE8
-	jmp	(printsmall).l
-CalcWinPercents						;CD: placed where the disc branches to it
+	bclr.b	#7,(sflags6).l			;bit 7 clear: AppendUserName does not trim
+	bsr.w	AppendUserName
+	jmp	(printsmall).l					;print the name
+CalcWinPercents						;Record Holders: for the 8 user record blocks at recordbuf, the win %
+									;(winpcts), games (wingames) and ties (winties), then sort the rows
+									;(winsort)
 	movem.l	d0-d7/a0-a6,-(sp)
-	movea.l	#$BC000,a0
-	movea.l	#$1A3EC,a1
-	movea.l	#$1A3F4,a6
-	movea.l	#$1A404,a5
-	move.w	#$7,d7
-.L276D8
-	move.b	$8(a0),d0
-	lsl.w	#$8,d0
-	move.b	$9(a0),d0
-	move.b	$A(a0),d1
-	lsl.w	#$8,d1
-	move.b	$B(a0),d1
+	movea.l	#recordbuf,a0
+	movea.l	#winpcts,a1
+	movea.l	#winties,a6
+	movea.l	#wingames,a5
+	move.w	#7,d7					;8 user blocks
+.loop								;each user record
+	move.b	urwins(a0),d0			;wins, big endian
+	lsl.w	#8,d0
+	move.b	urwins+1(a0),d0
+	move.b	urgames(a0),d1			;games, big endian
+	lsl.w	#8,d1
+	move.b	urgames+1(a0),d1
 	move.w	d1,(a5)+
 	tst.w	d1
-	bne.w	.L276FA
+	bne.w	.0
 	clr.w	d0
-	bra.w	.L27700
-.L276FA
+	bra.w	.1
+.0									;games played: win % = wins * 100 / games
 	mulu.w	#$64,d0
 	divu.w	d1,d0
-.L27700
+.1									;% ready
 	move.b	d0,(a1)+
-	move.b	$C(a0),(a6)+
-	move.b	$D(a0),(a6)+
-	adda.w	#$10,a0
-	dbf	d7,.L276D8
-	movea.l	#$1A3E4,a1
+	move.b	urties(a0),(a6)+
+	move.b	urties+1(a0),(a6)+
+	adda.w	#$10,a0					;next 16 byte block
+	dbf	d7,.loop					;next user
+	movea.l	#winsort,a1
 	move.l	a1,-(sp)
-	move.w	#$1,d0
-	move.w	#$6,d7
-.L27722
+	move.w	#1,d0					;the sort list starts as users 1-7
+	move.w	#6,d7					;7 users
+.loop2								;fill in users 1-7
 	move.b	d0,(a1)+
-	addi.w	#$1,d0
-	dbf	d7,.L27722
+	addi.w	#1,d0					;next user
+	dbf	d7,.loop2					;loop
 	movea.l	(sp),a1
-	movea.l	#$1A3EC,a0
-	movea.l	#$1A3F4,a6
-	movea.l	#$1A404,a5
-.L27740
+	movea.l	#winpcts,a0
+	movea.l	#winties,a6
+	movea.l	#wingames,a5
+.loop3								;bubble sort: win %, then ties, then games
 	movea.l	(sp),a1
-	move.w	#$5,d7
+	move.w	#5,d7					;6 pairs
 	clr.w	d6
-.L27748
+.loop4								;compare a pair with the next
 	move.b	(a1)+,d1
 	ext.w	d1
 	move.b	(a1),d2
 	ext.w	d2
-	move.b	(a0,d1.w),d0
-	move.b	(a0,d2.w),d3
+	move.b	(a0,d1.w),d0			;this user's %
+	move.b	(a0,d2.w),d3			;next user's %
 	cmp.b	d3,d0
-	bgt.w	.L277A8
-	blt.w	.L2779A
+	bgt.w	.next
+	blt.w	.swap
 	movem.l	d1-d3,-(sp)
 	add.w	d1,d1
 	add.w	d2,d2
-	move.w	(a6,d1.w),d0
-	move.w	(a6,d2.w),d3
+	move.w	(a6,d1.w),d0			;this user's ties
+	move.w	(a6,d2.w),d3			;next user's ties
 	cmp.w	d3,d0
 	movem.l	(sp)+,d1-d3
-	bgt.w	.L277A8
-	blt.w	.L2779A
+	bgt.w	.next					;same %: more ties first
+	blt.w	.swap
 	movem.l	d1-d3,-(sp)
 	add.w	d1,d1
 	add.w	d2,d2
-	move.w	(a5,d1.w),d0
-	move.w	(a5,d2.w),d3
+	move.w	(a5,d1.w),d0			;this user's games
+	move.w	(a5,d2.w),d3			;next user's games
 	cmp.w	d3,d0
 	movem.l	(sp)+,d1-d3
-	bge.w	.L277A8
-.L2779A
+	bge.w	.next					;same ties: more games first
+.swap								;out of order: swap
 	move.b	(a1),d0
-	move.b	-$1(a1),d1
-	move.b	d0,-$1(a1)
+	move.b	-1(a1),d1				;previous entry
+	move.b	d0,-1(a1)				;swap them
 	move.b	d1,(a1)
 	st.b	d6
-.L277A8
-	dbf	d7,.L27748
+.next								;next pair
+	dbf	d7,.loop4					;next pair
 	tst.w	d6
-	bne.w	.L27740
+	bne.w	.loop3					;repeat until no swap
 	movea.l	(sp)+,a1
 	movem.l	(sp)+,d0-d7/a0-a6
 	rts
-ReadTeamRecords						;CD: placed where the disc branches to it
+ReadTeamRecords						;Record Holders: read the records (ReadSRAM)
 	movem.l	d0-d7/a0-a6,-(sp)
-	move.l	#$D20,d0
-	move.l	#$80,d1
-	movea.l	#$BC000,a0
+	move.l	#TeamRecBase,d0			;first user block
+	move.l	#$80,d1					;all 8 user blocks
+	movea.l	#recordbuf,a0
 	jsr	(ReadSRAM).l
-	movea.l	#$1A3D4,a1
-	btst.b	#$6,(sflags6).l
-	beq.w	.L277EE
-	movea.l	#$1A3DC,a1
-.L277EE
+	movea.l	#recsort1,a1			;the goals sort list, or the saves one (bit 6)
+	btst.b	#6,(sflags6).l
+	beq.w	.0
+	movea.l	#recsort2,a1
+.0									;list chosen
 	move.l	a1,-(sp)
-	move.w	#$1,d0
-	move.w	#$6,d7
-.L277F8
+	move.w	#1,d0					;start with users 1-7
+	move.w	#6,d7					;7 users
+.loop								;fill in users 1-7
 	move.b	d0,(a1)+
-	addi.w	#$1,d0
-	dbf	d7,.L277F8
+	addi.w	#1,d0					;next user
+	dbf	d7,.loop					;loop
 	movea.l	(sp),a1
-	movea.l	#$BC000,a0
-.L2780A
+	movea.l	#recordbuf,a0
+.loop2								;bubble sort by the record value
 	movea.l	(sp),a1
-	move.w	#$5,d7
+	move.w	#5,d7					;6 pairs
 	clr.w	d6
-.L27812
+.loop3								;compare a pair with the next
 	move.b	(a1)+,d1
 	ext.w	d1
 	move.b	(a1),d2
 	ext.w	d2
-	asl.w	#$4,d1
-	asl.w	#$4,d2
-	move.b	(a0,d1.w),d0
-	move.b	(a0,d2.w),d3
-	btst.b	#$6,(sflags6).l
-	beq.w	.L2783A
-	move.b	$4(a0,d1.w),d0
-	move.b	$4(a0,d2.w),d3
-.L2783A
+	asl.w	#4,d1					;16 bytes per user record
+	asl.w	#4,d2
+	move.b	(a0,d1.w),d0			;urgoals: goals record
+	move.b	(a0,d2.w),d3			;next user's
+	btst.b	#6,(sflags6).l			;bit 6: sort by saves instead
+	beq.w	.1
+	move.b	ursaves(a0,d1.w),d0
+	move.b	ursaves(a0,d2.w),d3
+.1									;values chosen
 	cmp.b	d3,d0
-	bge.w	.L2784E
+	bge.w	.next
 	move.b	(a1),d0
-	move.b	-$1(a1),d1
-	move.b	d0,-$1(a1)
+	move.b	-1(a1),d1				;previous entry
+	move.b	d0,-1(a1)				;swap them
 	move.b	d1,(a1)
 	st.b	d6
-.L2784E
-	dbf	d7,.L27812
-	tst.w	d6
-	bne.w	.L2780A
+.next								;in order or swapped
+	dbf	d7,.loop3
+	tst.w	d6						;any swap?
+	bne.w	.loop2					;repeat until no swap
 	movea.l	(sp)+,a1
 	movem.l	(sp)+,d0-d7/a0-a6
 	rts

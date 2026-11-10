@@ -505,9 +505,8 @@ ChangeOption						;add d2 to option d7 (d2 = 0: only limit it) and wrap it in it
 	move.w	(TmpOptUserRec).l,(OptUserRec).l	;restore the user records
 	move.w	(TmpOptPen).l,(OptPen).l
 	move.w	(TmpOptLine).l,(OptLine).l
-;CD: no cartridge twin
-.2						;CD: placed where the disc branches to it
-	movea.l	#OptPlayMode,a2
+.2									;shootout options put back
+	movea.l	#(OptPlayMode-M68K_RAM),a2
 	movea.l	#OptionLimits,a3
 	tst.w	(FourWayPlay).l			;four way?
 	beq.w	.3
@@ -727,7 +726,6 @@ PrintOptTeamName					;Print team name d3 of option d7 (TeamList city; the full n
 	move.w	(sp)+,(printx).l
 	movea.l	#OptPlayMode,a1
 	move.w	(a1,d7.w),d3
-;CD: no cartridge twin
 	movea.l	#TeamList,a1
 	asl.w	#2,d3
 	movea.l	(a1,d3.w),a1

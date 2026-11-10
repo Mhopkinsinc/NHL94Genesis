@@ -8,6 +8,7 @@
 	include	macros\genesis.mac
 	include	segacd\hockey\hockey.inc
 
+null	equ	$1B008
 TeamList	equ	$1B00C
 EndShootout	equ	$291CE
 StartShootoutPath	equ	$2A686
@@ -316,8 +317,7 @@ ShooterSelectList					;Shootout shooters: "{Select Player}" list
 	move.w	d0,(screentimer).l
 	clr.w	(PlayerScrollCtr).l		;scroll to the top
 	clr.w	(VertLineScrolling).l	;cursor on row 0
-;CD: no cartridge twin
-	movea.l	#$BBD30,a0
+	movea.l	#(Satt-M68K_RAM),a0
 	clr.w	d2
 .loop								;list each candidate
 	move.b	d1,(a0,d2.w)			;row = roster index
@@ -388,9 +388,8 @@ ShooterSelectList					;Shootout shooters: "{Select Player}" list
 .9									;cursor inside the rows shown: redraw
 	bsr.w	PrintShooterList
 	bra.w	.loop2
-;CD: no cartridge twin
-.pick						;CD: placed where the disc branches to it
-	movea.l	#$BBD30,a3
+.pick								;bit 5 of d1 set
+	movea.l	#(Satt-M68K_RAM),a3
 	adda.w	(VertLineScrolling).l,a3
 	clr.w	d0
 	move.b	(a3),d0
@@ -435,8 +434,7 @@ PrintShooterList					;Shootout shooters: the player list rows (getNameandAttrib)
 .4									;print the header
 	jsr	(print).l
 	move.l	(a1),d4					;rating weights
-;CD: no cartridge twin
-	movea.l	#$BBD30,a3
+	movea.l	#(Satt-M68K_RAM),a3
 	move.w	(PlayerScrollCtr).l,d2
 	move.w	(screentimer).l,d1
 	sub.w	d2,d1
@@ -514,8 +512,8 @@ ShootersBackground					;Shootout shooters background and "Shootout" title
 	String	CC_Font3,0,0
 ;CD: no cartridge twin
 	movea.l	$47D0C.l,a1
-	adda.l	$4(a1),a1
-	movea.l	#$1B008,a2
+	adda.l	jimdata(a1),a1
+	movea.l	#null,a2
 	clr.w	d0
 	clr.w	d1
 	move.w	(a1),d2
@@ -532,8 +530,7 @@ ShootersBackground					;Shootout shooters background and "Shootout" title
 	jsr	(printbigz).l
 	String	CC_Font2Pri,$A,4,'  Shootout  ',CC_Font2Pri,$F,1	;Shootout title
 	clr.w	d0
-;CD: no cartridge twin
-	cmpa.l	#tmstruct,a2
+	cmpa.l	#(tmstruct-M68K_RAM),a2	;home team?
 	beq.w	.0
 	move.w	#$2C,d0
 .0									;home team at 0, away at $2C

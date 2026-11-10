@@ -8,6 +8,7 @@
 	include	macros\genesis.mac
 	include	segacd\hockey\hockey.inc
 
+null	equ	$1B008
 ChooseSong	equ	$2A478
 dobitmap	equ	$387E2
 eraser	equ	$38C06
@@ -87,8 +88,7 @@ LeadSong						;CD: its first lines have no twin; the rest of it starts here
 	move.w	(sflags2).l,-(sp)
 	btst.b	#1,(gmode2).l			;shootout?
 	bne.w	LeadSongExit			;shootout: no lead songs
-;CD: no cartridge twin
-	movea.l	#tmstruct,a2
+	movea.l	#(tmstruct-M68K_RAM),a2
 	lea	tmsize(a2),a3
 	move.w	tmap(a2),d0				;home players on ice
 	sub.w	tmap(a3),d0
@@ -108,8 +108,7 @@ LeadSong						;CD: its first lines have no twin; the rest of it starts here
 .1									;lead noted
 	bset.b	#sf2pwrplay,(sflags2).l	;one song per lead
 	bne.w	LeadSongExit			;already played?
-;CD: no cartridge twin
-	cmpa.l	#tmstruct,a3
+	cmpa.l	#(tmstruct-M68K_RAM),a3	;a3 the away struct?
 	bne.w	.2						;home ahead?
 	move.w	(HomeTeam).l,(HmTeam).l	;away ahead: song slot 1
 	move.w	#SngPPAway,(SongIndex).l	;away ahead: song slot 1
@@ -207,8 +206,7 @@ HotColdIcon							;The icon by the name of player iconplayer of team a2 at x ico
 	movea.l	a0,a2
 	adda.l	(a2)+,a0
 	adda.l	(a2)+,a1				;a1 = map data
-;CD: no cartridge twin
-	movea.l	#$1B008,a2
+	movea.l	#null,a2
 	clr.w	d0
 	clr.w	d1
 	move.w	(a1),d2

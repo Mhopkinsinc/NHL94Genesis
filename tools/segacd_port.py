@@ -300,6 +300,8 @@ def norm(insn):
         base = base + "i"
     if base == "moveq":
         base, sz = "move", "l"
+    if base in ("movea", "cmpa", "adda", "suba") and re.match(r"#\$[0-9a-f]{3,}", op):
+        sz = ""                         # movea.w #ram (sign-extends to $FFxxxx) on the cartridge is .l here
     if base in ("addq", "addi"):
         base = "add"
     elif base in ("subq", "subi"):
@@ -613,6 +615,8 @@ def item_matches(it, disc, p, end):
     if it.kind in ("data", "macro"):
         if it.len and disc[p:p + it.len] == it.cart:
             return it.len
+        if it.kind == "macro" and not it.len:
+            return 0                    # nets no bytes (StringEnd back-patches the length word)
         return None
     if it.kind == "align":
         if it.mnem.lower() == "even":
@@ -721,7 +725,7 @@ def align(items, disc, start, end, nmain=None):
         best = None
         for j in cands:
             # a short skip forward needs K lines; any other jump (back, far, another file) needs more
-            need = K if (j < nmain and (nxt < j <= nxt + 40 or not in_run and walk == [])) else K + 2
+            need = K if (j < nmain and (nxt <= j <= nxt + 40 or not in_run and walk == [])) else K + 2
             if j in used or not run_ok(items, j, disc, p, end, need, used):
                 continue
             # prefer the run that follows on, then lines of this file, then the nearest after
@@ -741,7 +745,7 @@ def align(items, disc, start, end, nmain=None):
         if cd_from is None:
             cd_from = p
         in_run = False
-        p += d.size if d is not None else 2
+        p += d.size if d is not None else (1 if p & 1 else 2)      # step back onto even addresses
     flush_cd(min(p, end))
     walk = backfill(walk, items, disc, end, used)
     for j, it in enumerate(items[:nmain]):
@@ -908,6 +912,17 @@ class Fragment:
     def solve(self, expr, value, width, scope, mode=None):
         """Try to make expr equal value (mod width). Returns True and records new symbols."""
         mask = (1 << width) - 1
+        u = expr.strip()
+        old = self.label_at.get(u)
+        if old is not None and any(r == (old, u) for r in self.restored) and value != old \
+                and value in self.starts and value < old and self.scope_of(value) == self.scope_of(old - 1) \
+                and BASE + self.start <= value:
+            # a routine re-placed at its first surviving line, called at an earlier address: that is its start
+            self.restored.discard((old, u))
+            self.labels[old].remove(u)
+            self.globals_sorted.remove((old, u))
+            self.add_label(u, value, u)
+            self.evidence.add((value, u))
         try:
             v = evaluate(expr, lambda n: self.lookup_disc(n, scope))
             if (v & mask) == (value & mask):
@@ -1152,6 +1167,10 @@ class Fragment:
                         fallback.append(cops[k])
                 if t is None and o["mode"] == "abs" and not has_ident(cops[k]):
                     fallback.append(cops[k])
+                if t is None and o["mode"] == "abs" and o["value"] >= 0x10000:
+                    n = self.rev_name(o["value"])          # another name the disc address has
+                    if n:
+                        t = f"({n}).{o['size']}"
             if t is None:
                 if o["mode"] in ("pcrel", "target"):
                     t = self.target_name(o["value"], scope)
@@ -1413,7 +1432,10 @@ class Fragment:
                 self.inc_new[n] = v
         for n in self.confirmed:
             if n not in self.inc_new:
-                self.inc_new[n] = self.cglob[n]
+                try:
+                    self.inc_new[n] = self.lookup_disc(n, None)     # the value it was confirmed at
+                except Unknown:
+                    self.inc_new[n] = self.cglob[n]
         for n, v in self.inc_new.items():
             if n in merged and merged[n] != v and n not in assumed:
                 print(f"warning: {n} is ${merged[n]:X} in the include, this fragment wants ${v:X}")

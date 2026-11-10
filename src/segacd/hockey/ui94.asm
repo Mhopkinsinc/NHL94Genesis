@@ -320,19 +320,20 @@ CheckScoreLeader					;Compare tmap (players on ice) of tmstruct / awtmstruct and
 .x									;exit: restore the registers
 	movem.l	(sp)+,d0-d2/a0-a2
 	rts
+DrawPlayoffSprite					;The StanleyCupSprite sprite at playoffspritex / playoffspritey in Satt,
+									;then
+									;end the sprite list (Sattsize = its size). Called from PlayoffScreen
+	movea.l	#(Satt-M68K_RAM),a6
+	moveq	#1,d6
 ;CD: no cartridge twin
-	movea.l	#$BBD30,a6
-	moveq	#$1,d6
 	movea.l	$47D94.l,a0
-DrawPlayoffSprite						;CD: its first lines have no twin; the rest of it starts here
 	move.w	(logochars).l,d3
 	ori.w	#$8000,d3				;high priority
 	move.w	(playoffspritex).l,d0
 	move.w	(playoffspritey).l,d1
 	move.w	#1,d2					;frame 1
 	jsr	(SetSframe).l
-;CD: no cartridge twin
-	cmpa.l	#$BBD30,a6
+	cmpa.l	#(Satt-M68K_RAM),a6		;any drawn?
 	bne.w	.0						;sprites drawn: end the list
 	clr.l	(a6)+					;no sprite drawn: add an empty one
 	clr.l	(a6)+

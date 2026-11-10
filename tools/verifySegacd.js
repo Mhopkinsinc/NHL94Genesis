@@ -121,3 +121,7 @@ compareAt('output/segacd/hockey/ui94.bin', 'cdbin/HOCKEY.BIN', 0xF902, 0x566);
 compareAt('output/segacd/hockey/helpers94.bin', 'cdbin/HOCKEY.BIN', 0xFE68, 0xEE);
 compareAt('output/segacd/hockey/logos94.bin', 'cdbin/HOCKEY.BIN', 0xFF56, 0x58C);
 compareAt('output/segacd/hockey/chgplayer94.bin', 'cdbin/HOCKEY.BIN', 0x104E2, 0x132);
+compareAt('output/segacd/hockey/menu94.bin', 'cdbin/HOCKEY.BIN', 0x112F8, 0x368);
+compareAt('output/segacd/hockey/stats94.bin', 'cdbin/HOCKEY.BIN', 0x11660, 0x27A4);
+compareAt('output/segacd/hockey/replay94.bin', 'cdbin/HOCKEY.BIN', 0x13E04, 0xB86);
+compareAt('output/segacd/hockey/logic94.bin', 'cdbin/HOCKEY.BIN', 0x1498A, 0x7228);

@@ -764,20 +764,20 @@ DisplayStats						;Team logos (PutTeamBlock), then each
 	jsr	(print).l
 	movea.l	a1,a0					;a0 = stat offsets
 	move.w	#$22,(printx).l
-;CD: no cartridge twin
-	movea.l	#tmstruct,a2
-	bsr.w	.L29D5C	;CD: the cartridge has PrintStatValue
+	movea.l	#(tmstruct-M68K_RAM),a2
+	bsr.w	PrintStatValue
 	move.w	#9,(printx).l
 	lea	tmsize(a2),a2
-	bsr.w	.L29D5C			;away team value, centred at x 9 (CD: the cartridge has PrintStatValue)
+	bsr.w	PrintStatValue			;away team value, centred at x 9
 	lea	4(a0),a1
 	addi.w	#2,(printy).l			;2 map rows per table row
 	dbf	d6,.row						;next row
 	rts
-;CD: no cartridge twin
-.L29D5C
-	movea.l	#mesarea,a3
-PrintStatValue						;CD: its first lines have no twin; the rest of it starts here
+PrintStatValue						;Print TeamStatTextTbl entry a0 for team a2 centred at printx: the value
+									;(tmATOP and tmPwrPlayTime are times
+									;PushTime), "/second" if any, " (pct%)" for passing. Offset $FFFF is the
+									;shooting percentage (tmscore * 100 / tmshots), printed with a "%"
+	movea.l	#(mesarea-M68K_RAM),a3
 	move.w	#2,(a3)					;empty string
 	cmpi.w	#$FFFF,(a0)				;shooting percentage row
 	bne.w	.1

@@ -249,7 +249,7 @@ PlayerCardScreen					;Draw a player card on one side. setupcardflags bit 1 set: 
 	movea.l	#mesarea,a1
 	move.w	(cardteamnum).l,d0
 	move.w	(cardroster).l,d1
-	movea.l	#M68K_RAM,a0
+	movea.l	#$C45C,a0	;CD: the cartridge has #M68K_RAM
 	jsr	(PrintRecordHolder).l
 	move.w	(cardprintx).l,(printx).l
 	cmpi.w	#2,(a1)					;no record holder: skip the line
@@ -262,7 +262,7 @@ PlayerCardScreen					;Draw a player card on one side. setupcardflags bit 1 set: 
 	movea.l	#mesarea,a1
 	move.w	(cardteamnum).l,d0
 	move.w	(cardroster).l,d1
-	movea.l	#M68K_RAM,a0
+	movea.l	#$C45C,a0	;CD: the cartridge has #M68K_RAM
 	jsr	(PrintRecordVs).l
 	move.w	(cardprintx).l,(printx).l	;left edge of the text
 	addi.w	#1,(printy).l
@@ -530,7 +530,7 @@ GetRecordValue						;d0 = record d0 of player d1 of team d0 from save RAM (ReadP
 	move.w	d0,d5
 	move.w	d1,d4
 	ext.l	d0
-	movea.l	#M68K_RAM,a0
+	movea.l	#$C45C,a0	;CD: the cartridge has #M68K_RAM
 	bsr.w	ReadPlayerRecord		;his save record into M68K_RAM
 	move.b	(a0),d0					;byte 0 = the record value
 	ext.w	d0
@@ -613,9 +613,9 @@ AppendRecordHolder					;Append the user name of the record holder (byte 1 of rec
 	move.w	(sp)+,d1
 	ext.l	d1
 	ext.l	d0
-	movea.l	#M68K_RAM,a0
+	movea.l	#$C45C,a0	;CD: the cartridge has #M68K_RAM
 	bsr.w	ReadPlayerRecord
-	movea.l	#M68K_RAM,a0			;a0 = the record
+	movea.l	#$C45C,a0			;a0 = the record (CD: the cartridge has #M68K_RAM)
 	movem.l	(sp)+,d0-d7/a1-a6
 .0									;record ready (passed in, or read into M68K_RAM): byte 1 = holder
 	move.b	1(a0),d2
@@ -635,9 +635,9 @@ AppendRecordVs						;Append the user name (byte 3 of record a0), a space and the
 	move.w	(sp)+,d1
 	ext.l	d1
 	ext.l	d0
-	movea.l	#M68K_RAM,a0
+	movea.l	#$C45C,a0	;CD: the cartridge has #M68K_RAM
 	bsr.w	ReadPlayerRecord
-	movea.l	#M68K_RAM,a0			;a0 = the record
+	movea.l	#$C45C,a0			;a0 = the record (CD: the cartridge has #M68K_RAM)
 	movem.l	(sp)+,d0-d7/a1-a6
 .0									;record ready (passed in, or read into M68K_RAM): byte 3 = the user
 	move.b	3(a0),d2
