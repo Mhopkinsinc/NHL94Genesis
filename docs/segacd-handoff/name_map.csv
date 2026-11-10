@@ -1,4 +1,6 @@
 disc_file,disc_addr,name_94g,notes
+HOCKEY.BIN,$8,null,teamdata94.asm
+HOCKEY.BIN,$C,TeamList,teamdata94.asm
 HOCKEY.BIN,$7C,AllStarsEast,teamdata94.asm
 HOCKEY.BIN,$382,AllStarsWest,teamdata94.asm
 HOCKEY.BIN,$684,Boston,teamdata94.asm
@@ -21,7 +23,7 @@ HOCKEY.BIN,$3462,Quebec,teamdata94.asm
 HOCKEY.BIN,$373E,SanJose,teamdata94.asm
 HOCKEY.BIN,$3A00,StLouis,teamdata94.asm
 HOCKEY.BIN,$3CBE,TampaBay,teamdata94.asm
-HOCKEY.BIN,$3FAA,Toronto,teamdata94.asm
+HOCKEY.BIN,$3FA4,Toronto,teamdata94.asm
 HOCKEY.BIN,$4292,Vancouver,teamdata94.asm
 HOCKEY.BIN,$4566,Winnipeg,teamdata94.asm
 HOCKEY.BIN,$4858,Washington,teamdata94.asm
@@ -193,12 +195,10 @@ HOCKEY.BIN,$99C6,DrawVisBlock,optsetup94.asm
 HOCKEY.BIN,$9A26,DrawTeamLogo,optsetup94.asm
 HOCKEY.BIN,$9AD6,LogoBoxRight,optsetup94.asm
 HOCKEY.BIN,$9AD6,TeamLogoBitmapsEnd,optsetup94.asm
-HOCKEY.BIN,$9AD6,TeamLogoBitmaps,optsetup94.asm
 HOCKEY.BIN,$9AE8,LogoBoxHome,optsetup94.asm
 HOCKEY.BIN,$9AFA,LogoBoxLeft,optsetup94.asm
 HOCKEY.BIN,$9B0C,LogoBoxVis,optsetup94.asm
 HOCKEY.BIN,$9B1A,DrawLogoBox,optsetup94.asm
-HOCKEY.BIN,$9B2E,DrawLogoBox,optsetup94.asm
 HOCKEY.BIN,$9B5E,ResetCardTimer,cards94.asm
 HOCKEY.BIN,$9B7C,PlayerCardTimer,cards94.asm
 HOCKEY.BIN,$9C1E,PlayerCardScreen,cards94.asm
@@ -206,9 +206,6 @@ HOCKEY.BIN,$9FB4,wallcollduringcheck,cards94.asm
 HOCKEY.BIN,$A000,setSlotBit,cards94.asm
 HOCKEY.BIN,$A060,TeamPalettes,cards94.asm
 HOCKEY.BIN,$A760,PrintRecordValue,cards94.asm
-HOCKEY.BIN,$A760,FeaturedPictures,cards94.asm
-HOCKEY.BIN,$A760,TeamPalettesEnd,cards94.asm
-HOCKEY.BIN,$A7C0,PrintRecordValue,cards94.asm
 HOCKEY.BIN,$A7EE,RecordTxt,cards94.asm
 HOCKEY.BIN,$A7F8,RecGoalsTxt,cards94.asm
 HOCKEY.BIN,$A800,RecGoalTxt,cards94.asm
@@ -361,7 +358,6 @@ HOCKEY.BIN,$EC3C,rtsStatScroll,period94.asm
 HOCKEY.BIN,$EC3E,PrintStatScrollArrows,period94.asm
 HOCKEY.BIN,$ECBE,DisplayStats,period94.asm
 HOCKEY.BIN,$ED5C,PrintStatValue,period94.asm
-HOCKEY.BIN,$ED62,PrintStatValue,period94.asm
 HOCKEY.BIN,$EE56,TeamStatTextTbl,period94.asm
 HOCKEY.BIN,$EF44,TeamStatTextTblNoPen,period94.asm
 HOCKEY.BIN,$EFF6,rtsStatTables,period94.asm
@@ -421,7 +417,6 @@ HOCKEY.BIN,$FC4E,RandomFaceoffAnim,ui94.asm
 HOCKEY.BIN,$FC8E,FaceoffAnims,ui94.asm
 HOCKEY.BIN,$FCA0,CheckScoreLeader,ui94.asm
 HOCKEY.BIN,$FCD2,DrawPlayoffSprite,ui94.asm
-HOCKEY.BIN,$FCE0,DrawPlayoffSprite,ui94.asm
 HOCKEY.BIN,$FD24,GetTeamStruct,ui94.asm
 HOCKEY.BIN,$FD3E,CountButtonPress,ui94.asm
 HOCKEY.BIN,$FD86,TerminateLogName,ui94.asm
@@ -438,8 +433,6 @@ HOCKEY.BIN,$FE92,PuckComingToward,helpers94.asm
 HOCKEY.BIN,$FEDC,ReadGoaliePulled,helpers94.asm
 HOCKEY.BIN,$FF00,EndOneTimer,helpers94.asm
 HOCKEY.BIN,$FF56,TeamLogoPalettes,logos94.asm
-HOCKEY.BIN,$102D6,LeadSong,logos94.asm
-HOCKEY.BIN,$102D6,TeamLogoPalettesEnd,logos94.asm
 HOCKEY.BIN,$102DA,LeadSong,logos94.asm
 HOCKEY.BIN,$10392,ClearLeadSong,logos94.asm
 HOCKEY.BIN,$1039C,LeadSongExit,logos94.asm
@@ -451,8 +444,7 @@ HOCKEY.BIN,$10600,rtsChgplayer,chgplayer94.asm
 HOCKEY.BIN,$10602,swpchk,chgplayer94.asm
 HOCKEY.BIN,$10608,j_setc1player,chgplayer94.asm
 HOCKEY.BIN,$1060E,j_setc2player,chgplayer94.asm
-HOCKEY.BIN,$10614,Begin,hockey94.asm
-HOCKEY.BIN,$107F6,seta2,hockey94.asm
+HOCKEY.BIN,$10614,LoadGameGfx,CD-only name in hockey94.asm
 HOCKEY.BIN,$10808,StartGame,hockey94.asm
 HOCKEY.BIN,$10984,ClearShotData,hockey94.asm
 HOCKEY.BIN,$10996,restoreteams,hockey94.asm
@@ -751,7 +743,6 @@ HOCKEY.BIN,$1BD38,forceblack2,middle94.asm
 HOCKEY.BIN,$1BD66,forcefade,middle94.asm
 HOCKEY.BIN,$1BDF6,cramfade,middle94.asm
 HOCKEY.BIN,$1BEA0,CopyPaletteToCRAM,middle94.asm
-HOCKEY.BIN,$1C042,dobitmap,middle94.asm
 HOCKEY.BIN,$1C044,randomd0s,middle94.asm
 HOCKEY.BIN,$1C050,randomd0,middle94.asm
 HOCKEY.BIN,$1C08E,Sroot,middle94.asm
@@ -821,7 +812,6 @@ HOCKEY.BIN,$1E26A,printbig,print94.asm
 HOCKEY.BIN,$1E326,PrintBigChar,print94.asm
 HOCKEY.BIN,$1E372,PutBigTile,print94.asm
 HOCKEY.BIN,$1E3E8,AddSmallFont,print94.asm
-HOCKEY.BIN,$1E3F6,AddTeamBlock,print94.asm
 HOCKEY.BIN,$1E402,AddFramer,print94.asm
 HOCKEY.BIN,$1E40C,AddTeamBlock,print94.asm
 HOCKEY.BIN,$1E41A,AddPenalty,penalty94.asm
@@ -1036,7 +1026,6 @@ HOCKEY.BIN,$26332,ZeroDiv,setup94.asm
 HOCKEY.BIN,$2634E,crash,setup94.asm
 HOCKEY.BIN,$2665C,Penaltylist,tables94.asm
 HOCKEY.BIN,$2669A,PenDataEOP,tables94.asm
-HOCKEY.BIN,$2669C,PenDataEOP,tables94.asm
 HOCKEY.BIN,$266AC,PenDataEOG,tables94.asm
 HOCKEY.BIN,$266BE,PenDataGoal,tables94.asm
 HOCKEY.BIN,$266C6,PenDataNoText,tables94.asm
@@ -1075,7 +1064,6 @@ HOCKEY.BIN,$26A5C,sizetab,tables94.asm
 HOCKEY.BIN,$26A6C,sublist,tables94.asm
 HOCKEY.BIN,$26AD6,priolist,tables94.asm
 HOCKEY.BIN,$26ADE,PlayoffScreen_setup,tables94.asm
-HOCKEY.BIN,$26B0E,PlayoffScreen_setup,tables94.asm
 HOCKEY.BIN,$26C48,PAttribColumns,tables94.asm
 HOCKEY.BIN,$26C5E,PAttribOverall,tables94.asm
 HOCKEY.BIN,$26C70,PAttribOverallMask,tables94.asm

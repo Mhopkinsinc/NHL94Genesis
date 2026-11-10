@@ -2,20 +2,52 @@
 ;	The cartridge source with long addresses and no short or quick forms. Lines under ;CD: have
 ;	no cartridge twin. Names are the cartridge's; segacd\hockey\hockey.inc has the disc RAM map.
 ;
-;	The file header (jmp to Begin, null, TeamList) and the team data. The player names and team nicknames
-;	are licensed: those lines are incbin from the disc file, with the line (text masked, ratings and the
-;	P id kept) as the comment; every block with no cartridge twin is read from the disc file too. The
-;	record structure, palettes, lines and ratings are the cartridge source.
+;	The file header (jmp to Begin, a word, null, TeamList) and the team data. The player names and team
+;	nicknames are licensed: those lines are incbin from the disc file, with the line (text masked, ratings
+;	and the P id kept) as the comment; every block with no cartridge twin is read from the disc file too.
+;	The record structure, palettes, lines and ratings are the cartridge source. TeamList keeps the cartridge
+;	order (team number = index); the records are laid out in another order, Florida and Anaheim last.
 
 	include	macros\genesis.mac
 	include	segacd\hockey\hockey.inc
 
-TeamList	equ	$1B00C
+Begin	equ	$22096
 
 	org	$1B000
 
-;CD: no cartridge twin
-	incbin	..\cdbin\HOCKEY.BIN,$0,124	;read from the disc file
+	jmp	Begin					;the file header: the loader enters the game here
+	dc.w	$01FF					;not known
+null						;a zero long, the tile pointer when there is nothing to draw
+	dc.l	0
+TeamList						;the team record pointers; team number = index
+	dc.l	Anaheim					;0
+	dc.l	Boston					;1
+	dc.l	Buffalo					;2
+	dc.l	Calgary					;3
+	dc.l	Chicago					;4
+	dc.l	Dallas					;5
+	dc.l	Detroit					;6
+	dc.l	Edmonton					;7
+	dc.l	Florida					;8
+	dc.l	Hartford					;9
+	dc.l	LosAngeles					;10
+	dc.l	Montreal					;11
+	dc.l	NewJersey					;12
+	dc.l	NewYorkI					;13
+	dc.l	NewYorkR					;14
+	dc.l	Ottawa					;15
+	dc.l	Philadelphia					;16
+	dc.l	Pittsburgh					;17
+	dc.l	Quebec					;18
+	dc.l	SanJose					;19
+	dc.l	StLouis					;20
+	dc.l	TampaBay					;21
+	dc.l	Toronto					;22
+	dc.l	Vancouver					;23
+	dc.l	Washington					;24
+	dc.l	Winnipeg					;25
+	dc.l	AllStarsEast					;26
+	dc.l	AllStarsWest					;27
 
 ;NumofTeams	=	(*-TeamList)/4		;number of teams in TeamList	(defined in hockey.inc)
 ;NumTeams	=	NumofTeams			;same count; the rest of the code uses this name. ram94.asm	(defined in hockey.inc)
@@ -1193,8 +1225,10 @@ TampaBay							;team record: Tampa Bay (TB), team 21
 .tm									; team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$3F86,12	;String	<text>
 ;CD: no cartridge twin
-	incbin	..\cdbin\HOCKEY.BIN,$3F92,24	;read from the disc file
-Toronto						;CD: its first lines have no twin; the rest of it starts here
+	incbin	..\cdbin\HOCKEY.BIN,$3F92,18	;read from the disc file
+Toronto						;team record 22: TeamList points here; its first lines have no twin
+.0						;record base
+	incbin	..\cdbin\HOCKEY.BIN,$3FA4,6	;read from the disc file
 	dc.w	$0052	;dc.w	.ls-.0
 	dc.w	$004C	;dc.w	.sr-.0
 	dc.w	$0050	;dc.w	.godds-.0

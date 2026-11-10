@@ -3,9 +3,10 @@
 ;	no cartridge twin. Names are the cartridge's; segacd\hockey\hockey.inc has the disc RAM map.
 ;
 ;	Part 1 of hockey94 (parts 2 and 3 are hockey94_2.asm and hockey94_3.asm). StartGame, the period
-;	start and the clock are the cartridge code. CD: VBjsr and Begin (the cold start) are not here (the game
-;	starts at file $7096); BIOS calls ($5F22, $6044) and the sub CPU flag ($FF800F bit 5) replace the
-;	interrupt masking around screen setups.
+;	start and the clock are the cartridge code. CD: VBjsr and Begin (the cold start) are not here (Begin is
+;	in sram94.asm, file $7096). LoadGameGfx (CD-only, called from StartGame and cards94) loads the game
+;	graphics file through the BIOS and fills the graphics pointer table (cdgfxptrs.asm). BIOS calls ($5F22,
+;	$6044) and the sub CPU flag ($FF800F bit 5) replace the interrupt masking around screen setups.
 
 	include	macros\genesis.mac
 	include	segacd\hockey\hockey.inc
@@ -26,7 +27,7 @@ p_turnoff	equ	$47DAC
 
 	org	$2B614
 
-Begin						;CD: its first lines have no twin; the rest of it starts here
+LoadGameGfx						;CD-only routine (a name given here, not a cartridge name)
 	jsr	(InitSaveRAM).l
 ;CD: no cartridge twin
 	move.w	#$D,d7
@@ -146,7 +147,7 @@ StartGame							;reset game state for a new game, then start the first period
 	bclr.b	#$5,$FF800F.l
 	move.l	a6,$19360.l
 	movea.l	(sp)+,a6
-	jsr	(Begin).l
+	jsr	(LoadGameGfx).l
 	move.l	a6,-(sp)
 	movea.l	$19360.l,a6
 	tst.w	(a6)+

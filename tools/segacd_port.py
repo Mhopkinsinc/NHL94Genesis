@@ -943,6 +943,9 @@ class Fragment:
         self.cd_pcs = set()
         self.cdlabels = set()
         self.cdnames = set()
+        self.listed = []            # (runtime, name, comment): names placed by place_team_list
+        self.teamlist = []
+        self.header = False
         self.tagspans = {}
         self.known_funcs = {}
         self.public = set()
@@ -969,13 +972,65 @@ class Fragment:
                         self.add_label(lab, rt, it.scope)
                 if it.label:
                     self.add_label(it.label, rt, it.scope)
-        self.restore_scopes()
-        for nv in getattr(self.a, "label", []) or []:      # --label: a name for a CD-only routine
+        # --label: a name for a CD-only routine. Placed before restore_scopes, so a cartridge routine whose
+        # first lines were cut is not named at a CD routine that happens to start with one of its lines.
+        for nv in getattr(self.a, "label", []) or []:
             n, v = nv.split("=")
             rt = int(v, 0)
             if rt in self.starts and n not in self.label_at:
                 self.add_label(n, rt, n)
                 self.cdlabels.add((rt, n))
+        self.restore_scopes()
+        if NO_TEXT and self.start == 0:
+            self.place_team_list()
+
+    def place_team_list(self):
+        """teamdata94 on the disc: the file header (jmp Begin, a word, null) and TeamList as source. The
+        names come from the cartridge TeamList in order; a team whose record start has no twin gets its
+        name (and .0, the record base) where its TeamList entry points."""
+        names = []
+        go = False
+        for line in open(os.path.join(ROOT, "src", "teamdata94.asm"), encoding="latin1"):
+            if re.match(r"TeamList\b", line):
+                go = True
+                continue
+            if go:
+                m = re.match(r"\s+dc\.l\s+(" + ID + r")", line)
+                if m:
+                    names.append(m.group(1))
+                elif split_comment(line)[0].strip() or names:
+                    break
+        tl = self.dsym["TeamList"] - BASE
+        self.teamlist = []
+        for i, n in enumerate(names):
+            v = int.from_bytes(self.disc[tl + 4 * i:tl + 4 * i + 4], "big")
+            self.teamlist.append((n, v))
+            old = self.label_at.get(n)
+            if old == v:
+                continue
+            if old is not None:
+                if (old, n) not in self.restored:
+                    sys.exit(f"TeamList: {n} is at ${old:X} but the disc entry points at ${v:X}")
+                self.restored.discard((old, n))       # its first surviving line: the record starts earlier
+                self.labels[old].remove(n)
+                self.globals_sorted.remove((old, n))
+                del self.label_at[n]
+            self.add_label(n, v, n)
+            self.listed.append((v, n, f"team record {i}: TeamList points here; its first lines have no twin"))
+            if (n, ".0") not in self.label_at:
+                self.add_label(".0", v, n)
+                self.listed.append((v, ".0", "record base"))
+            self.starts.add(v)
+        hdr = self.disc[0:6]
+        begin = self.dsym.get("Begin")
+        self.header = begin is not None and hdr[:2] == b"\x4e\xf9" and int.from_bytes(hdr[2:6], "big") == begin \
+            and tl == 12 and self.disc[8:12] == b"\0\0\0\0"
+        if self.header:
+            for rt, n, why in ((BASE + 8, "null", "a zero long, the tile pointer when there is nothing to draw"),
+                               (BASE + tl, "TeamList", "the team record pointers; team number = index")):
+                if n not in self.label_at:
+                    self.add_label(n, rt, n)
+                    self.listed.append((rt, n, why))
 
     def restore_scopes(self):
         """A routine whose first lines were cut keeps its later lines: put its name at the first of
@@ -1542,7 +1597,24 @@ class Fragment:
                 pc += n
             return
         if NO_TEXT:                     # team data: may hold disc-only names, never decode it to text
-            body.append(("src", f"\tincbin\t..\\cdbin\\HOCKEY.BIN,${p:X},{q - p}\t;read from the disc file", p, q - p))
+            tl = 12
+            if p == 0 and self.header and q >= tl + 4 * len(self.teamlist):
+                if body and body[-1] == ("text", ";CD: no cartridge twin"):
+                    body.pop()          # the header: the cartridge has null and TeamList too
+                body.append(("src", "\tjmp\tBegin\t\t\t\t\t;the file header: the loader enters the game here", 0, 6))
+                w = int.from_bytes(self.disc[6:8], "big")
+                body.append(("src", f"\tdc.w\t${w:04X}\t\t\t\t\t;not known", 6, 2))
+                body.append(("src", "\tdc.l\t0", 8, 4))
+                for i, (n, v) in enumerate(self.teamlist):
+                    body.append(("src", f"\tdc.l\t{n}\t\t\t\t\t;{i}", tl + 4 * i, 4))
+                p = tl + 4 * len(self.teamlist)
+                if p == q:
+                    return
+                body.append(("text", ";CD: no cartridge twin"))
+            cuts = sorted({rt - BASE for rt, n, _ in self.listed if p < rt - BASE < q})
+            for c in cuts + [q]:
+                body.append(("src", f"\tincbin\t..\\cdbin\\HOCKEY.BIN,${p:X},{c - p}\t;read from the disc file", p, c - p))
+                p = c
             return
         for u in self.cd_units(p, q):
             if u[0] == "zeros":
@@ -1606,6 +1678,10 @@ class Fragment:
                 for rt, name in sorted(self.restored):
                     if rt == BASE + sp[0] and (rt, name) not in placed:
                         out.append(name + "\t\t\t\t\t\t;CD: its first lines have no twin; the rest of it starts here")
+                        placed.add((rt, name))
+                for rt, name, why in self.listed:
+                    if rt == BASE + sp[0] and (rt, name) not in placed:
+                        out.append(name + "\t\t\t\t\t\t;" + why)
                         placed.add((rt, name))
                 for rt, name in sorted(self.cdlabels):
                     if rt == BASE + sp[0] and (rt, name) not in placed:
@@ -1847,12 +1923,21 @@ def register(a, frag):
         open(vj, "w", encoding="utf8", newline="\n").write(text)
     nm = os.path.join(ROOT, "docs", "segacd-handoff", "name_map.csv")
     rows = open(nm, encoding="utf8").read().splitlines() if os.path.exists(nm) else ["disc_file,disc_addr,name_94g,notes"]
-    have = {tuple(r.split(",")[:3]) for r in rows[1:]}
     src94 = a.file or ""
+    note = src94 or ("Sierra C name tag" if a.tags else "CD-only")
+    disc = os.path.basename(a.disc)
+
+    def mine(r):                    # a row this fragment wrote before: replaced, so a renamed label leaves no stale row
+        f = r.split(",")
+        return f[0] == disc and frag.start <= int(f[1].lstrip("$"), 16) < frag.end and \
+            (f[3] == note or f[3] == f"CD-only name in {src94}")
+    rows = rows[:1] + [r for r in rows[1:] if not mine(r)]
+    have = {tuple(r.split(",")[:3]) for r in rows[1:]}
     for rt, name94 in frag.globals_sorted:
-        key = (os.path.basename(a.disc), f"${rt - BASE:X}", name94)
+        key = (disc, f"${rt - BASE:X}", name94)
         if key not in have:
-            rows.append(",".join(key) + f",{src94 or ('Sierra C name tag' if a.tags else 'CD-only')}")
+            n = f"CD-only name in {src94}" if src94 and (rt, name94) in frag.cdlabels else note
+            rows.append(",".join(key) + f",{n}")
     head, body = rows[0], rows[1:]
     body.sort(key=lambda r: (r.split(",")[0], int(r.split(",")[1].lstrip("$"), 16)))
     open(nm, "w", encoding="utf8", newline="\n").write("\n".join([head] + body) + "\n")
