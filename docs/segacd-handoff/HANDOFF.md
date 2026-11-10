@@ -6,6 +6,10 @@
 - Next: PLAN.md step 0 (add a coverage script), then step 1.
 - Open questions: the `$37xxx`-`$39xxx` image (PLAN.md step 2).
 
+## Baseline log
+- 2026-11-10 (McMarkis session, Windows 11, Node 22): fresh fork, `segacd-disc/*.BIN` copied to `cdbin/` (sizes as in GETTING_FILES.md).
+  `npm run build:segacd`: MATCH 41 fragments. `tools/verify_all.sh -q` (with the retail ROM in the repo folder): ALL MATCH.
+
 ## Coverage (from NHL94Genesis `docs/segacd.md`, 2026-11-10)
 | File | Size | Matched | Notes |
 |---|---|---|---|
