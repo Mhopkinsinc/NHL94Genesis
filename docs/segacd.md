@@ -67,7 +67,7 @@ Same order, same registers, same `#3` and `#2`. `addq` became `addi` and `bra.b`
 
 `tools/segacd_relocs.py` finds these by matching six-instruction windows and keeping an absolute operand only when the cartridge address always becomes the same disc address. Run `python3 tools/segacd_relocs.py nhl94retail.bin cdbin/HOCKEY.BIN` for the full list (it needs the disc files in `cdbin/`).
 
-Those `$37xxx`–`$39xxx` targets are above the end of `HOCKEY.BIN` (`$2D20A`). None of the six disc files, loaded flat, contains the reassembled bytes at that address. The same routines also exist inside `HOCKEY.BIN` (printsmall's register save is at `$1DDAC`) and are reached with `bsr`. A call site uses one or the other. The `$37xxx` image is the open question: it is linked, and it is not a raw slice of these files.
+Those `$37xxx`–`$39xxx` targets are HOCKEY.BIN itself: the file runs at `$1B000`, so `$38D9E` is file `$1DD9E`, where the cartridge `printsmall` opening is (its register save is at `$1DDAC`). Inside the file the same routines are reached with `bsr`. `docs/segacd_memory_map.md` has the evidence and the sub CPU memory map.
 
 One path really changed. The address-error hex dump is byte for byte the same (`move.w (sp)+,d0` / `andi.w #$F,d0` / `addi.b #$30,d0`). The handler under it is not: the cartridge does `move #$2700,sr` and `bsr.w $11DE2` (printbigz); the disc does `bclr.b #5,$FF800F` and `jsr $39258`. `$39258` is that same printbigz. The new instruction is the sub CPU comm flag, which the cartridge does not have.
 
@@ -124,6 +124,8 @@ Verified bytes are 22,690 of the 410,162 bytes in the four code files (5.5%). `M
 | `src/segacd/filmclose.asm` | `cdbin/STARTER.BIN` `$473A` | `FilmClose` (66) |
 | `src/segacd/z80load.asm` | `cdbin/MAIN.BIN` `$76C8` | Z80 loader (240) |
 | `src/segacd/hwread.asm` | `cdbin/MAIN.BIN` `$3B3C` | VDP, joypad, and HV readers (258) |
+| `src/segacd/hockey/onetimer94.asm` | `cdbin/HOCKEY.BIN` `$76A8` | `onetimer94.asm`: the one-timer (1,844) |
+| `src/segacd/hockey/fourway94.asm` | `cdbin/HOCKEY.BIN` `$7DDC` | `fourway94.asm`: only `Set4WayPlayer` is left (92) |
 
 `maincd.asm` is the main CPU command loop: read `$A12020` when sub flag bit 6 is set, dispatch through the long table at `$FF01BE`, and put the VBlank vector at `$FD08` back when the command finishes. Past the handshake it clears the eight command words, waits on memory-mode bit 2, and hands word RAM back and forth (DMNA / RET in `$A12003`). Two commands add `$180000` to a sub CPU pointer so the main CPU sees the same word RAM (`$080000` there, `$200000` here).
 
@@ -150,3 +152,17 @@ The audio slices are the sub CPU's CD-DA calls and the PCM stream. `docs/segacd_
 `z80load.asm` copies a `$C3 $00` block to the Z80. `hwread.asm` is the main CPU's one-line port readers, including the HV counter copy into `$A12010`.
 
 `tools/emit_m68k.py` writes a slice as SNASM (`moveq #-1` instead of `moveq #$FF`, unsized `btst` to a data register, `$FFFFFD08.w` instead of `$FD08.w`). `tools/segacd_relocs.py` is the six-instruction matcher that prints the cartridge-to-disc address pairs. Both are Sega CD helpers only; the cartridge build does not use them.
+
+## HOCKEY.BIN from the cartridge source
+
+HOCKEY.BIN runs at `$1B000` (`docs/segacd_memory_map.md`) and is linked in the cartridge's file order, with the files that are new in 94 moved in front of `hockey94.asm`: team data, then `onetimer94`, `fourway94`, `crowd94`, `optsetup94`, `cards94`, `records94`, `shootout94`, `scout94`, `period94`, `arena94`, `shootoutpath94`, `ui94`, `helpers94`, (`title94`, not yet matched), `logos94`, `chgplayer94`, then `hockey94`, `menu94`, `stats94`, `replay94`, `logic94`, `middle94` and the rest. Each disc segment is the twin of one 94G file and sits in `src/segacd/hockey/` under that file's name, with the 94G names.
+
+The disc assembler did not optimise: an unsized branch is `.w`, `add`/`sub` of a small immediate is `addi`/`subi` (never `addq`/`subq`), `cmp.l #n,dn` is `cmpi.l` (the cartridge ROM has `cmp.l`, one of its fixopcodes patches), a zero displacement stays `0(an)`. Absolute addresses are long because the variables and the code are above `$7FFF` on the sub CPU.
+
+`tools/segacd_port.py` does the transcription. It walks the cartridge build listing (`output/obj/nhl94 .lst` from `npm run build:retail`; the Sega CD build empties `output/obj/`, so keep a copy) and the disc bytes side by side. A disc instruction that is the cartridge instruction with relocated operands is written as the cartridge source line, with the disc encoding and the cartridge's labels, symbols and comments. Byte-equal data is copied (String macros and all). Disc code with no cartridge twin is written under `;CD:`. A name the fragment uses but does not define is solved from the disc operand: RAM names and struct offsets go to `src/segacd/hockey/hockey.inc` (shared by the HOCKEY.BIN fragments), routines outside the fragment become equates at its top. The tool assembles the result and checks it against the disc; an instruction SNASM would encode differently becomes `dc.w` with a comment (none so far). `--register` adds the fragment to `tools/segacd.json`, `tools/verifySegacd.js` and `docs/segacd-handoff/name_map.csv`.
+
+```
+python tools/segacd_port.py --file onetimer94.asm --disc-start 0x76A8 --disc-end 0x7DDC --out src/segacd/hockey/onetimer94.asm --register
+```
+
+`fourway94` is the first file the CD cut: `Detect4WayPlay` and the `ReadJoySwapPad` routines are gone, and one `rts` that nothing calls is left in their place.

@@ -14,4 +14,7 @@
 * **Before you stop:** update HANDOFF.md (Now block) and push. Nothing lives only in a chat.
 
 ## Learned
-(none yet)
+- 2026-11-10 hockey: HOCKEY.BIN runs at `$1B000`; a fragment assembled at `org $1B000+offset` gets its absolute operands (calls, tables, `dc.l` pointers) right with labels. (crowdtable `$4154C`, printsmall `$38D9E` = file `$1DD9E`)
+- 2026-11-10 hockey: `cmp.l #n,dn` is `cmpi.l` (`0C8x`) on the disc; the cartridge ROM has `cmp.l` (`B?BC`) from fixopcodes. Write `cmpi.l`. (onetimer94 `puckvzadj`)
+- 2026-11-10 hockey: a zero struct offset (`Xpos(a3)`, Xpos = 0) stays a 16-bit displacement on the disc; write `Xpos(a3)` or `0(a3)` with `/o oz-`, never `(a3)`. (onetimer94 `assonetimer`)
+- 2026-11-10 hockey: the disc team struct is one word longer: `tmOneTimers` `$35E`, `tmsize` `$366` (cartridge `$35C`, `$364`). Take struct offsets from disc operands. (onetimer94 `onetimershot`)

@@ -1,1 +1,14 @@
 disc_file,disc_addr,name_94g,notes
+HOCKEY.BIN,$76A8,puckvzadj,onetimer94.asm
+HOCKEY.BIN,$773A,OneTimerPass,onetimer94.asm
+HOCKEY.BIN,$77B8,OneTimerTarget,onetimer94.asm
+HOCKEY.BIN,$78C6,OneTimerNearTbl,onetimer94.asm
+HOCKEY.BIN,$78E6,OneTimerFarTbl,onetimer94.asm
+HOCKEY.BIN,$7906,OneTimerGoalieTbl,onetimer94.asm
+HOCKEY.BIN,$7926,assonetimer,onetimer94.asm
+HOCKEY.BIN,$7C68,setonetimeranim,onetimer94.asm
+HOCKEY.BIN,$7CA4,PuckOnAttackHalf,onetimer94.asm
+HOCKEY.BIN,$7D28,onetimershot,onetimer94.asm
+HOCKEY.BIN,$7D9E,CheckOneTimerFacing,onetimer94.asm
+HOCKEY.BIN,$7DDE,Set4WayPlayerStub,fourway94.asm
+HOCKEY.BIN,$7DE0,Set4WayPlayer,fourway94.asm

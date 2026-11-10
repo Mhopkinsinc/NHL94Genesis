@@ -194,12 +194,16 @@ if (args.includes('--segacd')) {
     begin('assemble');
     const t0 = Date.now();
     for (const f of frags) {
+        // A name may carry a folder: hockey/onetimer94 is src/segacd/hockey/onetimer94.asm.
         const out = path.join(CD, `${f.name}.bin`);
         fs.rmSync(out, { force: true });
-        const a = ['/p', '/m', '/g', ...f.options, `segacd\\${f.name}.asm,..\\output\\segacd\\${f.name}.bin,..\\output\\obj\\${f.name},..\\output\\obj\\${f.name}`];
+        fs.mkdirSync(path.dirname(out), { recursive: true });
+        fs.mkdirSync(path.dirname(path.join(OBJ, f.name)), { recursive: true });
+        const w = f.name.split('/').join('\\');
+        const a = ['/p', '/m', '/g', ...f.options, `segacd\\${w}.asm,..\\output\\segacd\\${w}.bin,..\\output\\obj\\${w},..\\output\\obj\\${w}`];
         const r = await (WIN ? run(exe, a, { cwd: path.join(ROOT, 'src') })
             : run('wine', [exe, ...a], { cwd: path.join(ROOT, 'src'), env: { ...process.env, WINEDEBUG: '-all' } }));
-        const logPath = path.join(BUILD, `Build_${f.name}.log`);
+        const logPath = path.join(BUILD, `Build_${f.name.split('/').join('_')}.log`);
         fs.writeFileSync(logPath, r.out, 'latin1');
         const sum = r.out.match(/(\d+) error\(s\) from/);
         if (!sum || Number(sum[1]) > 0 || !fs.existsSync(out)) {
