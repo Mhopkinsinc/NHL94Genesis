@@ -162,3 +162,6 @@ compareAt('output/segacd/starter/crt.bin', 'cdbin/STARTER.BIN', 0x5304, 0x1F2);
 compareAt('output/segacd/starter/subhdr.bin', 'cdbin/STARTER.BIN', 0x90, 0x14B2);
 compareAt('output/segacd/starter/subdrv.bin', 'cdbin/STARTER.BIN', 0x1542, 0x24CA);
 compareAt('output/segacd/starter/subdrv_2.bin', 'cdbin/STARTER.BIN', 0x3A8A, 0x30A);
+compareAt('output/segacd/main/maindisp_2.bin', 'cdbin/MAIN.BIN', 0x40D0, 0xE9A);
+compareAt('output/segacd/main/mainfont_2.bin', 'cdbin/MAIN.BIN', 0x4F6A, 0x300);
+compareAt('output/segacd/main/maintext_2.bin', 'cdbin/MAIN.BIN', 0x526A, 0x48E);
