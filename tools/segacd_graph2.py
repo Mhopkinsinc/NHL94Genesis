@@ -91,33 +91,44 @@ def main():
     teamres = [int.from_bytes(h[TEAMRES + 4 * i:TEAMRES + 4 * i + 4], "big") for i in range(28)]
     byres = {r: TEAMS[i] for i, r in enumerate(teamres)}
 
+    # Who loads each resource (BIOS $6044, d7 = 1): HOCKEY.BIN, STARTER.BIN (startertail.asm) and PLAYER.BIN
+    # (playerinit.asm; $7C(a6) and $7E(a6) are the home and away team numbers). No load was found for
+    # 3, 63, 65-67 and 98: the copies in resource 0 are the ones used.
     res = {
         2: "the sprite pack: two offsets, then Spritetiles.bin (from +$A) and frameSprData.bin (at +$408AA).\n"
            "hockey94 LoadGameGfx and period94 load it into $47D24",
         3: "the player cards: a table of offsets, then the pictures (NoPic*.map.jim, PicturePalette.bin,\n"
-           "Card*.map.jim). Resource 0 piece 2 is the same without the end mark",
+           "Card*.map.jim). Resource 0 piece 2 is the same without the end mark; no load of this one found",
         4: "the team logos: a table of offsets, then logoANA.map.jim ... (period94 loads it into $47D8C).\n"
            "Resource 0 piece 1 is the same without the end mark",
-        65: "the Stanley Cup sprite (resource 0 piece 18 without the end mark)",
-        66: "Hot.map.jim (HotMap)",
-        67: "Cold.map.jim (ColdMap)",
+        5: "STARTER.BIN loads it (d0 = 5)",
+        34: "a table of 28 long offsets, one per team, then the data they point at. PLAYER.BIN keeps it at\n"
+            "$86(a6) and its team pages read it",
+        64: "a word $0808, the count $5D, 93 tiles (32 bytes each) and 324 bytes more. STARTER.BIN loads it\n"
+            "into $C43A, PLAYER.BIN into $70(a6)",
+        65: "the Stanley Cup sprite (resource 0 piece 18 without the end mark); no load of this one found",
+        66: "Hot.map.jim (HotMap); no load of this one found",
+        67: "Cold.map.jim (ColdMap); no load of this one found",
         96: "hockey94 LoadGameGfx loads it (d0 = $60) into $47DA0 and passes it to the BIOS call with d7 = 8",
-        98: "resource 0 piece 3 without the end mark",
+        97: "STARTER.BIN loads it (d0 = $61) into $C436",
+        98: "resource 0 piece 3 without the end mark; no load of this one found",
     }
     for r in range(35, 64):
         res[r] = (f"per team: {byres[r]} (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's\n"
                   "into $47D90)") if r in byres else "the per-team form; no team in the HOCKEY.BIN $2A9FA list uses it"
-    for r in range(6, 32):
-        res[r] = "one of 26 alike (6-31): a table of offsets, then pictures. Not traced"
+    for r in range(6, 34):
+        res[r] = (f"per team: {TEAMS[r - 6]}'s player photos, a table of offsets then the pictures. PLAYER.BIN\n"
+                  "loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)")
     for r in range(68, 96):
-        res[r] = "one of 28 alike (68-95): three offsets, then data. Not traced"
+        res[r] = (f"per team: {TEAMS[r - 68]}, three offsets then data. PLAYER.BIN loads 68 + team for the home and\n"
+                  "away teams (pointers at $0-$8(a6) and $C-$14(a6))")
 
     out = [
         ";\tGRAPH2.BIN (3,051,520 bytes, 1490 sectors): the graphics archive. Written by tools/segacd_graph2.py.",
         ";\t99 resources, each starting on a 2048-byte sector, ending with the mark $12345678 and zero filled to",
         ";\tthe next sector. GTABLE.BIN (gtable.asm) is the index: the start sector and byte size of each, in",
-        ";\tthis order. HOCKEY.BIN asks for resource n with the BIOS call $6044, d7 = 1 and d0 = n, and gets its",
-        ";\taddress in a0.",
+        ";\tthis order. HOCKEY.BIN, STARTER.BIN and PLAYER.BIN ask for resource n with the BIOS call $6044,",
+        ";\td7 = 1 and d0 = n, and get its address in a0.",
         ";",
         ";\tResources 0 and 1 are packs: a table of long offsets from the pack start, then the pieces. The code",
         ";\tadds the pack address to each offset and keeps the pointers in HOCKEY.BIN's graphics pointer table",
@@ -168,8 +179,12 @@ def main():
             pack(1, PACK1)
         else:
             lines = res.get(k, "not traced").split("\n")
-            out.append(f";\tresource {k} (sector ${s:03X}, {n:,} bytes): {lines[0]}")
-            out.extend(f";\t{l}" for l in lines[1:])
+            head = f";\tresource {k} (sector ${s:03X}, {n:,} bytes):"
+            if len(lines) == 1 and len(head) + len(lines[0]) < 110:
+                out.append(f"{head} {lines[0]}")
+            else:
+                out.append(head)
+                out.extend(f";\t{l}" for l in lines)
             out.append(f"Res{k:02}\t{incbin(a, n - 4)}")
             mark()
     out.append(f"\tdcb.b\t${len(g):X}-*,0\t\t\t\t;zero fill to the end of the last sector")
@@ -181,8 +196,8 @@ def main():
         ";\tGTABLE.BIN (2,048 bytes): the index of GRAPH2.BIN (graph2.asm). Written by tools/segacd_graph2.py.",
         ";\t99 entries of 6 bytes, the start sector (word) and the byte size (long) of each resource, then a zero",
         ";\tentry and zero fill. Each resource starts on the sector after the one before it ends, so GRes works",
-        ";\tthe start sector out from the sizes. The resource number HOCKEY.BIN passes in d0 (BIOS call $6044,",
-        ";\td7 = 1) is the entry number. Which program reads this file (the sub CPU side) is not traced.",
+        ";\tthe start sector out from the sizes. The resource number the programs pass in d0 (BIOS call",
+        ";\t$6044, d7 = 1) is the entry number. The code that reads this file is not traced.",
         "",
         "GRes\tMACRO\t\t\t\t\t\t;GRes size: one entry, at the next free sector",
         "\tdc.w\tgsector",
@@ -195,8 +210,14 @@ def main():
         "gsector\t=\t0",
         "GTable",
     ]
+    what.update({5: "STARTER.BIN", 34: "per-team table (PLAYER.BIN)", 64: "93 tiles (STARTER.BIN, PLAYER.BIN)",
+                 96: "LoadGameGfx, BIOS d7 = 8", 97: "STARTER.BIN"})
     for k, (s, n) in enumerate(ents):
         w = what.get(k, "")
+        if 6 <= k <= 33:
+            w = f"player photos: {TEAMS[k - 6]}"
+        if 68 <= k <= 95:
+            w = f"per team: {TEAMS[k - 68]} (PLAYER.BIN)"
         if 35 <= k <= 63:
             w = f"per team: {byres[k]}" if k in byres else "per-team form, not used"
         gt.append(f"\tGRes\t${n:X}\t\t\t\t;{k:2}  sector ${s:03X}" + (f"  {w}" if w else ""))

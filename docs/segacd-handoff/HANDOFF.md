@@ -23,8 +23,9 @@
 - Next:
   1. PLAN step 5: GRAPH2.BIN is an archive of 99 sector-aligned resources and GTABLE.BIN is its index (start sector,
      byte size); HOCKEY.BIN loads resource n with BIOS `$6044`, d7 = 1, d0 = n (`docs/segacd.md` "GRAPH2.BIN and
-     GTABLE.BIN", `tools/segacd_graph2.py`). The two packs (resources 0 and 1) are named piece by piece. Left:
-     resources 5-34, 64, 68-95, 97 (who loads them: PLAYER.BIN or MAIN.BIN?), and the sub CPU code that reads GTABLE.
+     GTABLE.BIN", `tools/segacd_graph2.py`). The two packs (resources 0 and 1) are named piece by piece, and the
+     loader of every other resource is noted (HOCKEY, STARTER or PLAYER; 6-33 and 68-95 are per team). Left: the
+     formats of 5, 34, 64, 68-95 and 97, and the sub CPU code that reads GTABLE.
   2. Names: STARTER's driver module (runtime `$C000`, dispatch at `$C542`), MAIN's start-up and the module at
      `$77B8`, PLAYER's `playerinit` / `playercode`. HOCKEY's header and TeamList are source now; the graphics
      pointer table has 34 of 44 entries named (`--cdname` in `tools/segacd_hockey.sh`), the rest have no cartridge

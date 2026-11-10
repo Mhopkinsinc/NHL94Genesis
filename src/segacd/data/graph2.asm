@@ -1,8 +1,8 @@
 ;	GRAPH2.BIN (3,051,520 bytes, 1490 sectors): the graphics archive. Written by tools/segacd_graph2.py.
 ;	99 resources, each starting on a 2048-byte sector, ending with the mark $12345678 and zero filled to
 ;	the next sector. GTABLE.BIN (gtable.asm) is the index: the start sector and byte size of each, in
-;	this order. HOCKEY.BIN asks for resource n with the BIOS call $6044, d7 = 1 and d0 = n, and gets its
-;	address in a0.
+;	this order. HOCKEY.BIN, STARTER.BIN and PLAYER.BIN ask for resource n with the BIOS call $6044,
+;	d7 = 1 and d0 = n, and get its address in a0.
 ;
 ;	Resources 0 and 1 are packs: a table of long offsets from the pack start, then the pieces. The code
 ;	adds the pack address to each offset and keeps the pointers in HOCKEY.BIN's graphics pointer table
@@ -122,337 +122,426 @@ R1_24	incbin	..\cdbin\GRAPH2.BIN,$6F134,778	;the same form as the per-team resou
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$6F800-*,0				;zero fill to sector $0DF
 
-;	resource 2 (sector $0DF, 288,340 bytes): the sprite pack: two offsets, then Spritetiles.bin (from +$A) and frameSprData.bin (at +$408AA).
+;	resource 2 (sector $0DF, 288,340 bytes):
+;	the sprite pack: two offsets, then Spritetiles.bin (from +$A) and frameSprData.bin (at +$408AA).
 ;	hockey94 LoadGameGfx and period94 load it into $47D24
 Res02	incbin	..\cdbin\GRAPH2.BIN,$6F800,288336
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$B6000-*,0				;zero fill to sector $16C
 
-;	resource 3 (sector $16C, 132,158 bytes): the player cards: a table of offsets, then the pictures (NoPic*.map.jim, PicturePalette.bin,
-;	Card*.map.jim). Resource 0 piece 2 is the same without the end mark
+;	resource 3 (sector $16C, 132,158 bytes):
+;	the player cards: a table of offsets, then the pictures (NoPic*.map.jim, PicturePalette.bin,
+;	Card*.map.jim). Resource 0 piece 2 is the same without the end mark; no load of this one found
 Res03	incbin	..\cdbin\GRAPH2.BIN,$B6000,132154
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$D6800-*,0				;zero fill to sector $1AD
 
-;	resource 4 (sector $1AD, 27,772 bytes): the team logos: a table of offsets, then logoANA.map.jim ... (period94 loads it into $47D8C).
+;	resource 4 (sector $1AD, 27,772 bytes):
+;	the team logos: a table of offsets, then logoANA.map.jim ... (period94 loads it into $47D8C).
 ;	Resource 0 piece 1 is the same without the end mark
 Res04	incbin	..\cdbin\GRAPH2.BIN,$D6800,27768
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$DD800-*,0				;zero fill to sector $1BB
 
-;	resource 5 (sector $1BB, 36,148 bytes): not traced
+;	resource 5 (sector $1BB, 36,148 bytes): STARTER.BIN loads it (d0 = 5)
 Res05	incbin	..\cdbin\GRAPH2.BIN,$DD800,36144
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$E6800-*,0				;zero fill to sector $1CD
 
-;	resource 6 (sector $1CD, 25,076 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 6 (sector $1CD, 25,076 bytes):
+;	per team: ANH's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res06	incbin	..\cdbin\GRAPH2.BIN,$E6800,25072
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$ED000-*,0				;zero fill to sector $1DA
 
-;	resource 7 (sector $1DA, 39,822 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 7 (sector $1DA, 39,822 bytes):
+;	per team: BOS's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res07	incbin	..\cdbin\GRAPH2.BIN,$ED000,39818
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$F7000-*,0				;zero fill to sector $1EE
 
-;	resource 8 (sector $1EE, 34,922 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 8 (sector $1EE, 34,922 bytes):
+;	per team: BUF's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res08	incbin	..\cdbin\GRAPH2.BIN,$F7000,34918
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$100000-*,0				;zero fill to sector $200
 
-;	resource 9 (sector $200, 35,836 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 9 (sector $200, 35,836 bytes):
+;	per team: CGY's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res09	incbin	..\cdbin\GRAPH2.BIN,$100000,35832
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$109000-*,0				;zero fill to sector $212
 
-;	resource 10 (sector $212, 36,176 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 10 (sector $212, 36,176 bytes):
+;	per team: CHI's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res10	incbin	..\cdbin\GRAPH2.BIN,$109000,36172
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$112000-*,0				;zero fill to sector $224
 
-;	resource 11 (sector $224, 34,784 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 11 (sector $224, 34,784 bytes):
+;	per team: DAL's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res11	incbin	..\cdbin\GRAPH2.BIN,$112000,34780
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$11A800-*,0				;zero fill to sector $235
 
-;	resource 12 (sector $235, 34,238 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 12 (sector $235, 34,238 bytes):
+;	per team: DET's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res12	incbin	..\cdbin\GRAPH2.BIN,$11A800,34234
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$123000-*,0				;zero fill to sector $246
 
-;	resource 13 (sector $246, 32,012 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 13 (sector $246, 32,012 bytes):
+;	per team: EDM's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res13	incbin	..\cdbin\GRAPH2.BIN,$123000,32008
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$12B000-*,0				;zero fill to sector $256
 
-;	resource 14 (sector $256, 22,784 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 14 (sector $256, 22,784 bytes):
+;	per team: FLA's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res14	incbin	..\cdbin\GRAPH2.BIN,$12B000,22780
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$131000-*,0				;zero fill to sector $262
 
-;	resource 15 (sector $262, 33,656 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 15 (sector $262, 33,656 bytes):
+;	per team: HFD's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res15	incbin	..\cdbin\GRAPH2.BIN,$131000,33652
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$139800-*,0				;zero fill to sector $273
 
-;	resource 16 (sector $273, 38,756 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 16 (sector $273, 38,756 bytes):
+;	per team: LA's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res16	incbin	..\cdbin\GRAPH2.BIN,$139800,38752
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$143000-*,0				;zero fill to sector $286
 
-;	resource 17 (sector $286, 34,442 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 17 (sector $286, 34,442 bytes):
+;	per team: MTL's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res17	incbin	..\cdbin\GRAPH2.BIN,$143000,34438
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$14B800-*,0				;zero fill to sector $297
 
-;	resource 18 (sector $297, 34,946 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 18 (sector $297, 34,946 bytes):
+;	per team: NJ's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res18	incbin	..\cdbin\GRAPH2.BIN,$14B800,34942
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$154800-*,0				;zero fill to sector $2A9
 
-;	resource 19 (sector $2A9, 33,988 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 19 (sector $2A9, 33,988 bytes):
+;	per team: NYI's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res19	incbin	..\cdbin\GRAPH2.BIN,$154800,33984
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$15D000-*,0				;zero fill to sector $2BA
 
-;	resource 20 (sector $2BA, 35,864 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 20 (sector $2BA, 35,864 bytes):
+;	per team: NYR's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res20	incbin	..\cdbin\GRAPH2.BIN,$15D000,35860
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$166000-*,0				;zero fill to sector $2CC
 
-;	resource 21 (sector $2CC, 39,404 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 21 (sector $2CC, 39,404 bytes):
+;	per team: OTW's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res21	incbin	..\cdbin\GRAPH2.BIN,$166000,39400
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$170000-*,0				;zero fill to sector $2E0
 
-;	resource 22 (sector $2E0, 33,008 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 22 (sector $2E0, 33,008 bytes):
+;	per team: PHI's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res22	incbin	..\cdbin\GRAPH2.BIN,$170000,33004
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$178800-*,0				;zero fill to sector $2F1
 
-;	resource 23 (sector $2F1, 38,362 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 23 (sector $2F1, 38,362 bytes):
+;	per team: PIT's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res23	incbin	..\cdbin\GRAPH2.BIN,$178800,38358
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$182000-*,0				;zero fill to sector $304
 
-;	resource 24 (sector $304, 31,716 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 24 (sector $304, 31,716 bytes):
+;	per team: QUE's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res24	incbin	..\cdbin\GRAPH2.BIN,$182000,31712
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$18A000-*,0				;zero fill to sector $314
 
-;	resource 25 (sector $314, 31,870 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 25 (sector $314, 31,870 bytes):
+;	per team: SJ's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res25	incbin	..\cdbin\GRAPH2.BIN,$18A000,31866
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$192000-*,0				;zero fill to sector $324
 
-;	resource 26 (sector $324, 35,778 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 26 (sector $324, 35,778 bytes):
+;	per team: STL's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res26	incbin	..\cdbin\GRAPH2.BIN,$192000,35774
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$19B000-*,0				;zero fill to sector $336
 
-;	resource 27 (sector $336, 36,654 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 27 (sector $336, 36,654 bytes):
+;	per team: TB's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res27	incbin	..\cdbin\GRAPH2.BIN,$19B000,36650
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1A4000-*,0				;zero fill to sector $348
 
-;	resource 28 (sector $348, 36,106 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 28 (sector $348, 36,106 bytes):
+;	per team: TOR's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res28	incbin	..\cdbin\GRAPH2.BIN,$1A4000,36102
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1AD000-*,0				;zero fill to sector $35A
 
-;	resource 29 (sector $35A, 33,768 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 29 (sector $35A, 33,768 bytes):
+;	per team: VAN's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res29	incbin	..\cdbin\GRAPH2.BIN,$1AD000,33764
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1B5800-*,0				;zero fill to sector $36B
 
-;	resource 30 (sector $36B, 35,880 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 30 (sector $36B, 35,880 bytes):
+;	per team: WSH's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res30	incbin	..\cdbin\GRAPH2.BIN,$1B5800,35876
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1BE800-*,0				;zero fill to sector $37D
 
-;	resource 31 (sector $37D, 34,124 bytes): one of 26 alike (6-31): a table of offsets, then pictures. Not traced
+;	resource 31 (sector $37D, 34,124 bytes):
+;	per team: WPG's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res31	incbin	..\cdbin\GRAPH2.BIN,$1BE800,34120
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1C7000-*,0				;zero fill to sector $38E
 
-;	resource 32 (sector $38E, 59,118 bytes): not traced
+;	resource 32 (sector $38E, 59,118 bytes):
+;	per team: ASE's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res32	incbin	..\cdbin\GRAPH2.BIN,$1C7000,59114
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1D5800-*,0				;zero fill to sector $3AB
 
-;	resource 33 (sector $3AB, 57,602 bytes): not traced
+;	resource 33 (sector $3AB, 57,602 bytes):
+;	per team: ASW's player photos, a table of offsets then the pictures. PLAYER.BIN
+;	loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)
 Res33	incbin	..\cdbin\GRAPH2.BIN,$1D5800,57598
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1E4000-*,0				;zero fill to sector $3C8
 
-;	resource 34 (sector $3C8, 18,660 bytes): not traced
+;	resource 34 (sector $3C8, 18,660 bytes):
+;	a table of 28 long offsets, one per team, then the data they point at. PLAYER.BIN keeps it at
+;	$86(a6) and its team pages read it
 Res34	incbin	..\cdbin\GRAPH2.BIN,$1E4000,18656
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1E9000-*,0				;zero fill to sector $3D2
 
-;	resource 35 (sector $3D2, 782 bytes): per team: ANH (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 35 (sector $3D2, 782 bytes):
+;	per team: ANH (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res35	incbin	..\cdbin\GRAPH2.BIN,$1E9000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1E9800-*,0				;zero fill to sector $3D3
 
-;	resource 36 (sector $3D3, 782 bytes): per team: BUF (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 36 (sector $3D3, 782 bytes):
+;	per team: BUF (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res36	incbin	..\cdbin\GRAPH2.BIN,$1E9800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EA000-*,0				;zero fill to sector $3D4
 
-;	resource 37 (sector $3D4, 782 bytes): per team: CGY (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 37 (sector $3D4, 782 bytes):
+;	per team: CGY (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res37	incbin	..\cdbin\GRAPH2.BIN,$1EA000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EA800-*,0				;zero fill to sector $3D5
 
-;	resource 38 (sector $3D5, 782 bytes): per team: CHI (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 38 (sector $3D5, 782 bytes):
+;	per team: CHI (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res38	incbin	..\cdbin\GRAPH2.BIN,$1EA800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EB000-*,0				;zero fill to sector $3D6
 
-;	resource 39 (sector $3D6, 782 bytes): per team: DAL (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 39 (sector $3D6, 782 bytes):
+;	per team: DAL (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res39	incbin	..\cdbin\GRAPH2.BIN,$1EB000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EB800-*,0				;zero fill to sector $3D7
 
-;	resource 40 (sector $3D7, 782 bytes): per team: DET (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 40 (sector $3D7, 782 bytes):
+;	per team: DET (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res40	incbin	..\cdbin\GRAPH2.BIN,$1EB800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EC000-*,0				;zero fill to sector $3D8
 
-;	resource 41 (sector $3D8, 782 bytes): per team: EDM (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 41 (sector $3D8, 782 bytes):
+;	per team: EDM (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res41	incbin	..\cdbin\GRAPH2.BIN,$1EC000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EC800-*,0				;zero fill to sector $3D9
 
-;	resource 42 (sector $3D9, 782 bytes): per team: FLA (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 42 (sector $3D9, 782 bytes):
+;	per team: FLA (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res42	incbin	..\cdbin\GRAPH2.BIN,$1EC800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1ED000-*,0				;zero fill to sector $3DA
 
-;	resource 43 (sector $3DA, 782 bytes): per team: HFD (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 43 (sector $3DA, 782 bytes):
+;	per team: HFD (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res43	incbin	..\cdbin\GRAPH2.BIN,$1ED000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1ED800-*,0				;zero fill to sector $3DB
 
-;	resource 44 (sector $3DB, 782 bytes): per team: LA (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 44 (sector $3DB, 782 bytes):
+;	per team: LA (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res44	incbin	..\cdbin\GRAPH2.BIN,$1ED800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EE000-*,0				;zero fill to sector $3DC
 
-;	resource 45 (sector $3DC, 782 bytes): per team: MTL (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 45 (sector $3DC, 782 bytes):
+;	per team: MTL (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res45	incbin	..\cdbin\GRAPH2.BIN,$1EE000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EE800-*,0				;zero fill to sector $3DD
 
-;	resource 46 (sector $3DD, 782 bytes): per team: NJ (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 46 (sector $3DD, 782 bytes):
+;	per team: NJ (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res46	incbin	..\cdbin\GRAPH2.BIN,$1EE800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EF000-*,0				;zero fill to sector $3DE
 
-;	resource 47 (sector $3DE, 782 bytes): per team: NYI (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 47 (sector $3DE, 782 bytes):
+;	per team: NYI (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res47	incbin	..\cdbin\GRAPH2.BIN,$1EF000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1EF800-*,0				;zero fill to sector $3DF
 
-;	resource 48 (sector $3DF, 782 bytes): per team: NYR (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 48 (sector $3DF, 782 bytes):
+;	per team: NYR (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res48	incbin	..\cdbin\GRAPH2.BIN,$1EF800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F0000-*,0				;zero fill to sector $3E0
 
-;	resource 49 (sector $3E0, 782 bytes): per team: OTW (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 49 (sector $3E0, 782 bytes):
+;	per team: OTW (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res49	incbin	..\cdbin\GRAPH2.BIN,$1F0000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F0800-*,0				;zero fill to sector $3E1
 
-;	resource 50 (sector $3E1, 782 bytes): per team: PHI (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 50 (sector $3E1, 782 bytes):
+;	per team: PHI (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res50	incbin	..\cdbin\GRAPH2.BIN,$1F0800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F1000-*,0				;zero fill to sector $3E2
 
-;	resource 51 (sector $3E2, 782 bytes): per team: PIT (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 51 (sector $3E2, 782 bytes):
+;	per team: PIT (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res51	incbin	..\cdbin\GRAPH2.BIN,$1F1000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F1800-*,0				;zero fill to sector $3E3
 
-;	resource 52 (sector $3E3, 782 bytes): per team: QUE (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 52 (sector $3E3, 782 bytes):
+;	per team: QUE (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res52	incbin	..\cdbin\GRAPH2.BIN,$1F1800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F2000-*,0				;zero fill to sector $3E4
 
-;	resource 53 (sector $3E4, 782 bytes): per team: SJ (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 53 (sector $3E4, 782 bytes):
+;	per team: SJ (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res53	incbin	..\cdbin\GRAPH2.BIN,$1F2000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F2800-*,0				;zero fill to sector $3E5
 
-;	resource 54 (sector $3E5, 782 bytes): per team: STL (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 54 (sector $3E5, 782 bytes):
+;	per team: STL (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res54	incbin	..\cdbin\GRAPH2.BIN,$1F2800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F3000-*,0				;zero fill to sector $3E6
 
-;	resource 55 (sector $3E6, 782 bytes): per team: TB (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 55 (sector $3E6, 782 bytes):
+;	per team: TB (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res55	incbin	..\cdbin\GRAPH2.BIN,$1F3000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F3800-*,0				;zero fill to sector $3E7
 
-;	resource 56 (sector $3E7, 782 bytes): per team: TOR (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 56 (sector $3E7, 782 bytes):
+;	per team: TOR (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res56	incbin	..\cdbin\GRAPH2.BIN,$1F3800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F4000-*,0				;zero fill to sector $3E8
 
-;	resource 57 (sector $3E8, 782 bytes): per team: VAN (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 57 (sector $3E8, 782 bytes):
+;	per team: VAN (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res57	incbin	..\cdbin\GRAPH2.BIN,$1F4000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F4800-*,0				;zero fill to sector $3E9
 
-;	resource 58 (sector $3E9, 782 bytes): per team: WSH (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 58 (sector $3E9, 782 bytes):
+;	per team: WSH (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res58	incbin	..\cdbin\GRAPH2.BIN,$1F4800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F5000-*,0				;zero fill to sector $3EA
 
-;	resource 59 (sector $3EA, 782 bytes): per team: WPG (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 59 (sector $3EA, 782 bytes):
+;	per team: WPG (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res59	incbin	..\cdbin\GRAPH2.BIN,$1F5000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F5800-*,0				;zero fill to sector $3EB
 
-;	resource 60 (sector $3EB, 782 bytes): per team: BOS (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 60 (sector $3EB, 782 bytes):
+;	per team: BOS (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res60	incbin	..\cdbin\GRAPH2.BIN,$1F5800,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F6000-*,0				;zero fill to sector $3EC
 
-;	resource 61 (sector $3EC, 782 bytes): per team: ASE (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 61 (sector $3EC, 782 bytes):
+;	per team: ASE (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res61	incbin	..\cdbin\GRAPH2.BIN,$1F6000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F6800-*,0				;zero fill to sector $3ED
 
-;	resource 62 (sector $3ED, 782 bytes): per team: ASW (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
+;	resource 62 (sector $3ED, 782 bytes):
+;	per team: ASW (HOCKEY.BIN $2A9FA, one per team; LoadGameGfx loads the home team's
 ;	into $47D90)
 Res62	incbin	..\cdbin\GRAPH2.BIN,$1F6800,778
 	dc.b	$12,$34,$56,$78				;the end mark
@@ -463,177 +552,237 @@ Res63	incbin	..\cdbin\GRAPH2.BIN,$1F7000,778
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F7800-*,0				;zero fill to sector $3EF
 
-;	resource 64 (sector $3EF, 3,308 bytes): not traced
+;	resource 64 (sector $3EF, 3,308 bytes):
+;	a word $0808, the count $5D, 93 tiles (32 bytes each) and 324 bytes more. STARTER.BIN loads it
+;	into $C43A, PLAYER.BIN into $70(a6)
 Res64	incbin	..\cdbin\GRAPH2.BIN,$1F7800,3304
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F8800-*,0				;zero fill to sector $3F1
 
-;	resource 65 (sector $3F1, 4,836 bytes): the Stanley Cup sprite (resource 0 piece 18 without the end mark)
+;	resource 65 (sector $3F1, 4,836 bytes):
+;	the Stanley Cup sprite (resource 0 piece 18 without the end mark); no load of this one found
 Res65	incbin	..\cdbin\GRAPH2.BIN,$1F8800,4832
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1FA000-*,0				;zero fill to sector $3F4
 
-;	resource 66 (sector $3F4, 554 bytes): Hot.map.jim (HotMap)
+;	resource 66 (sector $3F4, 554 bytes): Hot.map.jim (HotMap); no load of this one found
 Res66	incbin	..\cdbin\GRAPH2.BIN,$1FA000,550
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1FA800-*,0				;zero fill to sector $3F5
 
-;	resource 67 (sector $3F5, 758 bytes): Cold.map.jim (ColdMap)
+;	resource 67 (sector $3F5, 758 bytes): Cold.map.jim (ColdMap); no load of this one found
 Res67	incbin	..\cdbin\GRAPH2.BIN,$1FA800,754
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1FB000-*,0				;zero fill to sector $3F6
 
-;	resource 68 (sector $3F6, 31,400 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 68 (sector $3F6, 31,400 bytes):
+;	per team: ANH, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res68	incbin	..\cdbin\GRAPH2.BIN,$1FB000,31396
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$203000-*,0				;zero fill to sector $406
 
-;	resource 69 (sector $406, 29,128 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 69 (sector $406, 29,128 bytes):
+;	per team: BOS, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res69	incbin	..\cdbin\GRAPH2.BIN,$203000,29124
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$20A800-*,0				;zero fill to sector $415
 
-;	resource 70 (sector $415, 32,136 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 70 (sector $415, 32,136 bytes):
+;	per team: BUF, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res70	incbin	..\cdbin\GRAPH2.BIN,$20A800,32132
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$212800-*,0				;zero fill to sector $425
 
-;	resource 71 (sector $425, 31,912 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 71 (sector $425, 31,912 bytes):
+;	per team: CGY, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res71	incbin	..\cdbin\GRAPH2.BIN,$212800,31908
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$21A800-*,0				;zero fill to sector $435
 
-;	resource 72 (sector $435, 31,816 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 72 (sector $435, 31,816 bytes):
+;	per team: CHI, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res72	incbin	..\cdbin\GRAPH2.BIN,$21A800,31812
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$222800-*,0				;zero fill to sector $445
 
-;	resource 73 (sector $445, 24,360 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 73 (sector $445, 24,360 bytes):
+;	per team: DAL, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res73	incbin	..\cdbin\GRAPH2.BIN,$222800,24356
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$228800-*,0				;zero fill to sector $451
 
-;	resource 74 (sector $451, 30,088 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 74 (sector $451, 30,088 bytes):
+;	per team: DET, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res74	incbin	..\cdbin\GRAPH2.BIN,$228800,30084
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$230000-*,0				;zero fill to sector $460
 
-;	resource 75 (sector $460, 31,016 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 75 (sector $460, 31,016 bytes):
+;	per team: EDM, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res75	incbin	..\cdbin\GRAPH2.BIN,$230000,31012
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$238000-*,0				;zero fill to sector $470
 
-;	resource 76 (sector $470, 28,968 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 76 (sector $470, 28,968 bytes):
+;	per team: FLA, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res76	incbin	..\cdbin\GRAPH2.BIN,$238000,28964
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$23F800-*,0				;zero fill to sector $47F
 
-;	resource 77 (sector $47F, 29,864 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 77 (sector $47F, 29,864 bytes):
+;	per team: HFD, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res77	incbin	..\cdbin\GRAPH2.BIN,$23F800,29860
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$247000-*,0				;zero fill to sector $48E
 
-;	resource 78 (sector $48E, 31,304 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 78 (sector $48E, 31,304 bytes):
+;	per team: LA, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res78	incbin	..\cdbin\GRAPH2.BIN,$247000,31300
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$24F000-*,0				;zero fill to sector $49E
 
-;	resource 79 (sector $49E, 31,912 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 79 (sector $49E, 31,912 bytes):
+;	per team: MTL, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res79	incbin	..\cdbin\GRAPH2.BIN,$24F000,31908
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$257000-*,0				;zero fill to sector $4AE
 
-;	resource 80 (sector $4AE, 31,976 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 80 (sector $4AE, 31,976 bytes):
+;	per team: NJ, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res80	incbin	..\cdbin\GRAPH2.BIN,$257000,31972
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$25F000-*,0				;zero fill to sector $4BE
 
-;	resource 81 (sector $4BE, 32,552 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 81 (sector $4BE, 32,552 bytes):
+;	per team: NYI, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res81	incbin	..\cdbin\GRAPH2.BIN,$25F000,32548
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$267000-*,0				;zero fill to sector $4CE
 
-;	resource 82 (sector $4CE, 33,512 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 82 (sector $4CE, 33,512 bytes):
+;	per team: NYR, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res82	incbin	..\cdbin\GRAPH2.BIN,$267000,33508
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$26F800-*,0				;zero fill to sector $4DF
 
-;	resource 83 (sector $4DF, 28,072 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 83 (sector $4DF, 28,072 bytes):
+;	per team: OTW, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res83	incbin	..\cdbin\GRAPH2.BIN,$26F800,28068
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$276800-*,0				;zero fill to sector $4ED
 
-;	resource 84 (sector $4ED, 31,880 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 84 (sector $4ED, 31,880 bytes):
+;	per team: PHI, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res84	incbin	..\cdbin\GRAPH2.BIN,$276800,31876
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$27E800-*,0				;zero fill to sector $4FD
 
-;	resource 85 (sector $4FD, 31,144 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 85 (sector $4FD, 31,144 bytes):
+;	per team: PIT, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res85	incbin	..\cdbin\GRAPH2.BIN,$27E800,31140
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$286800-*,0				;zero fill to sector $50D
 
-;	resource 86 (sector $50D, 30,184 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 86 (sector $50D, 30,184 bytes):
+;	per team: QUE, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res86	incbin	..\cdbin\GRAPH2.BIN,$286800,30180
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$28E000-*,0				;zero fill to sector $51C
 
-;	resource 87 (sector $51C, 30,024 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 87 (sector $51C, 30,024 bytes):
+;	per team: SJ, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res87	incbin	..\cdbin\GRAPH2.BIN,$28E000,30020
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$295800-*,0				;zero fill to sector $52B
 
-;	resource 88 (sector $52B, 28,200 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 88 (sector $52B, 28,200 bytes):
+;	per team: STL, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res88	incbin	..\cdbin\GRAPH2.BIN,$295800,28196
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$29C800-*,0				;zero fill to sector $539
 
-;	resource 89 (sector $539, 32,296 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 89 (sector $539, 32,296 bytes):
+;	per team: TB, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res89	incbin	..\cdbin\GRAPH2.BIN,$29C800,32292
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2A4800-*,0				;zero fill to sector $549
 
-;	resource 90 (sector $549, 31,912 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 90 (sector $549, 31,912 bytes):
+;	per team: TOR, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res90	incbin	..\cdbin\GRAPH2.BIN,$2A4800,31908
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2AC800-*,0				;zero fill to sector $559
 
-;	resource 91 (sector $559, 32,552 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 91 (sector $559, 32,552 bytes):
+;	per team: VAN, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res91	incbin	..\cdbin\GRAPH2.BIN,$2AC800,32548
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2B4800-*,0				;zero fill to sector $569
 
-;	resource 92 (sector $569, 30,440 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 92 (sector $569, 30,440 bytes):
+;	per team: WSH, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res92	incbin	..\cdbin\GRAPH2.BIN,$2B4800,30436
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2BC000-*,0				;zero fill to sector $578
 
-;	resource 93 (sector $578, 29,096 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 93 (sector $578, 29,096 bytes):
+;	per team: WPG, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res93	incbin	..\cdbin\GRAPH2.BIN,$2BC000,29092
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2C3800-*,0				;zero fill to sector $587
 
-;	resource 94 (sector $587, 29,416 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 94 (sector $587, 29,416 bytes):
+;	per team: ASE, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res94	incbin	..\cdbin\GRAPH2.BIN,$2C3800,29412
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2CB000-*,0				;zero fill to sector $596
 
-;	resource 95 (sector $596, 28,328 bytes): one of 28 alike (68-95): three offsets, then data. Not traced
+;	resource 95 (sector $596, 28,328 bytes):
+;	per team: ASW, three offsets then data. PLAYER.BIN loads 68 + team for the home and
+;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res95	incbin	..\cdbin\GRAPH2.BIN,$2CB000,28324
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2D2000-*,0				;zero fill to sector $5A4
 
-;	resource 96 (sector $5A4, 62,202 bytes): hockey94 LoadGameGfx loads it (d0 = $60) into $47DA0 and passes it to the BIOS call with d7 = 8
+;	resource 96 (sector $5A4, 62,202 bytes):
+;	hockey94 LoadGameGfx loads it (d0 = $60) into $47DA0 and passes it to the BIOS call with d7 = 8
 Res96	incbin	..\cdbin\GRAPH2.BIN,$2D2000,62198
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2E1800-*,0				;zero fill to sector $5C3
 
-;	resource 97 (sector $5C3, 20,428 bytes): not traced
+;	resource 97 (sector $5C3, 20,428 bytes): STARTER.BIN loads it (d0 = $61) into $C436
 Res97	incbin	..\cdbin\GRAPH2.BIN,$2E1800,20424
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2E6800-*,0				;zero fill to sector $5CD
 
-;	resource 98 (sector $5CD, 8,964 bytes): resource 0 piece 3 without the end mark
+;	resource 98 (sector $5CD, 8,964 bytes): resource 0 piece 3 without the end mark; no load of this one found
 Res98	incbin	..\cdbin\GRAPH2.BIN,$2E6800,8960
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2E9000-*,0				;zero fill to the end of the last sector
