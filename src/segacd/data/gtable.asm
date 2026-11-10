@@ -19,7 +19,7 @@ GTable
 	GRes	$46654				; 2  sector $0DF  the sprite pack
 	GRes	$2043E				; 3  sector $16C  FeaturedPictures
 	GRes	$6C7C				; 4  sector $1AD  TeamLogoBitmaps
-	GRes	$8D34				; 5  sector $1BB  STARTER.BIN
+	GRes	$8D34				; 5  sector $1BB  the legal screen (STARTER.BIN)
 	GRes	$61F4				; 6  sector $1CD  player photos: ANH
 	GRes	$9B8E				; 7  sector $1DA  player photos: BOS
 	GRes	$886A				; 8  sector $1EE  player photos: BUF
@@ -48,7 +48,7 @@ GTable
 	GRes	$854C				;31  sector $37D  player photos: WPG
 	GRes	$E6EE				;32  sector $38E  player photos: ASE
 	GRes	$E102				;33  sector $3AB  player photos: ASW
-	GRes	$48E4				;34  sector $3C8  per-team table (PLAYER.BIN)
+	GRes	$48E4				;34  sector $3C8  player stats and careers (PLAYER.BIN)
 	GRes	$30E				;35  sector $3D2  per team: ANH
 	GRes	$30E				;36  sector $3D3  per team: BUF
 	GRes	$30E				;37  sector $3D4  per team: CGY
@@ -78,40 +78,40 @@ GTable
 	GRes	$30E				;61  sector $3EC  per team: ASE
 	GRes	$30E				;62  sector $3ED  per team: ASW
 	GRes	$30E				;63  sector $3EE  per-team form, not used
-	GRes	$CEC				;64  sector $3EF  93 tiles (STARTER.BIN, PLAYER.BIN)
+	GRes	$CEC				;64  sector $3EF  a font (STARTER.BIN, PLAYER.BIN)
 	GRes	$12E4				;65  sector $3F1  the Stanley Cup sprite
 	GRes	$22A				;66  sector $3F4  Hot.map.jim
 	GRes	$2F6				;67  sector $3F5  Cold.map.jim
-	GRes	$7AA8				;68  sector $3F6  per team: ANH (PLAYER.BIN)
-	GRes	$71C8				;69  sector $406  per team: BOS (PLAYER.BIN)
-	GRes	$7D88				;70  sector $415  per team: BUF (PLAYER.BIN)
-	GRes	$7CA8				;71  sector $425  per team: CGY (PLAYER.BIN)
-	GRes	$7C48				;72  sector $435  per team: CHI (PLAYER.BIN)
-	GRes	$5F28				;73  sector $445  per team: DAL (PLAYER.BIN)
-	GRes	$7588				;74  sector $451  per team: DET (PLAYER.BIN)
-	GRes	$7928				;75  sector $460  per team: EDM (PLAYER.BIN)
-	GRes	$7128				;76  sector $470  per team: FLA (PLAYER.BIN)
-	GRes	$74A8				;77  sector $47F  per team: HFD (PLAYER.BIN)
-	GRes	$7A48				;78  sector $48E  per team: LA (PLAYER.BIN)
-	GRes	$7CA8				;79  sector $49E  per team: MTL (PLAYER.BIN)
-	GRes	$7CE8				;80  sector $4AE  per team: NJ (PLAYER.BIN)
-	GRes	$7F28				;81  sector $4BE  per team: NYI (PLAYER.BIN)
-	GRes	$82E8				;82  sector $4CE  per team: NYR (PLAYER.BIN)
-	GRes	$6DA8				;83  sector $4DF  per team: OTW (PLAYER.BIN)
-	GRes	$7C88				;84  sector $4ED  per team: PHI (PLAYER.BIN)
-	GRes	$79A8				;85  sector $4FD  per team: PIT (PLAYER.BIN)
-	GRes	$75E8				;86  sector $50D  per team: QUE (PLAYER.BIN)
-	GRes	$7548				;87  sector $51C  per team: SJ (PLAYER.BIN)
-	GRes	$6E28				;88  sector $52B  per team: STL (PLAYER.BIN)
-	GRes	$7E28				;89  sector $539  per team: TB (PLAYER.BIN)
-	GRes	$7CA8				;90  sector $549  per team: TOR (PLAYER.BIN)
-	GRes	$7F28				;91  sector $559  per team: VAN (PLAYER.BIN)
-	GRes	$76E8				;92  sector $569  per team: WSH (PLAYER.BIN)
-	GRes	$71A8				;93  sector $578  per team: WPG (PLAYER.BIN)
-	GRes	$72E8				;94  sector $587  per team: ASE (PLAYER.BIN)
-	GRes	$6EA8				;95  sector $596  per team: ASW (PLAYER.BIN)
+	GRes	$7AA8				;68  sector $3F6  page backgrounds: ANH (PLAYER.BIN)
+	GRes	$71C8				;69  sector $406  page backgrounds: BOS (PLAYER.BIN)
+	GRes	$7D88				;70  sector $415  page backgrounds: BUF (PLAYER.BIN)
+	GRes	$7CA8				;71  sector $425  page backgrounds: CGY (PLAYER.BIN)
+	GRes	$7C48				;72  sector $435  page backgrounds: CHI (PLAYER.BIN)
+	GRes	$5F28				;73  sector $445  page backgrounds: DAL (PLAYER.BIN)
+	GRes	$7588				;74  sector $451  page backgrounds: DET (PLAYER.BIN)
+	GRes	$7928				;75  sector $460  page backgrounds: EDM (PLAYER.BIN)
+	GRes	$7128				;76  sector $470  page backgrounds: FLA (PLAYER.BIN)
+	GRes	$74A8				;77  sector $47F  page backgrounds: HFD (PLAYER.BIN)
+	GRes	$7A48				;78  sector $48E  page backgrounds: LA (PLAYER.BIN)
+	GRes	$7CA8				;79  sector $49E  page backgrounds: MTL (PLAYER.BIN)
+	GRes	$7CE8				;80  sector $4AE  page backgrounds: NJ (PLAYER.BIN)
+	GRes	$7F28				;81  sector $4BE  page backgrounds: NYI (PLAYER.BIN)
+	GRes	$82E8				;82  sector $4CE  page backgrounds: NYR (PLAYER.BIN)
+	GRes	$6DA8				;83  sector $4DF  page backgrounds: OTW (PLAYER.BIN)
+	GRes	$7C88				;84  sector $4ED  page backgrounds: PHI (PLAYER.BIN)
+	GRes	$79A8				;85  sector $4FD  page backgrounds: PIT (PLAYER.BIN)
+	GRes	$75E8				;86  sector $50D  page backgrounds: QUE (PLAYER.BIN)
+	GRes	$7548				;87  sector $51C  page backgrounds: SJ (PLAYER.BIN)
+	GRes	$6E28				;88  sector $52B  page backgrounds: STL (PLAYER.BIN)
+	GRes	$7E28				;89  sector $539  page backgrounds: TB (PLAYER.BIN)
+	GRes	$7CA8				;90  sector $549  page backgrounds: TOR (PLAYER.BIN)
+	GRes	$7F28				;91  sector $559  page backgrounds: VAN (PLAYER.BIN)
+	GRes	$76E8				;92  sector $569  page backgrounds: WSH (PLAYER.BIN)
+	GRes	$71A8				;93  sector $578  page backgrounds: WPG (PLAYER.BIN)
+	GRes	$72E8				;94  sector $587  page backgrounds: ASE (PLAYER.BIN)
+	GRes	$6EA8				;95  sector $596  page backgrounds: ASW (PLAYER.BIN)
 	GRes	$F2FA				;96  sector $5A4  LoadGameGfx, BIOS d7 = 8
-	GRes	$4FCC				;97  sector $5C3  STARTER.BIN
+	GRes	$4FCC				;97  sector $5C3  the scoreboard film frame (STARTER.BIN)
 	GRes	$2304				;98  sector $5CD
 	dc.w	0					;the end: a zero entry
 	dc.l	0

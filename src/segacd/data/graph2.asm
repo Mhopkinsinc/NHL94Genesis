@@ -10,6 +10,9 @@
 ;	resource 1. A piece is named R0_ or R1_ and the cartridge label (graphics94.asm) of the graphic it
 ;	is; the comment names the cartridge file when the bytes are that file's. All the data is read from
 ;	the disc file, as the cartridge build reads its graphics from Extracted/.
+;
+;	A $0808 picture (resources 5, 64, 97 and the pieces of 68-95): the word $0808, the tile count, the
+;	tiles (32 bytes each), a 64-colour palette (128 bytes), then the map: width, height, the map words.
 
 	org	0
 
@@ -144,7 +147,9 @@ Res04	incbin	..\cdbin\GRAPH2.BIN,$D6800,27768
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$DD800-*,0				;zero fill to sector $1BB
 
-;	resource 5 (sector $1BB, 36,148 bytes): STARTER.BIN loads it (d0 = 5)
+;	resource 5 (sector $1BB, 36,148 bytes):
+;	the legal screen (the copyright and licence notices, a goalie picture; a $0808 picture, 40 x 28)
+;	and 12,648 bytes more. STARTER.BIN loads it (d0 = 5)
 Res05	incbin	..\cdbin\GRAPH2.BIN,$DD800,36144
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$E6800-*,0				;zero fill to sector $1CD
@@ -346,8 +351,8 @@ Res33	incbin	..\cdbin\GRAPH2.BIN,$1D5800,57598
 	dcb.b	$1E4000-*,0				;zero fill to sector $3C8
 
 ;	resource 34 (sector $3C8, 18,660 bytes):
-;	a table of 28 long offsets, one per team, then the data they point at. PLAYER.BIN keeps it at
-;	$86(a6) and its team pages read it
+;	each team's player stats and career records, the players' names included: 28 long offsets, one
+;	per team, then the records. PLAYER.BIN keeps it at $86(a6) and its pages read it
 Res34	incbin	..\cdbin\GRAPH2.BIN,$1E4000,18656
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1E9000-*,0				;zero fill to sector $3D2
@@ -554,8 +559,8 @@ Res63	incbin	..\cdbin\GRAPH2.BIN,$1F7000,778
 	dcb.b	$1F7800-*,0				;zero fill to sector $3EF
 
 ;	resource 64 (sector $3EF, 3,308 bytes):
-;	a word $0808, the count $5D, 93 tiles (32 bytes each) and 324 bytes more. STARTER.BIN loads it
-;	into $C43A, PLAYER.BIN into $70(a6)
+;	a font, 93 characters from the space ($0808 picture, map 32 x 3). STARTER.BIN loads it into $C43A,
+;	PLAYER.BIN into $70(a6)
 Res64	incbin	..\cdbin\GRAPH2.BIN,$1F7800,3304
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$1F8800-*,0				;zero fill to sector $3F1
@@ -577,197 +582,225 @@ Res67	incbin	..\cdbin\GRAPH2.BIN,$1FA800,754
 	dcb.b	$1FB000-*,0				;zero fill to sector $3F6
 
 ;	resource 68 (sector $3F6, 31,400 bytes):
-;	per team: ANH, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: ANH's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res68	incbin	..\cdbin\GRAPH2.BIN,$1FB000,31396
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$203000-*,0				;zero fill to sector $406
 
 ;	resource 69 (sector $406, 29,128 bytes):
-;	per team: BOS, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: BOS's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res69	incbin	..\cdbin\GRAPH2.BIN,$203000,29124
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$20A800-*,0				;zero fill to sector $415
 
 ;	resource 70 (sector $415, 32,136 bytes):
-;	per team: BUF, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: BUF's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res70	incbin	..\cdbin\GRAPH2.BIN,$20A800,32132
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$212800-*,0				;zero fill to sector $425
 
 ;	resource 71 (sector $425, 31,912 bytes):
-;	per team: CGY, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: CGY's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res71	incbin	..\cdbin\GRAPH2.BIN,$212800,31908
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$21A800-*,0				;zero fill to sector $435
 
 ;	resource 72 (sector $435, 31,816 bytes):
-;	per team: CHI, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: CHI's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res72	incbin	..\cdbin\GRAPH2.BIN,$21A800,31812
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$222800-*,0				;zero fill to sector $445
 
 ;	resource 73 (sector $445, 24,360 bytes):
-;	per team: DAL, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: DAL's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res73	incbin	..\cdbin\GRAPH2.BIN,$222800,24356
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$228800-*,0				;zero fill to sector $451
 
 ;	resource 74 (sector $451, 30,088 bytes):
-;	per team: DET, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: DET's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res74	incbin	..\cdbin\GRAPH2.BIN,$228800,30084
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$230000-*,0				;zero fill to sector $460
 
 ;	resource 75 (sector $460, 31,016 bytes):
-;	per team: EDM, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: EDM's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res75	incbin	..\cdbin\GRAPH2.BIN,$230000,31012
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$238000-*,0				;zero fill to sector $470
 
 ;	resource 76 (sector $470, 28,968 bytes):
-;	per team: FLA, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: FLA's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res76	incbin	..\cdbin\GRAPH2.BIN,$238000,28964
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$23F800-*,0				;zero fill to sector $47F
 
 ;	resource 77 (sector $47F, 29,864 bytes):
-;	per team: HFD, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: HFD's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res77	incbin	..\cdbin\GRAPH2.BIN,$23F800,29860
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$247000-*,0				;zero fill to sector $48E
 
 ;	resource 78 (sector $48E, 31,304 bytes):
-;	per team: LA, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: LA's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res78	incbin	..\cdbin\GRAPH2.BIN,$247000,31300
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$24F000-*,0				;zero fill to sector $49E
 
 ;	resource 79 (sector $49E, 31,912 bytes):
-;	per team: MTL, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: MTL's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res79	incbin	..\cdbin\GRAPH2.BIN,$24F000,31908
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$257000-*,0				;zero fill to sector $4AE
 
 ;	resource 80 (sector $4AE, 31,976 bytes):
-;	per team: NJ, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: NJ's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res80	incbin	..\cdbin\GRAPH2.BIN,$257000,31972
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$25F000-*,0				;zero fill to sector $4BE
 
 ;	resource 81 (sector $4BE, 32,552 bytes):
-;	per team: NYI, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: NYI's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res81	incbin	..\cdbin\GRAPH2.BIN,$25F000,32548
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$267000-*,0				;zero fill to sector $4CE
 
 ;	resource 82 (sector $4CE, 33,512 bytes):
-;	per team: NYR, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: NYR's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res82	incbin	..\cdbin\GRAPH2.BIN,$267000,33508
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$26F800-*,0				;zero fill to sector $4DF
 
 ;	resource 83 (sector $4DF, 28,072 bytes):
-;	per team: OTW, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: OTW's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res83	incbin	..\cdbin\GRAPH2.BIN,$26F800,28068
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$276800-*,0				;zero fill to sector $4ED
 
 ;	resource 84 (sector $4ED, 31,880 bytes):
-;	per team: PHI, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: PHI's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res84	incbin	..\cdbin\GRAPH2.BIN,$276800,31876
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$27E800-*,0				;zero fill to sector $4FD
 
 ;	resource 85 (sector $4FD, 31,144 bytes):
-;	per team: PIT, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: PIT's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res85	incbin	..\cdbin\GRAPH2.BIN,$27E800,31140
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$286800-*,0				;zero fill to sector $50D
 
 ;	resource 86 (sector $50D, 30,184 bytes):
-;	per team: QUE, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: QUE's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res86	incbin	..\cdbin\GRAPH2.BIN,$286800,30180
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$28E000-*,0				;zero fill to sector $51C
 
 ;	resource 87 (sector $51C, 30,024 bytes):
-;	per team: SJ, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: SJ's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res87	incbin	..\cdbin\GRAPH2.BIN,$28E000,30020
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$295800-*,0				;zero fill to sector $52B
 
 ;	resource 88 (sector $52B, 28,200 bytes):
-;	per team: STL, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: STL's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res88	incbin	..\cdbin\GRAPH2.BIN,$295800,28196
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$29C800-*,0				;zero fill to sector $539
 
 ;	resource 89 (sector $539, 32,296 bytes):
-;	per team: TB, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: TB's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res89	incbin	..\cdbin\GRAPH2.BIN,$29C800,32292
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2A4800-*,0				;zero fill to sector $549
 
 ;	resource 90 (sector $549, 31,912 bytes):
-;	per team: TOR, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: TOR's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res90	incbin	..\cdbin\GRAPH2.BIN,$2A4800,31908
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2AC800-*,0				;zero fill to sector $559
 
 ;	resource 91 (sector $559, 32,552 bytes):
-;	per team: VAN, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: VAN's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res91	incbin	..\cdbin\GRAPH2.BIN,$2AC800,32548
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2B4800-*,0				;zero fill to sector $569
 
 ;	resource 92 (sector $569, 30,440 bytes):
-;	per team: WSH, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: WSH's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res92	incbin	..\cdbin\GRAPH2.BIN,$2B4800,30436
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2BC000-*,0				;zero fill to sector $578
 
 ;	resource 93 (sector $578, 29,096 bytes):
-;	per team: WPG, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: WPG's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res93	incbin	..\cdbin\GRAPH2.BIN,$2BC000,29092
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2C3800-*,0				;zero fill to sector $587
 
 ;	resource 94 (sector $587, 29,416 bytes):
-;	per team: ASE, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: ASE's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res94	incbin	..\cdbin\GRAPH2.BIN,$2C3800,29412
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2CB000-*,0				;zero fill to sector $596
 
 ;	resource 95 (sector $596, 28,328 bytes):
-;	per team: ASW, three offsets then data. PLAYER.BIN loads 68 + team for the home and
-;	away teams (pointers at $0-$8(a6) and $C-$14(a6))
+;	per team: ASW's three page backgrounds (team name, logo and a frame: the arena picture, a
+;	small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads
+;	68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))
 Res95	incbin	..\cdbin\GRAPH2.BIN,$2CB000,28324
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2D2000-*,0				;zero fill to sector $5A4
@@ -778,7 +811,9 @@ Res96	incbin	..\cdbin\GRAPH2.BIN,$2D2000,62198
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2E1800-*,0				;zero fill to sector $5C3
 
-;	resource 97 (sector $5C3, 20,428 bytes): STARTER.BIN loads it (d0 = $61) into $C436
+;	resource 97 (sector $5C3, 20,428 bytes):
+;	the arena scoreboard frame around the film window ($0808 picture, 40 x 28). STARTER.BIN loads it
+;	(d0 = $61) into $C436
 Res97	incbin	..\cdbin\GRAPH2.BIN,$2E1800,20424
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2E6800-*,0				;zero fill to sector $5CD

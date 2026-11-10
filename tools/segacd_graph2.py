@@ -102,16 +102,18 @@ def main():
            "this one found",
         4: "the team logos (TeamLogoBitmaps): a table of offsets, then logoANA.map.jim ... (period94 loads it\n"
            "into TeamLogoBitmapsPtr). Resource 0 piece 1 is the same without the end mark",
-        5: "STARTER.BIN loads it (d0 = 5)",
-        34: "a table of 28 long offsets, one per team, then the data they point at. PLAYER.BIN keeps it at\n"
-            "$86(a6) and its team pages read it",
-        64: "a word $0808, the count $5D, 93 tiles (32 bytes each) and 324 bytes more. STARTER.BIN loads it\n"
-            "into $C43A, PLAYER.BIN into $70(a6)",
+        5: "the legal screen (the copyright and licence notices, a goalie picture; a $0808 picture, 40 x 28)\n"
+           "and 12,648 bytes more. STARTER.BIN loads it (d0 = 5)",
+        34: "each team's player stats and career records, the players' names included: 28 long offsets, one\n"
+            "per team, then the records. PLAYER.BIN keeps it at $86(a6) and its pages read it",
+        64: "a font, 93 characters from the space ($0808 picture, map 32 x 3). STARTER.BIN loads it into $C43A,\n"
+            "PLAYER.BIN into $70(a6)",
         65: "the Stanley Cup sprite (resource 0 piece 18 without the end mark); no load of this one found",
         66: "Hot.map.jim (HotMap); no load of this one found",
         67: "Cold.map.jim (ColdMap); no load of this one found",
         96: "hockey94 LoadGameGfx loads it (d0 = $60) into $47DA0 and passes it to the BIOS call with d7 = 8",
-        97: "STARTER.BIN loads it (d0 = $61) into $C436",
+        97: "the arena scoreboard frame around the film window ($0808 picture, 40 x 28). STARTER.BIN loads it\n"
+            "(d0 = $61) into $C436",
         98: "resource 0 piece 3 without the end mark; no load of this one found",
     }
     for r in range(35, 64):
@@ -122,8 +124,9 @@ def main():
         res[r] = (f"per team: {TEAMS[r - 6]}'s player photos, a table of offsets then the pictures. PLAYER.BIN\n"
                   "loads 6 + team for the home and away teams ($1C(a6), $20(a6); docs/segacd_stats.md)")
     for r in range(68, 96):
-        res[r] = (f"per team: {TEAMS[r - 68]}, three offsets then data. PLAYER.BIN loads 68 + team for the home and\n"
-                  "away teams (pointers at $0-$8(a6) and $C-$14(a6))")
+        res[r] = (f"per team: {TEAMS[r - 68]}'s three page backgrounds (team name, logo and a frame: the arena picture, a\n"
+                  "small photo frame, a large frame), three offsets then three $0808 pictures. PLAYER.BIN loads\n"
+                  "68 + team for the home and away teams (pointers at $0-$8(a6) and $C-$14(a6))")
 
     out = [
         ";\tGRAPH2.BIN (3,051,520 bytes, 1490 sectors): the graphics archive. Written by tools/segacd_graph2.py.",
@@ -138,6 +141,9 @@ def main():
         ";\tresource 1. A piece is named R0_ or R1_ and the cartridge label (graphics94.asm) of the graphic it",
         ";\tis; the comment names the cartridge file when the bytes are that file's. All the data is read from",
         ";\tthe disc file, as the cartridge build reads its graphics from Extracted/.",
+        ";",
+        ";\tA $0808 picture (resources 5, 64, 97 and the pieces of 68-95): the word $0808, the tile count, the",
+        ";\ttiles (32 bytes each), a 64-colour palette (128 bytes), then the map: width, height, the map words.",
         "",
         "\torg\t0",
         "",
@@ -212,14 +218,14 @@ def main():
         "gsector\t=\t0",
         "GTable",
     ]
-    what.update({5: "STARTER.BIN", 34: "per-team table (PLAYER.BIN)", 64: "93 tiles (STARTER.BIN, PLAYER.BIN)",
-                 96: "LoadGameGfx, BIOS d7 = 8", 97: "STARTER.BIN"})
+    what.update({5: "the legal screen (STARTER.BIN)", 34: "player stats and careers (PLAYER.BIN)", 64: "a font (STARTER.BIN, PLAYER.BIN)",
+                 96: "LoadGameGfx, BIOS d7 = 8", 97: "the scoreboard film frame (STARTER.BIN)"})
     for k, (s, n) in enumerate(ents):
         w = what.get(k, "")
         if 6 <= k <= 33:
             w = f"player photos: {TEAMS[k - 6]}"
         if 68 <= k <= 95:
-            w = f"per team: {TEAMS[k - 68]} (PLAYER.BIN)"
+            w = f"page backgrounds: {TEAMS[k - 68]} (PLAYER.BIN)"
         if 35 <= k <= 63:
             w = f"per team: {byres[k]}" if k in byres else "per-team form, not used"
         gt.append(f"\tGRes\t${n:X}\t\t\t\t;{k:2}  sector ${s:03X}" + (f"  {w}" if w else ""))
