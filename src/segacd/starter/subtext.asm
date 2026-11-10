@@ -1,21 +1,21 @@
-;	STARTER.BIN $4788-$49F9 (runtime $25A88-$25CF9).
+;	STARTER.BIN $4788-$49F9 (runtime $F788-$F9F9).
 ;
 ;	SwapMeg, DrawText, NumStr, HexStr, aprint: text to the main CPU (SendCommandToMain, the
 ;	DoDrawTextCommand side is in maintext.asm) and number formatting.
 
 
-SendCommandToMain	equ	$2609E
-X_26632	equ	$26632
-X_26656	equ	$26656
+SendCommandToMain	equ	$FD9E
+X_10332	equ	$10332
+X_10356	equ	$10356
 
-	org	$25A88
+	org	$F788
 
 SwapMeg
 	link	a6,#$0
-.L25A8C
+.LF78C
 	movea.l	#$FF8010,a0
 	tst.w	$2(a0)
-	bne.s	.L25A8C
+	bne.s	.LF78C
 	eori.w	#$1,$FF8002.l
 	unlk	a6
 	rts
@@ -31,16 +31,16 @@ DrawText
 	move.l	d0,-(sp)
 	jsr	SendCommandToMain(pc)
 	addq.w	#$8,sp
-	bra.s	.L25ADA
-.L25ACE
+	bra.s	.LF7DA
+.LF7CE
 	ext.w	d7
 	ext.l	d7
 	move.l	d7,-(sp)
 	jsr	SendCommandToMain(pc)
 	addq.w	#$4,sp
-.L25ADA
+.LF7DA
 	move.b	(a4)+,d7
-	bne.s	.L25ACE
+	bne.s	.LF7CE
 	moveq	#$3E,d0
 	move.l	d0,-(sp)
 	jsr	SendCommandToMain(pc)
@@ -62,10 +62,10 @@ NumStr
 	move.w	d7,d0
 	addq.w	#$1,d7
 	clr.b	(a4,d0.w)
-.L25B24
+.LF824
 	move.l	d6,d0
 	moveq	#$A,d1
-	jsr	X_26656(pc)
+	jsr	X_10356(pc)
 	moveq	#$30,d1
 	add.b	d1,d0
 	move.w	d7,d1
@@ -73,16 +73,16 @@ NumStr
 	move.b	d0,(a4,d1.w)
 	move.l	d6,d0
 	moveq	#$A,d1
-	jsr	X_26632(pc)
+	jsr	X_10332(pc)
 	move.l	d0,d6
-	bne.s	.L25B24
-	bra.s	.L25B4C
-.L25B46
+	bne.s	.LF824
+	bra.s	.LF84C
+.LF846
 	subq.w	#$1,d7
 	move.b	(a4,d7.w),(a3)+
-.L25B4C
+.LF84C
 	tst.w	d7
-	bne.s	.L25B46
+	bne.s	.LF846
 	movem.l	-$20(a6),d6-d7/a3-a4
 	unlk	a6
 	rts
@@ -97,30 +97,30 @@ HexStr
 	move.l	d4,d7
 	subq.l	#$1,d7
 	moveq	#$0,d3
-	bra.s	.L25BA8
-.L25B82
+	bra.s	.LF8A8
+.LF882
 	moveq	#$F,d6
 	and.l	d5,d6
 	asr.l	#$4,d5
 	moveq	#$9,d0
 	cmp.l	d6,d0
-	blt.s	.L25B9A
+	blt.s	.LF89A
 	move.b	d6,d0
 	moveq	#$30,d1
 	add.b	d1,d0
 	move.b	d0,(a4,d7.l)
-	bra.s	.L25BA4
-.L25B9A
+	bra.s	.LF8A4
+.LF89A
 	move.b	d6,d0
 	moveq	#-55,d1
 	sub.b	d1,d0
 	move.b	d0,(a4,d7.l)
-.L25BA4
+.LF8A4
 	move.l	d7,d0
 	subq.l	#$1,d7
-.L25BA8
+.LF8A8
 	cmp.l	d7,d3
-	ble.s	.L25B82
+	ble.s	.LF882
 	clr.b	(a4,d4.w)
 	movem.l	-$18(a6),d3-d7/a4
 	unlk	a6
@@ -134,20 +134,20 @@ aprint
 	lea	$8(a6),a0
 	addq.w	#$4,a0
 	move.l	a0,-$4(a6)
-	bra.w	.L25CCA
-.L25BE2
+	bra.w	.LF9CA
+.LF8E2
 	cmpi.b	#$25,d6
-	beq.s	.L25BEE
+	beq.s	.LF8EE
 	move.b	d6,(a3)+
-	bra.w	.L25CCA
-.L25BEE
+	bra.w	.LF9CA
+.LF8EE
 	moveq	#$8,d4
 	movea.l	$8(a6),a0
 	addq.l	#$1,$8(a6)
 	move.b	(a0),d6
 	move.b	d6,d0
 	subi.b	#$2A,d0
-	bne.s	.L25C1A
+	bne.s	.LF91A
 	addq.l	#$4,-$4(a6)
 	movea.l	-$4(a6),a0
 	move.w	-$2(a0),d4
@@ -155,22 +155,22 @@ aprint
 	addq.l	#$1,$8(a6)
 	movea.l	d0,a0
 	move.b	(a0),d6
-.L25C1A
+.LF91A
 	move.b	d6,d0
 	subi.b	#$25,d0
-	beq.w	.L25CC8
+	beq.w	.LF9C8
 	subi.b	#$2E,d0
-	beq.s	.L25CA2
+	beq.s	.LF9A2
 	subq.b	#$5,d0
-	beq.s	.L25C72
+	beq.s	.LF972
 	subi.b	#$C,d0
-	beq.s	.L25C42
+	beq.s	.LF942
 	subi.b	#$F,d0
-	beq.s	.L25CA2
+	beq.s	.LF9A2
 	subq.b	#$5,d0
-	beq.s	.L25C72
-	bra.w	.L25CCA
-.L25C42
+	beq.s	.LF972
+	bra.w	.LF9CA
+.LF942
 	addq.l	#$4,-$4(a6)
 	movea.l	-$4(a6),a0
 	move.l	-$4(a0),d5
@@ -181,16 +181,16 @@ aprint
 	jsr	NumStr(pc)
 	clr.w	d7
 	lea	$C(sp),sp
-	bra.s	.L25C6A
-.L25C62
+	bra.s	.LF96A
+.LF962
 	move.b	(a4,d7.w),(a3)+
 	move.w	d7,d0
 	addq.w	#$1,d7
-.L25C6A
+.LF96A
 	tst.b	(a4,d7.w)
-	bne.s	.L25C62
-	bra.s	.L25CCA
-.L25C72
+	bne.s	.LF962
+	bra.s	.LF9CA
+.LF972
 	addq.l	#$4,-$4(a6)
 	movea.l	-$4(a6),a0
 	move.l	-$4(a0),d5
@@ -201,38 +201,38 @@ aprint
 	jsr	HexStr(pc)
 	clr.w	d7
 	lea	$C(sp),sp
-	bra.s	.L25C9A
-.L25C92
+	bra.s	.LF99A
+.LF992
 	move.b	(a4,d7.w),(a3)+
 	move.w	d7,d0
 	addq.w	#$1,d7
-.L25C9A
+.LF99A
 	tst.b	(a4,d7.w)
-	bne.s	.L25C92
-	bra.s	.L25CCA
-.L25CA2
+	bne.s	.LF992
+	bra.s	.LF9CA
+.LF9A2
 	addq.l	#$4,-$4(a6)
 	movea.l	-$4(a6),a0
 	move.l	-$4(a0),-$8(a6)
-	bra.s	.L25CBE
-.L25CB2
+	bra.s	.LF9BE
+.LF9B2
 	move.l	-$8(a6),d0
 	addq.l	#$1,-$8(a6)
 	movea.l	d0,a0
 	move.b	(a0),(a3)+
-.L25CBE
+.LF9BE
 	movea.l	-$8(a6),a0
 	tst.b	(a0)
-	bne.s	.L25CB2
-	bra.s	.L25CCA
-.L25CC8
+	bne.s	.LF9B2
+	bra.s	.LF9CA
+.LF9C8
 	move.b	d6,(a3)+
-.L25CCA
+.LF9CA
 	move.l	$8(a6),d0
 	addq.l	#$1,$8(a6)
 	movea.l	d0,a0
 	move.b	(a0),d6
-	bne.w	.L25BE2
+	bne.w	.LF8E2
 	clr.b	(a3)+
 	pea	-$108(a6)
 	jsr	DrawText(pc)

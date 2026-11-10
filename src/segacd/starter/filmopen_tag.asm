@@ -1,9 +1,9 @@
-;	STARTER.BIN $4538-$458B (runtime $25838-$2588B).
+;	STARTER.BIN $4538-$458B (runtime $F538-$F58B).
 ;
 ;	The FilmOpen name tag after filmopen.asm and the strings FilmOpen prints.
 
 
-	org	$25838
+	org	$F538
 
 	dc.b	$88,'FilmOpen',0
 	dc.w	$0048

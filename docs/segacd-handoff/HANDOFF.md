@@ -35,7 +35,8 @@
 - Open questions:
   - The team struct is one word longer from `tmap` on; probably `tmsort` became a long. Confirm when a fragment uses
     `tmsort` (logic94 has `movea.w tmsort(a2),a0` among its CD lines).
-  - `STARTER.BIN` is linked at `$21300`, inside the range HOCKEY.BIN occupies; how the load works is not traced.
+  - Answered: `STARTER.BIN` runs at `$B000` (the whole file), not `$21300`; its tail jumps to `$B00E`, which loads
+    HOCKEY.BIN at `$1B000` over STARTER's top part. The STARTER fragments were written again at that base.
 
 ## Baseline log
 - 2026-11-10 (McMarkis session, Windows 11, Node 22): fresh fork, `segacd-disc/*.BIN` copied to `cdbin/` (sizes as in GETTING_FILES.md).

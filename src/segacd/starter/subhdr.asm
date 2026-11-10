@@ -1,6 +1,6 @@
 ;	STARTER.BIN $90-$1541 (runtime $B090-$C541).
 ;
-;	Zeros after subboot.asm, then the start of the sub CPU driver module (runtime file + $B000): a
+;	Zeros after subboot.asm, then the start of the sub CPU driver module: a
 ;	file record (HOCKEY.BIN, $01FF), and an entry table (jmp $D85A, bra.w $C542).
 
 

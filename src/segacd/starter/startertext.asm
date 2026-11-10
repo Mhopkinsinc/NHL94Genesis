@@ -1,10 +1,10 @@
-;	STARTER.BIN $556E-$5DFF (runtime $2686E-$270FF).
+;	STARTER.BIN $556E-$5DFF (runtime $1056E-$10DFF).
 ;
 ;	After cdfade.asm: tables, the SDK demo strings (Example Line 0-7) and more tables, as bytes.
 ;	startergfx.asm (by hand) follows.
 
 
-	org	$2686E
+	org	$1056E
 
 	dc.b	$FF,$00,$B8,$B7,$00,$4C,$00,$00,$4A,$B9,$00,$00,$00,$00,$00,$BA
 	dc.b	$B2,$00,$33,$CB

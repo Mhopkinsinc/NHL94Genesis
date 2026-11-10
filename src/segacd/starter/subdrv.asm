@@ -1,8 +1,8 @@
 ;	STARTER.BIN $1542-$3A0B (runtime $C542-$EA0B).
 ;
-;	The sub CPU driver module (runtime file + $B000): a command dispatch on d0 at $C542, the gate
-;	array at $8000-$802x (short addresses), its work area at $EC90 ... Not named yet. pcmclear.asm follows
-;	(its bytes match; its comment gives a runtime at the $21300 base, but this module runs at $B000 + file).
+;	The sub CPU driver module: a command dispatch on d0 at $C542, the gate array at $8000-$802x
+;	(short addresses), its work area at $EC90 ... Not named yet. pcmclear.asm follows (its bytes match; its
+;	comment gives a runtime at $21300, but STARTER.BIN runs at file + $B000).
 
 
 X_C4BC	equ	$C4BC
@@ -1307,30 +1307,31 @@ X_1055C	equ	$1055C
 	move.l	d2,$EC96.l
 	move.l	d3,$EC9A.l
 	move.l	d4,$EC9E.l
-	jsr	$E3BC.l
-	jsr	$E3F8.l
-	jsr	$E3EE.l
-	jsr	$E416.l
+	jsr	(.LE3BC).l
+	jsr	(.LE3F8).l
+	jsr	(.LE3EE).l
+	jsr	(.LE416).l
 	move.w	#$0,$BC6E8.l
 	move.w	#$2000,sr
 	bclr.b	#$2,$FFFF8024.w
-	jsr	$E454.l
+	jsr	(.LE454).l
 	bset.b	#$2,$FFFF8024.w
-	jsr	$E440.l
+	jsr	(.LE440).l
 	move.w	#$0,d0
 	jsr	$C4BC.l
 	move.l	#$400,-(sp)
 	jsr	$10540.l
-	jsr	$D8F8.l
+	jsr	(.LD8F8).l
 	bclr.b	#$2,$FFFF8024.w
 	moveq	#$1E,d0
-	jsr	$E370.l
+	jsr	(.LE370).l
 	move.w	#$2700,sr
 	movea.l	$EC96.l,a0
 	move.l	$10ACC.l,(a0)
 	bsr.w	.LE3BC
 	move.w	(sp)+,sr
 	rts
+.LD8F8
 	move.w	#$0,$BC6E8.l
 	bsr.w	.LD94C
 	bsr.w	.LD9E4
@@ -1394,12 +1395,13 @@ X_1055C	equ	$1055C
 	move.w	#$0,d1
 	move.w	#$5,d0
 	bsr.w	X_C4BC
-	lea	$DA24.l,a0
+	lea	(.LDA24).l,a0
 	move.w	#$6,d0
 	bsr.w	X_C4BC
 	bset.b	#$2,$FFFF8024.w
 	movem.l	(sp)+,d0-d7/a0-a6
 	rts
+.LDA24
 	ori.b	#$0,d2
 	dc.w	$FFFF
 .LDA2A
@@ -1428,7 +1430,7 @@ X_1055C	equ	$1055C
 	move.w	#$F0,d6
 	move.w	#$A,$10B6C.l
 	clr.w	$10B6E.l
-	lea	$DB78.l,a3
+	lea	(.LDB78).l,a3
 .LDA96
 	bsr.w	.LDAC6
 	bsr.w	.LDFAC
@@ -1491,6 +1493,7 @@ X_1055C	equ	$1055C
 .LDB72
 	movem.l	(sp)+,d0-d6/a0-a2
 	rts
+.LDB78
 	ori.b	#$0,(a6)+
 	ori.b	#$1,(a6)+
 	ori.b	#$1,(a6)+
@@ -1606,14 +1609,14 @@ X_1055C	equ	$1055C
 	ori.b	#$80,d0
 	moveq	#$20,d1
 	move.l	#$7FF,d2
-	jsr	$E4D6.l
+	jsr	(.LE4D6).l
 	bsr.w	.LE57C
 	dc.w	$0006,$FE00
 	dc.w	$0000,$203C
 	ori.b	#$80,d0
 	moveq	#$20,d1
 	move.l	#$7FF,d2
-	jsr	$E4D6.l
+	jsr	(.LE4D6).l
 	moveq	#$1C,d4
 	bsr.w	.LE57C
 	dc.w	$0006,$FE00
@@ -1627,7 +1630,7 @@ X_1055C	equ	$1055C
 	move.w	$2(a1),d3
 	sub.w	d1,d3
 	moveq	#$0,d5
-	jsr	$E51C.l
+	jsr	(.LE51C).l
 	bsr.w	.LE57C
 	dc.w	$0006,$FD00
 	dc.w	$0000,$2079
@@ -1641,11 +1644,11 @@ X_1055C	equ	$1055C
 	move.w	(a1),d2
 	move.w	$2(a1),d3
 	moveq	#$F,d5
-	jsr	$E51C.l
+	jsr	(.LE51C).l
 	move.w	d4,$10AFE.l
 	movea.l	$1094C.l,a2
 	addq.l	#$8,a2
-	jsr	$E12A.l
+	jsr	(.LE12A).l
 	bsr.w	.LE6FC
 	bsr.w	.LE57C
 	dc.w	$0006,$FF00
@@ -1692,7 +1695,7 @@ X_1055C	equ	$1055C
 	moveq	#$20,d0
 	moveq	#$9,d1
 	move.w	#$7FF,d2
-	jsr	$E4D6.l
+	jsr	(.LE4D6).l
 	move.w	(sp)+,$10B0C.l
 .LDEC8
 	move.w	(a1),d0
@@ -1713,7 +1716,7 @@ X_1055C	equ	$1055C
 	cmp.w	$10AE0.l,d0
 	beq.s	.LDEFC
 	bsr.w	.LDF1E
-	jsr	$E198.l
+	jsr	(.LE198).l
 	btst	#$7,d1
 	movem.l	(sp)+,d0-d7/a0-a6
 	beq.w	.LDFAA
@@ -1742,7 +1745,7 @@ X_1055C	equ	$1055C
 	subq.w	#$1,$10B24.l
 	bpl.w	.LDFAA
 	move.w	#$12C,d0
-	jsr	$E488.l
+	jsr	(.LE488).l
 	move.w	d0,$10B24.l
 	andi.w	#$7,d0
 	addq.w	#$4,d0
@@ -2034,11 +2037,12 @@ X_1055C	equ	$1055C
 	movem.l	d1/a0,-(sp)
 	andi.w	#$F0,d0
 	andi.w	#$F,d1
-	lea	$E300.l,a0
+	lea	(.LE300).l,a0
 	move.b	(a0,d1.w),d1
 	or.w	d1,d0
 	movem.l	(sp)+,d1/a0
 	rts
+.LE300
 	dc.w	$0800
 	dc.w	$0408
 	dc.w	$0607,$0508
@@ -2133,6 +2137,7 @@ X_1055C	equ	$1055C
 	bset.b	#$0,$FFFF8003.w
 	bclr.b	#$1,$10912.l
 	rts
+.LE440
 	lea	$10ADA.l,a0
 .LE446
 	clr.b	(a0)+
@@ -2141,7 +2146,8 @@ X_1055C	equ	$1055C
 	rts
 .LE452
 	rts
-	jsr	$E3F8.l
+.LE454
+	jsr	(.LE3F8).l
 	movem.l	a0-a1,-(sp)
 	movea.l	$EC96.l,a0
 	move.l	(a0),$10ACC.l
@@ -2179,6 +2185,7 @@ X_1055C	equ	$1055C
 	bsr.w	.LE370
 	movem.l	(sp)+,d0/a0
 	rts
+.LE4D6
 	movem.l	d0-d3/a0,-(sp)
 	lea	$BA450.l,a0
 	move.w	d0,(a0)+

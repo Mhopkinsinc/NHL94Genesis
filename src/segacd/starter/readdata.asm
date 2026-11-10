@@ -1,9 +1,9 @@
-;	STARTER.BIN $5068-$508B (runtime $26368-$2638B).
+;	STARTER.BIN $5068-$508B (runtime $10068-$1008B).
 ;
 ;	ReadData (between GetData in subheap.asm and the audio stream in audiostream.asm).
 
 
-	org	$26368
+	org	$10068
 
 ReadData
 	link	a6,#$0

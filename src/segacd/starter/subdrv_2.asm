@@ -1,6 +1,6 @@
 ;	STARTER.BIN $3A8A-$3D93 (runtime $EA8A-$ED93).
 ;
-;	The end of the sub CPU driver module, between cdcwait.asm and filmrun.asm (runtime file + $B000).
+;	The end of the sub CPU driver module, between cdcwait.asm and filmrun.asm.
 
 
 X_E118	equ	$E118
@@ -59,7 +59,7 @@ X_ED94	equ	$ED94
 	beq.w	.LEC78
 	movem.l	d1,-(sp)
 	move.w	$FFFF8004.w,$EC8E.l
-	lea	$ECA2.l,a0
+	lea	(.LECA2).l,a0
 	move.w	#$10,d0
 	jsr	$5F22.w
 	move.w	#$0,d1
@@ -85,7 +85,7 @@ X_ED94	equ	$ED94
 	move.l	$EC9A.l,-(sp)
 	move.l	d1,-(sp)
 	move.w	#$0,-(sp)
-	jsr	$ECB4.l
+	jsr	(.LECB4).l
 	adda.w	#$26,sp
 	tst.w	d0
 	bmi.w	.LEC7E
@@ -94,19 +94,19 @@ X_ED94	equ	$ED94
 	btst	#$7,d1
 	bne.w	.LEC04
 	move.w	#$1,-(sp)
-	jsr	$ECB4.l
+	jsr	(.LECB4).l
 	addq.l	#$2,sp
 	tst.w	d0
 	bge.s	.LEBE6
 .LEC04
 	move.w	#$2,-(sp)
-	jsr	$ECB4.l
+	jsr	(.LECB4).l
 	addq.l	#$2,sp
 	jsr	$E3BC.l
 	jsr	$E3F8.l
 	jsr	$E3EE.l
 	jsr	$E416.l
-	lea	$ECA2.l,a0
+	lea	(.LECA2).l,a0
 	move.w	#$10,d0
 	jsr	$5F22.w
 	move.w	$EC8E.l,d1
@@ -130,10 +130,12 @@ X_ED94	equ	$ED94
 	jsr	$E370.l
 	rts
 	dcb.b	24,0
+.LECA2
 	dc.w	$01FF
 	dc.b	'HOCKEY.SEG'
 	ori.b	#$0,d0
 	dc.w	$0000
+.LECB4
 	bra.w	X_ED94
 	ori.b	#$0,d0
 	ori.b	#$0,d1

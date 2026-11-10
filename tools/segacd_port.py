@@ -1356,6 +1356,11 @@ class Fragment:
                 n = self.rev_name(o["value"])
                 if n:
                     t = f"({n}).{o['size']}"
+            if t is None and it is None and self.a.plain and o["mode"] == "abs" and \
+                    base in ("jsr", "jmp", "lea", "pea") and o["value"] in self.starts and \
+                    BASE + self.start <= o["value"] < BASE + self.end:
+                # an absolute call or address into this fragment: its label (plain mode, CD-only code)
+                t = f"({self.target_name(o['value'], scope)}).{o['size']}"
             if it is None and o["mode"] == "imm" and o["value"] >= 0x10000 and \
                     insn.mnemonic in ("movea.l", "cmpa.l", "adda.l", "move.l") and k == 0:
                 n = self.rev_name(o["value"])
