@@ -12,9 +12,7 @@
 	org	$47DAC
 
 ;CD: no cartridge twin
-	rts
-	rts
-	rts
+	dc.b	'NuNuNu'
 ReadPads						;CD-only routine (a name given here, not a cartridge name)
 	movem.l	d1/a0,-(sp)
 	tst.w	(FourWayPlay).l

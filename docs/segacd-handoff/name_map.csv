@@ -1105,3 +1105,24 @@ HOCKEY.BIN,$2AA16,ArenaGfx34,graphics94.asm (CD name)
 HOCKEY.BIN,$2B942,ArenaGfx12,graphics94.asm (CD name)
 HOCKEY.BIN,$2CCFC,GfxPointers,CD-only (cdgfxptrs.asm)
 HOCKEY.BIN,$2CDB2,ReadPads,
+STARTER.BIN,$4306,Wait,Sierra C name tag
+STARTER.BIN,$4788,SwapMeg,Sierra C name tag
+STARTER.BIN,$47AE,DrawText,Sierra C name tag
+STARTER.BIN,$4806,NumStr,Sierra C name tag
+STARTER.BIN,$4864,HexStr,Sierra C name tag
+STARTER.BIN,$48C4,aprint,Sierra C name tag
+STARTER.BIN,$49FA,ffree,Sierra C name tag
+STARTER.BIN,$4A8C,findSmallestBlock,Sierra C name tag
+STARTER.BIN,$4ACE,findSmallestBlock,Sierra C name tag
+STARTER.BIN,$4B34,MaxFree,Sierra C name tag
+STARTER.BIN,$4B7E,mmalloc,Sierra C name tag
+STARTER.BIN,$4C10,InitHeap,Sierra C name tag
+STARTER.BIN,$4C84,InitWorld,Sierra C name tag
+STARTER.BIN,$4D24,GetTicks,Sierra C name tag
+STARTER.BIN,$4D62,GetTicks,Sierra C name tag
+STARTER.BIN,$4D7E,WaitIODone,Sierra C name tag
+STARTER.BIN,$4DDE,CopyData,Sierra C name tag
+STARTER.BIN,$4ECE,DisposeEngine,Sierra C name tag
+STARTER.BIN,$4EFC,GetSectDst,Sierra C name tag
+STARTER.BIN,$4F58,PeekSectDst,Sierra C name tag
+STARTER.BIN,$5068,ReadData,Sierra C name tag

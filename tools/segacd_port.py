@@ -493,6 +493,11 @@ def main():
                     help="add the fragment to tools/segacd.json, tools/verifySegacd.js and the name map")
     ap.add_argument("--also", action="append", default=[], metavar="FILE",
                     help="another 94G file whose routines may have moved into this disc range")
+    ap.add_argument("--base", type=lambda x: int(x, 0), default=0x1B000,
+                    help="runtime address of file offset 0 ($1B000 HOCKEY.BIN, $21300 STARTER.BIN)")
+    ap.add_argument("--plain", action="store_true", help="not a HOCKEY.BIN fragment: no hockey.inc / macros include")
+    ap.add_argument("--tags", action="store_true",
+                    help="Sierra C: each function ends with rts, a tag byte ($80 + length) and its name")
     ap.add_argument("--no-text", action="store_true",
                     help="team data: a quoted line that is not in the public src/teamdata94.asm (player names, "
                          "nicknames) and every CD block are incbin from the disc file, never text")
@@ -501,17 +506,23 @@ def main():
     ap.add_argument("--name", action="append", default=[], metavar="NAME=ADDR",
                     help="a disc address checked by hand (a RAM name or a routine outside the fragment)")
     a = ap.parse_args()
+    global BASE
+    BASE = a.base
 
-    rom_path = a.rom
-    if not rom_path:
-        sys.path.insert(0, os.path.join(ROOT, "tools"))
-        rom_path = find_rom()
-    rom = open(rom_path, "rb").read()
     disc = open(a.disc, "rb").read()
-    if not os.path.exists(a.lst):
-        sys.exit(f"{a.lst}: no cartridge listing. Run npm run build:retail (the Sega CD build empties output/obj/),\n"
-                 "or pass --lst with a saved copy.")
-    lines = read_listing(a.lst)
+    if a.plain and not a.file and not a.cart_end:
+        # CD-only code (STARTER.BIN ...): no cartridge lines, so neither the ROM nor the listing is needed
+        rom, lines = b"", []
+    else:
+        rom_path = a.rom
+        if not rom_path:
+            sys.path.insert(0, os.path.join(ROOT, "tools"))
+            rom_path = find_rom()
+        rom = open(rom_path, "rb").read()
+        if not os.path.exists(a.lst):
+            sys.exit(f"{a.lst}: no cartridge listing. Run npm run build:retail (the Sega CD build empties output/obj/),\n"
+                     "or pass --lst with a saved copy.")
+        lines = read_listing(a.lst)
     cart_glob, cart_kind, cart_local = symbols(lines)
 
     lo, hi = a.cart_start, a.cart_end
@@ -535,6 +546,24 @@ def main():
         items += more
     walk = align(items, disc, a.disc_start, a.disc_end, nmain)
     frag = Fragment(a, items, walk, disc, rom, cart_glob, cart_kind, cart_local, lines, lo, hi, tail)
+    if a.tags:
+        frag.tagspans, funcs = sierra_tags(disc)
+        frag.known_funcs = funcs
+        for start, name in funcs.items():
+            if a.disc_start <= start - BASE < a.disc_end:
+                a.label.append(f"{name}=0x{start:X}")
+        # the first function of the fragment starts at the fragment start
+        first = min((sp for sp in frag.tagspans if a.disc_start <= sp < a.disc_end), default=None)
+        if first is not None:
+            n = frag.tagspans[first][1]
+            if all(not l.startswith(n + "=") for l in a.label):
+                # its start: the last link a6 before its rts in the fragment, else the fragment start
+                st = a.disc_start
+                for x in range(first - 2, a.disc_start - 1, -2):
+                    if disc[x:x + 2] == b"NV":
+                        st = x
+                        break
+                a.label.append(f"{n}=0x{BASE + st:X}")
     if a.no_text:
         global NO_TEXT
         NO_TEXT = True
@@ -565,17 +594,19 @@ def main():
     if not a.no_assemble:
         frag.fix_by_assembly(a.out)
     frag.report()
-    licensed_check(a.out)
+    licensed_check(a.out, required=not a.plain)
     if a.register:
         register(a, frag)
 
 
-def licensed_check(path):
+def licensed_check(path, required=True):
     """Stop if a player name or team nickname (licensed, never in the repo) is in the written file."""
     lists = {}
     for f in ("PlayerNames.txt", "TeamNicknames.txt"):
         p = os.path.join(ROOT, "Extracted", f)
         if not os.path.exists(p):
+            if not required:
+                return              # SDK code (STARTER.BIN ...): checked when the lists are there
             sys.exit(f"{p}: missing; it is needed to check that no licensed name is written (npm run build:retail)")
         lists[f] = [n.strip() for n in open(p, encoding="latin1") if len(n.strip()) >= 4]
     text = open(path, encoding="latin1").read()
@@ -593,6 +624,41 @@ def licensed_check(path):
         sys.exit(f"{path}: contains {len(hits)} licensed name(s). Do not commit it; "
                  "those bytes must be read from cdbin/ (incbin).")
 
+
+
+def sierra_tags(disc):
+    """Sierra C name tags: {tag offset: (end of the zero pad, name)} and {function start (runtime): name}.
+    A function's start is the end of the tag before it (functions follow each other)."""
+    spans = {}
+    for m in re.finditer(rb"\x4e\x75([\x81-\xbf])", disc):
+        n = m.group(1)[0] - 0x80
+        name = disc[m.start() + 3:m.start() + 3 + n]
+        if not re.fullmatch(rb"[A-Za-z_][A-Za-z0-9_]*", name):
+            continue
+        e = m.start() + 3 + n
+        while e < len(disc) and disc[e] == 0:
+            e += 1
+        if e & 1:
+            e -= 1
+        spans[m.start() + 2] = (e, name.decode())
+    funcs = {}
+    ends = {e: k for k, (e, _) in spans.items()}
+    for k in sorted(spans):
+        e, name = spans[k]
+        # the function whose rts is at k-2 starts where the previous tag ended
+        prev = [x for x in ends if x <= k - 2]
+        if prev:
+            start = max(prev)
+            between = [t for t in spans if start <= t < k]
+            if not between:
+                # string literals of the function before may follow its tag: the function starts at
+                # the first link a6 after them
+                for x in range(start, min(start + 0x200, k - 2), 2):
+                    if disc[x:x + 2] == b"NV":
+                        start = x
+                        break
+                funcs[BASE + start] = name
+    return spans, funcs
 
 
 def find_rom():
@@ -861,6 +927,8 @@ class Fragment:
         self.targets = set()
         self.cd_pcs = set()
         self.cdlabels = set()
+        self.tagspans = {}
+        self.known_funcs = {}
         self.public = set()
         self.shared = set()
         self.local_consts = set()
@@ -1170,6 +1238,10 @@ class Fragment:
         for n, v in self.dsym.items():
             if v == rt and self.ckind.get(n) == "label":
                 return n
+        if rt in self.known_funcs and not (BASE + self.start <= rt < BASE + self.end):
+            n = self.known_funcs[rt]
+            self.externs[n] = rt
+            return n
         name = f"X_{rt:X}"
         self.externs[name] = rt
         return name
@@ -1347,10 +1419,28 @@ class Fragment:
         out = []
         pc = p
         while pc < q:
+            if pc in self.tagspans and self.tagspans[pc][0] <= q:
+                e, name = self.tagspans[pc]
+                out.append(("tag", pc, e - pc))
+                pc = e
+                continue
+            k = pc
+            while k < q and self.disc[k] == 0:
+                k += 1
+            cut = [t - BASE for t in self.targets if pc < t - BASE < k]
+            if cut:
+                k = min(cut)
+            if k - pc >= 16:                    # a run of zeros: dcb.b, not a column of ori.b #0
+                out.append(("zeros", pc, k - pc))
+                pc = k
+                continue
             k = pc
             while k < q and 0x20 <= self.disc[k] < 0x7F and self.disc[k] not in (0x27,):
                 k += 1
-            if k - pc >= 6 and not any(pc < t - BASE < k for t in self.targets):
+            cut = [t - BASE for t in self.targets if pc < t - BASE < k]
+            if cut:
+                k = min(cut)                    # a string that is referenced starts there: split the run
+            if k - pc >= 6:
                 out.append(("text", pc, k - pc))
                 pc = k
                 continue
@@ -1401,13 +1491,23 @@ class Fragment:
             self.targets = found
 
     def emit_cd(self, body, p, q):
-        body.append(("text", ";CD: no cartridge twin"))
+        if not self.a.plain:
+            body.append(("text", ";CD: no cartridge twin"))
         self.stats["cd_bytes"] += q - p
         if NO_TEXT:                     # team data: may hold disc-only names, never decode it to text
             body.append(("src", f"\tincbin\t..\\cdbin\\HOCKEY.BIN,${p:X},{q - p}\t;read from the disc file", p, q - p))
             return
         for u in self.cd_units(p, q):
-            if u[0] == "text":
+            if u[0] == "zeros":
+                body.append(("data", None, f"\tdcb.b\t{u[2]},0", u[1], u[2]))
+            elif u[0] == "tag":
+                pc, n = u[1], u[2]
+                raw = self.disc[pc:pc + n]
+                ln = raw[0] - 0x80
+                name = raw[1:1 + ln].decode()
+                pad = ",".join("0" for _ in raw[1 + ln:])
+                body.append(("data", None, f"\tdc.b\t${raw[0]:02X},'{name}'" + ("," + pad if pad else ""), pc, n))
+            elif u[0] == "text":
                 pc, n = u[1], u[2]
                 body.append(("raw", self.disc[pc:pc + n], pc))
             elif u[0] == "raw":
@@ -1422,17 +1522,22 @@ class Fragment:
     def render(self, markers=False):
         out = []
         src94 = self.a.file or os.path.basename(self.a.out)
-        out.append(f";\tHOCKEY.BIN ${self.start:X}-${self.end - 1:X} (runtime ${BASE + self.start:X}-${BASE + self.end - 1:X}):"
-                   f" {src94} as the disc has it.")
-        out.append(";\tThe cartridge source with long addresses and no short or quick forms. Lines under ;CD: have")
-        out.append(";\tno cartridge twin. Names are the cartridge's; segacd\\hockey\\hockey.inc has the disc RAM map.")
+        discname = os.path.basename(self.a.disc)
+        if self.a.plain:
+            out.append(f";\t{discname} ${self.start:X}-${self.end - 1:X} (runtime ${BASE + self.start:X}-${BASE + self.end - 1:X}).")
+        else:
+            out.append(f";\tHOCKEY.BIN ${self.start:X}-${self.end - 1:X} (runtime ${BASE + self.start:X}-${BASE + self.end - 1:X}):"
+                       f" {src94} as the disc has it.")
+            out.append(";\tThe cartridge source with long addresses and no short or quick forms. Lines under ;CD: have")
+            out.append(";\tno cartridge twin. Names are the cartridge's; segacd\\hockey\\hockey.inc has the disc RAM map.")
         if self.a.note:
             out.append(";")
             for t in self.a.note.split("\\n"):
                 out.append(f";\t{t}")
         out.append("")
-        out.append("\tinclude\tmacros\\genesis.mac")
-        out.append("\tinclude\tsegacd\\hockey\\hockey.inc")
+        if not self.a.plain:
+            out.append("\tinclude\tmacros\\genesis.mac")
+            out.append("\tinclude\tsegacd\\hockey\\hockey.inc")
         out.append("")
         ext_at = len(out)
         out.append(f"\torg\t${BASE + self.start:X}")
@@ -1452,7 +1557,8 @@ class Fragment:
                         placed.add((rt, name))
                 for rt, name in sorted(self.cdlabels):
                     if rt == BASE + sp[0] and (rt, name) not in placed:
-                        out.append(name + "\t\t\t\t\t\t;CD-only routine (a name given here, not a cartridge name)")
+                        # a Sierra C name comes from its tag; any other is a name given here
+                        out.append(name if self.a.tags else name + "\t\t\t\t\t\t;CD-only routine (a name given here, not a cartridge name)")
                         placed.add((rt, name))
             if markers and sp is not None:
                 out.append(f".zzm{k}")
@@ -1464,6 +1570,8 @@ class Fragment:
                     out.append(e[1])
             elif e[0] == "data":
                 lab = e[1] or ""
+                if BASE + e[3] in self.auto:
+                    out.append(f".L{BASE + e[3]:X}")       # a buffer or table a lea points at
                 out.append(lab + e[2])
             elif e[0] == "insn":
                 _, lab, mn, ops, com, p, size = e
@@ -1680,7 +1788,7 @@ def register(a, frag):
     vj = os.path.join(ROOT, "tools", "verifySegacd.js")
     text = open(vj, encoding="utf8").read()
     if f"output/segacd/{name}.bin" not in text:
-        text = text.rstrip("\n") + "\n" + (f"compareAt('output/segacd/{name}.bin', 'cdbin/HOCKEY.BIN', "
+        text = text.rstrip("\n") + "\n" + (f"compareAt('output/segacd/{name}.bin', 'cdbin/{os.path.basename(a.disc)}', "
                                            f"0x{frag.start:X}, 0x{frag.end - frag.start:X});") + "\n"
         open(vj, "w", encoding="utf8", newline="\n").write(text)
     nm = os.path.join(ROOT, "docs", "segacd-handoff", "name_map.csv")
@@ -1688,9 +1796,9 @@ def register(a, frag):
     have = {tuple(r.split(",")[:3]) for r in rows[1:]}
     src94 = a.file or ""
     for rt, name94 in frag.globals_sorted:
-        key = ("HOCKEY.BIN", f"${rt - BASE:X}", name94)
+        key = (os.path.basename(a.disc), f"${rt - BASE:X}", name94)
         if key not in have:
-            rows.append(",".join(key) + f",{src94}")
+            rows.append(",".join(key) + f",{src94 or ('Sierra C name tag' if a.tags else 'CD-only')}")
     head, body = rows[0], rows[1:]
     body.sort(key=lambda r: (r.split(",")[0], int(r.split(",")[1].lstrip("$"), 16)))
     open(nm, "w", encoding="utf8", newline="\n").write("\n".join([head] + body) + "\n")

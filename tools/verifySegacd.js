@@ -151,3 +151,14 @@ compareAt('output/segacd/hockey/graphics94_2.bin', 'cdbin/HOCKEY.BIN', 0x28A7E, 
 compareAt('output/segacd/hockey/cdgfxptrs.bin', 'cdbin/HOCKEY.BIN', 0x2CCFC, 0xB0);
 compareAt('output/segacd/hockey/cdpads.bin', 'cdbin/HOCKEY.BIN', 0x2CDAC, 0x45E);
 compareAt('output/segacd/hockey/teamdata94.bin', 'cdbin/HOCKEY.BIN', 0x0, 0x5432);
+compareAt('output/segacd/starter/subtext.bin', 'cdbin/STARTER.BIN', 0x4788, 0x272);
+compareAt('output/segacd/starter/heapalloc.bin', 'cdbin/STARTER.BIN', 0x49FA, 0x28A);
+compareAt('output/segacd/starter/subinit.bin', 'cdbin/STARTER.BIN', 0x4C84, 0x11A);
+compareAt('output/segacd/starter/copydata.bin', 'cdbin/STARTER.BIN', 0x4DDE, 0x48);
+compareAt('output/segacd/starter/engine.bin', 'cdbin/STARTER.BIN', 0x4ECE, 0xDA);
+compareAt('output/segacd/starter/readdata.bin', 'cdbin/STARTER.BIN', 0x5068, 0x24);
+compareAt('output/segacd/starter/subirq.bin', 'cdbin/STARTER.BIN', 0x40FA, 0x23C);
+compareAt('output/segacd/starter/crt.bin', 'cdbin/STARTER.BIN', 0x5304, 0x1F2);
+compareAt('output/segacd/starter/subhdr.bin', 'cdbin/STARTER.BIN', 0x90, 0x14B2);
+compareAt('output/segacd/starter/subdrv.bin', 'cdbin/STARTER.BIN', 0x1542, 0x24CA);
+compareAt('output/segacd/starter/subdrv_2.bin', 'cdbin/STARTER.BIN', 0x3A8A, 0x30A);

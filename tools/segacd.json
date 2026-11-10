@@ -83,5 +83,16 @@
   {"name": "hockey/graphics94_2", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
   {"name": "hockey/cdgfxptrs", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
   {"name": "hockey/cdpads", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
-  {"name": "hockey/teamdata94", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]}
+  {"name": "hockey/teamdata94", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
+  {"name": "starter/subtext", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
+  {"name": "starter/heapalloc", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
+  {"name": "starter/subinit", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
+  {"name": "starter/copydata", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
+  {"name": "starter/engine", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
+  {"name": "starter/readdata", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
+  {"name": "starter/subirq", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
+  {"name": "starter/crt", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
+  {"name": "starter/subhdr", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
+  {"name": "starter/subdrv", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]},
+  {"name": "starter/subdrv_2", "options": ["/o", "d-", "/o", "s-", "/o", "r+", "/o", "l+", "/o", "l.", "/o", "ow+", "/o", "op-", "/o", "os+", "/o", "oz-", "/o", "omq-", "/o", "oaq-", "/o", "osq-"]}
 ]

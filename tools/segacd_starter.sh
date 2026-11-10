@@ -1,0 +1,35 @@
+#!/bin/bash
+# segacd_starter.sh: write the STARTER.BIN fragments in src/segacd/starter/ with tools/segacd_port.py.
+# STARTER.BIN is the Sega CD SDK (no cartridge code): the fragments are its instructions, with the Sierra C
+# function names taken from the name tag after each rts. Needs only cdbin/STARTER.BIN (no ROM, no listing).
+# The older hand fragments in src/segacd/ (filmopen.asm, subheap.asm ...) are left as they are; these fill
+# the gaps between them. This file records each fragment's range and note.
+#
+#   tools/segacd_starter.sh
+cd "$(dirname "$0")/.." || exit 1
+mkdir -p output src/segacd/starter
+fail=0
+port() {  # name start end [options...]
+  local n=$1 s=$2 e=$3
+  shift 3
+  python tools/segacd_port.py --disc cdbin/STARTER.BIN --base 0x21300 --plain --tags --cart-start 0 --cart-end 0 \
+    --disc-start "$s" --disc-end "$e" --out "src/segacd/starter/$n.asm" --register "$@" > "output/port_starter_$n.log" 2>&1
+  grep -q "^MATCH" "output/port_starter_$n.log" || fail=1
+  grep -E "^(MATCH|MISMATCH)|^src" "output/port_starter_$n.log" | tr '\n' ' '; echo
+}
+
+# File $1000-$3D93 is a separate module linked at file + $B000 (runtime $C000-$ED93): its absolute calls
+# land at that base (jmp $D85A is file $285A). subboot.asm and the C part ($3D94 on) are at file + $21300.
+port subhdr 0x90 0x1542 --base 0xB000 --note 'Zeros after subboot.asm, then the start of the sub CPU driver module (runtime file + $B000): a\nfile record (HOCKEY.BIN, $01FF), and an entry table (jmp $D85A, bra.w $C542).'
+port subdrv 0x1542 0x3A0C --base 0xB000 --note 'The sub CPU driver module (runtime file + $B000): a command dispatch on d0 at $C542, the gate\narray at $8000-$802x (short addresses), its work area at $EC90 ... Not named yet. pcmclear.asm follows\n(its bytes match; its comment gives a runtime at the $21300 base, but this module runs at $B000 + file).'
+port subdrv_2 0x3A8A 0x3D94 --base 0xB000 --note 'The end of the sub CPU driver module, between cdcwait.asm and filmrun.asm (runtime file + $B000).'
+port subirq 0x40FA 0x4336 --note 'After pcmchip.asm: a long that keeps the BIOS vector at $5F90 (the first line, decoded as an\nori.b #0), code that hooks that vector with its own handler and puts it back, then the C function Wait.'
+port subtext 0x4788 0x49FA --note 'SwapMeg, DrawText, NumStr, HexStr, aprint: text to the main CPU (SendCommandToMain, the\nDoDrawTextCommand side is in maintext.asm) and number formatting.'
+port heapalloc 0x49FA 0x4C84 --note 'The heap: ffree, findSmallestBlock, MaxFree, mmalloc, InitHeap.'
+port subinit 0x4C84 0x4D9E --note 'InitWorld (prints SUBCPU is alive), GetTicks, WaitIODone.'
+port copydata 0x4DDE 0x4E26 --note 'CopyData (after SendCommandToMain in filmcmd.asm).'
+port engine 0x4ECE 0x4FA8 --note 'DisposeEngine, GetSectDst, PeekSectDst: the CD read engine (InitEngine is in filmbuf.asm,\nEngineIdle and GetData in subheap.asm).'
+port readdata 0x5068 0x508C --note 'ReadData (between GetData in subheap.asm and the audio stream in audiostream.asm).'
+port crt 0x5304 0x54F6 --note 'The Sierra C run-time helpers after AudioBusy: 32-bit multiply ($26604) and the divide /\nmodulo entries with their jump table. No name tags here; cdfade.asm follows.'
+
+exit $fail

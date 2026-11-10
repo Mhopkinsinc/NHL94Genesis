@@ -28,3 +28,5 @@
 - 2026-11-10 hockey: a constant defined in a 94G code file (`collrad = 8` in collide94) belongs to that file's fragment; other fragments get their own equate, never `hockey.inc`. (collide94: `collrad` multiply defined)
 - 2026-11-10 hockey: the disc team data differs from the cartridge's in places and may hold names the cartridge lists do not have; port it with `--no-text` (every non-public quoted line and every CD block is incbin from the disc). (teamdata94)
 - 2026-11-10 hockey: a shared name (ram94 / teamdata94 / macros) defined inside a fragment is a comment there and a value in hockey.inc, whatever order the fragments are written in. (teamdata94: NumTeams multiply defined)
+- 2026-11-10 starter: STARTER.BIN file `$1000`-`$3D93` runs at file + `$B000`, not `$21300`; test a base by checking that absolute call targets fall just after an `rts`. (17 of 19 at `$B000`, 0 at `$21300`)
+- 2026-11-10 starter: Sierra C puts a function's string literals after its name tag; the next function starts at the next `link a6`. (heapalloc: the ffree messages between ffree and findSmallestBlock)

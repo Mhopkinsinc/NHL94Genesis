@@ -22,6 +22,7 @@
 | `$6000`-`$60FF` | BIOS entry points (`$6044` is the dispatcher, function number in `d7`) |
 | `$B090` | the boot keeps the BIOS vector from `$6038` here |
 | up to `$C458` | stack (grows down from `$C458`) |
+| `$C000`-`$ED93` | the sub CPU driver module from STARTER.BIN (file `$1000`-`$3D93`, runtime = file + `$B000`) |
 | `$1745C`-`$1AD99` | game variables. The cartridge's `$FFxxxx` RAM names live here; `src/segacd/hockey/hockey.inc` lists each one found so far |
 | `$1B000`-`$48209` | `HOCKEY.BIN`. File `$2CD00`-`$2CDAB` (`$47D00`-`$47DAB`) is zeros on the disc: a table of graphics pointers filled at run time, read where the cartridge used ROM labels (`movea.l $47D74,a0` for `movea.l #SetupMenuMap,a0`) |
 | `$FF8000`-`$FF80xx` | gate array: `$FF800E` main CPU flag, `$FF800F` sub CPU flag, `$FF8010` main-to-sub words, `$FF8020` sub-to-main command words |
@@ -32,4 +33,4 @@ The team struct is one word longer than the cartridge's. Every offset from `tmap
 
 ## Open
 
-`STARTER.BIN` is linked at `$21300` (`docs/segacd.md`), inside the range HOCKEY.BIN occupies once loaded. Whether HOCKEY.BIN is loaded over it, and by which call, has not been traced.
+`STARTER.BIN`'s boot and C code are linked at `$21300` (`docs/segacd.md`), inside the range HOCKEY.BIN occupies once loaded; its driver module runs at `$C000`. Whether HOCKEY.BIN is loaded over it, and by which call, has not been traced.

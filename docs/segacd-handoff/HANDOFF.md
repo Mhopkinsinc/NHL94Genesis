@@ -2,9 +2,9 @@
 
 ## Now
 - Unit: none in progress. Branch `mcmarkis/segacd-hockey` (fork Mhopkinsinc/NHL94Genesis), PR abdulahmad/NHL94Genesis#239.
-- Last check: 2026-11-10, Windows: `npm run build:segacd` MATCH 85 fragments; `tools/verify_all.sh -q` ALL MATCH.
+- Last check: 2026-11-10, Windows: `npm run build:segacd` MATCH 96 fragments; `tools/verify_all.sh -q` ALL MATCH.
   `tools/segacd_check.sh`: HOCKEY.BIN 184,842 of 184,842 (100%; 43,120 of it read from the disc with incbin: graphics, licensed
-  names, team data blocks); all code files 204,876 of 410,162 (50.0%).
+  names, team data blocks); STARTER.BIN 21,728 of 120,248 (18.1%); all code files 223,324 of 410,162 (54.4%).
 - Owner decision (Abdul, on the PR): all Sega CD code goes in the Sega CD folder and does not touch the existing
   work; align code, symbols and file names with 94G where possible. So the older hand fragments in `src/segacd/`
   stay as they are, and a 94G twin whose disc range holds one is written in parts around it (`name.asm`,
@@ -16,12 +16,16 @@
   segment's range, the hand-checked names and the header notes, and writes them all again from scratch
   (`npm run build:retail` first, keep a copy of `output/obj/nhl94 .lst`: the Sega CD build empties `output/obj/`).
   `docs/segacd.md` "HOCKEY.BIN from the cartridge source" explains the method.
+- STARTER.BIN (PLAN step 3, started): `src/segacd/starter/`, written by `tools/segacd_starter.sh` (no ROM or listing
+  needed). All code from `$0` to `$556D` is matched except the name tags after the film functions (`$4538`-`$458B`,
+  `$472E`-`$4739`, `$477C`-`$4787`, `$4DCA`-`$4DDD`, `$4EC0`-`$4ECD`, between Abdul's fragments). File `$1000`-`$3D93`
+  is a separate driver module that runs at file + `$B000` (docs/segacd.md "STARTER.BIN").
 - Next:
-  1. PLAN step 3: STARTER.BIN (Sierra C SDK; each function's name follows its `rts`), then step 4: PLAYER.BIN and
-     the rest of MAIN.BIN. These are not cartridge code; `segacd_port.py` helps only for the CD-only decoding.
-  2. HOCKEY.BIN polish: the header (`$0`-`$7B`, now one incbin: `jmp $22096`, 2 bytes, `null`, the 28 `TeamList`
-     pointers) as source; name the graphics pointer table entries from the cartridge labels they replace; the
-     team data's differing blocks (arena / division strings, credits) are incbin and could get a layout note.
+  1. STARTER.BIN: name the driver module's routines (command dispatch at `$C542`, gate array, CDC / PCM calls), the
+     five tag gaps above, then the data from `$556E` (tables, Example Line strings, 53 KB that look like sound).
+  2. PLAN step 4: PLAYER.BIN (linked at 0, relocating start-up) and the rest of MAIN.BIN (the second copy of the C
+     handlers `$2240` bytes on).
+  3. HOCKEY.BIN polish: the header as source; names for the graphics pointer table entries.
 - Open questions:
   - The team struct is one word longer from `tmap` on; probably `tmsort` became a long. Confirm when a fragment uses
     `tmsort` (logic94 has `movea.w tmsort(a2),a0` among its CD lines).
@@ -35,12 +39,12 @@
 | File | Size | Matched | Notes |
 |---|---|---|---|
 | MAIN.BIN | 60,416 | 13,994 (23.2%) | contiguous `$0`-`$34B7` plus Z80 loader and hardware readers |
-| STARTER.BIN | 120,248 | 3,280 (2.7%) | boot, heap, PCM chip, audio stream, film player |
+| STARTER.BIN | 120,248 | 21,728 (18.1%) | all code `$0`-`$556D` but five name tags; data from `$556E` |
 | HOCKEY.BIN | 184,842 | 184,842 (100%) | 94G twins (some in parts), team data, CD-only pads and pointer table, the older fragments; 43,120 bytes incbin |
 | PLAYER.BIN | 44,656 | 2,760 (6.2%) | photo picker, career rows, team page |
 | GRAPH2.BIN | 3,051,520 | 0 | graphics archive; first longs are offsets |
 | GTABLE.BIN | 2,048 | 0 | long offsets |
-| Total code | 410,162 | 204,876 (50.0%) | was 22,690 (5.5%) at the start of the session |
+| Total code | 410,162 | 223,324 (54.4%) | was 22,690 (5.5%) at the start of the session |
 
 ## Parked units
 (none)

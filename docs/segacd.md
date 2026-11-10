@@ -79,7 +79,7 @@ The team block at the front of `HOCKEY.BIN` matches the cartridge from Montreal'
 
 `npm run build:segacd` (`node tools/build.js --segacd`) assembles the fragments below into `output/segacd/` and compares them to `cdbin/` with `tools/verifySegacd.js`. Each fragment's assembler options are in `tools/segacd.json`; a new fragment is one line there plus its compare in `verifySegacd.js`. The cartridge ROM is not involved. The Sega CD assemble uses `/o oz-` so a written `$0(an)` stays a 16-bit displacement. The cartridge build still uses `/o oz+`.
 
-Verified bytes are 204,876 of the 410,162 bytes in the four code files (50.0%; `tools/segacd_check.sh` prints the current numbers). Before the HOCKEY.BIN segments they were 22,690 (5.5%). `MAIN.BIN` is contiguous from the first byte through `$FF34B7` (13,496 of 60,416) plus the hardware readers and the Z80 loader (498 bytes more, 13,994 total, 23.2%). `STARTER.BIN` is 3,280 bytes. `HOCKEY.BIN` is matched in full (184,842 bytes), most of it the 94G twins in `src/segacd/hockey/`. 43,120 of those bytes are read from the disc file with `incbin`: graphics (palettes, pictures, arena animations), the licensed player names and team nicknames, and the team data blocks that differ from the cartridge; the rest is source. `PLAYER.BIN` is 2,760 bytes. `GRAPH2.BIN` and `GTABLE.BIN` are still untouched. CD audio is `docs/segacd_audio.md`. `song` and `sfx` are `docs/segacd_song.md`. The scouting-report script is `docs/segacd_announce.md`. Career stats and photos are `docs/segacd_stats.md`. Crowd frames are `docs/segacd_crowd.md`. The film player, Z80 loader, and hardware readers are `docs/segacd_film.md`.
+Verified bytes are 223,324 of the 410,162 bytes in the four code files (54.4%; `tools/segacd_check.sh` prints the current numbers). Before the HOCKEY.BIN segments they were 22,690 (5.5%). `MAIN.BIN` is contiguous from the first byte through `$FF34B7` (13,496 of 60,416) plus the hardware readers and the Z80 loader (498 bytes more, 13,994 total, 23.2%). `STARTER.BIN` is 21,728 bytes (18.1%): all of its code from `$0` to `$556D` except the name tags of the film functions. `HOCKEY.BIN` is matched in full (184,842 bytes), most of it the 94G twins in `src/segacd/hockey/`. 43,120 of those bytes are read from the disc file with `incbin`: graphics (palettes, pictures, arena animations), the licensed player names and team nicknames, and the team data blocks that differ from the cartridge; the rest is source. `PLAYER.BIN` is 2,760 bytes. `GRAPH2.BIN` and `GTABLE.BIN` are still untouched. CD audio is `docs/segacd_audio.md`. `song` and `sfx` are `docs/segacd_song.md`. The scouting-report script is `docs/segacd_announce.md`. Career stats and photos are `docs/segacd_stats.md`. Crowd frames are `docs/segacd_crowd.md`. The film player, Z80 loader, and hardware readers are `docs/segacd_film.md`.
 
 | Source | Compared to | Bytes |
 | --- | --- | --- |
@@ -124,6 +124,17 @@ Verified bytes are 204,876 of the 410,162 bytes in the four code files (50.0%; `
 | `src/segacd/filmclose.asm` | `cdbin/STARTER.BIN` `$473A` | `FilmClose` (66) |
 | `src/segacd/z80load.asm` | `cdbin/MAIN.BIN` `$76C8` | Z80 loader (240) |
 | `src/segacd/hwread.asm` | `cdbin/MAIN.BIN` `$3B3C` | VDP, joypad, and HV readers (258) |
+| `src/segacd/starter/subhdr.asm` | `cdbin/STARTER.BIN` `$90` | zeros, the driver module's file record and entry table (5,298) |
+| `src/segacd/starter/subdrv.asm` | `cdbin/STARTER.BIN` `$1542` | the sub CPU driver module, runtime file + `$B000` (9,418) |
+| `src/segacd/starter/subdrv_2.asm` | `cdbin/STARTER.BIN` `$3A8A` | the end of the driver module (778) |
+| `src/segacd/starter/subirq.asm` | `cdbin/STARTER.BIN` `$40FA` | BIOS vector hook, `Wait` (572) |
+| `src/segacd/starter/subtext.asm` | `cdbin/STARTER.BIN` `$4788` | `SwapMeg`, `DrawText`, `NumStr`, `HexStr`, `aprint` (626) |
+| `src/segacd/starter/heapalloc.asm` | `cdbin/STARTER.BIN` `$49FA` | `ffree`, `findSmallestBlock`, `MaxFree`, `mmalloc`, `InitHeap` (650) |
+| `src/segacd/starter/subinit.asm` | `cdbin/STARTER.BIN` `$4C84` | `InitWorld`, `GetTicks`, `WaitIODone` (282) |
+| `src/segacd/starter/copydata.asm` | `cdbin/STARTER.BIN` `$4DDE` | `CopyData` (72) |
+| `src/segacd/starter/engine.asm` | `cdbin/STARTER.BIN` `$4ECE` | `DisposeEngine`, `GetSectDst`, `PeekSectDst` (218) |
+| `src/segacd/starter/readdata.asm` | `cdbin/STARTER.BIN` `$5068` | `ReadData` (36) |
+| `src/segacd/starter/crt.asm` | `cdbin/STARTER.BIN` `$5304` | Sierra C run-time: 32-bit multiply, divide (498) |
 | `src/segacd/hockey/teamdata94.asm` | `cdbin/HOCKEY.BIN` `$0` | header and `teamdata94.asm`: team records; licensed names read from the disc (21,554) |
 | `src/segacd/hockey/frames94.asm` | `cdbin/HOCKEY.BIN` `$5432` | `frames94.asm`: sprite animation tables, unchanged (7,062) |
 | `src/segacd/hockey/sram94.asm` | `cdbin/HOCKEY.BIN` `$6FC8` | `sram94.asm`: CD start-up, `Begin` (the game start), backup RAM (1,388) |
@@ -192,6 +203,12 @@ The audio slices are the sub CPU's CD-DA calls and the PCM stream. `docs/segacd_
 `cdrequest.asm` is `song` at runtime `$371D2`. `sfxcd.asm` is `sfx` at `$3710C`. `songplay.asm` is the one call that then `MSCPLAY1`s the track. `docs/segacd_song.md`.
 
 `z80load.asm` copies a `$C3 $00` block to the Z80. `hwread.asm` is the main CPU's one-line port readers, including the HV counter copy into `$A12010`.
+
+## STARTER.BIN
+
+STARTER.BIN holds two pieces of code linked at two addresses. File `$0`-`$8F` (`subboot.asm`) and the C part from `$3D94` (the film player, the heap, the audio stream: Sierra C, each function's name in the tag after its `rts`) run at file + `$21300`. File `$1000`-`$3D93` is a separate module, the sub CPU driver, that runs at file + `$B000` (runtime `$C000`-`$ED93`): its absolute calls land there (`jmp $D85A` is file `$285A`, and 17 of its 19 absolute calls fall just after an `rts` at that base, none at `$21300`). It talks to the gate array through short addresses (`$8020.w` is `$FF8020`). The older `pcmclear.asm` and `cdcwait.asm` sit inside that module; their bytes match, though their comments give runtimes at the `$21300` base. From `$556E` on the file is data (tables, the Example Line strings, then 53 KB with no zero bytes, probably sound).
+
+The new fragments are in `src/segacd/starter/` and fill the gaps between the older ones, which are left as they are. `tools/segacd_starter.sh` writes them with `segacd_port.py --plain --tags --base`: `--tags` names each C function from its tag, writes the tag as `dc.b $8A,'EngineIdle',0,0,0`, and names calls to other tagged functions. The driver module has no names yet.
 
 `tools/emit_m68k.py` writes a slice as SNASM (`moveq #-1` instead of `moveq #$FF`, unsized `btst` to a data register, `$FFFFFD08.w` instead of `$FD08.w`). `tools/segacd_relocs.py` is the six-instruction matcher that prints the cartridge-to-disc address pairs. Both are Sega CD helpers only; the cartridge build does not use them.
 
