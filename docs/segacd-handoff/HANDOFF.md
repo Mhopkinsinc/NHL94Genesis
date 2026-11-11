@@ -47,6 +47,9 @@
      the EA SPORTS logo sprites, sparkles; packed tiles in the cartridge's DecompressBytecode format, which
      MAIN.BIN's copy of the cartridge decompressor unpacks) and a PCM record directory (`startergfx.asm`). MAIN's
      Z80 sound image is asm80 source (`src/segacd/main/mainz80.z80`, MAIN.BIN `$5E0C`-`$765B`, copied to Z80 `$0000`).
+  5. Clean-up done: STARTER's inline parameter blocks are data (the code after them decodes again); the system
+     program has no `X_` addresses left, and STARTER's copy of the SDK film code has the same names (STARTER =
+     system program + `$83E2`); the older STARTER fragments use the tag names instead of `X_` addresses.
   4. The boot area (from a disc image: `tools/segacd_bootarea.py`, optional `cdbin/BOOT.BIN`): the header, Sega's
      security block (incbin), the initial program and the system program are in `src/segacd/boot/` and match.
      The system program (sub CPU `$6000`) loads MAIN.BIN, GTABLE.BIN and STARTER.BIN and provides the `$6044`
