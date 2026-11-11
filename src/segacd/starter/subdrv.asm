@@ -1348,7 +1348,7 @@ RunStarterSequence
 	bsr.w	X_1055C
 	move.l	#$400,-(sp)
 	bsr.w	X_10540
-	bsr.w	SetMainLinkedResource
+	bsr.w	SendMainFontMap
 	bsr.w	AnimateEASportsLogo
 	bsr.w	ShowHighScoreScreen
 	bsr.w	RunStarterFilm
@@ -1427,7 +1427,7 @@ AnimateEASportsLogo
 	move.w	d4,$10AF0.l
 	movea.l	$109DC.l,a0
 	lea	$8(a0),a2
-	bsr.w	CallMainLinkedResource
+	bsr.w	SendMainLoadTiles
 	lea	$BA850.l,a1
 	adda.l	(a0),a0
 	moveq	#$1F,d0
@@ -1655,7 +1655,7 @@ RunCredits
 	move.w	d4,$10AFE.l
 	movea.l	$1094C.l,a2
 	addq.l	#$8,a2
-	jsr	(CallMainLinkedResource).l
+	jsr	(SendMainLoadTiles).l
 	bsr.w	SendMainCommand0E
 	bsr.w	SendMainCommand0BInline
 	dc.w	$0006,$FF00
@@ -1896,7 +1896,7 @@ InitStarterAnimation
 	move.w	$4(a0),(a2)
 	movea.l	a4,a0
 	lea	$8(a0),a2
-	bsr.w	CallMainLinkedResource
+	bsr.w	SendMainLoadTiles
 	rts
 WaitDriverFrames
 	neg.w	d0
@@ -1905,7 +1905,7 @@ WaitDriverFrames
 	tst.w	$10AE0.l
 	bmi.s	.LE120
 	rts
-CallMainLinkedResource
+SendMainLoadTiles
 	movem.l	d0-d1/a0,-(sp)
 	lea	$BA450.l,a0
 	move.l	d4,(a0)+
@@ -2510,7 +2510,7 @@ SendMainCommand12
 	bsr.w	SendMainCommand
 	movem.l	(sp)+,d0/a0-a1
 	rts
-SetMainLinkedResource
+SendMainFontMap
 	lea	$BA450.l,a0
 	move.l	$1094C.l,(a0)+
 	moveq	#$5,d0

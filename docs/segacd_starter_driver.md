@@ -62,20 +62,20 @@ RunCredits reads the records at `$25F0E` and `$25F36`, the credits text at the s
 
 ## Commands to the main CPU
 
-SendMainCommand (`$E370`) writes d0 to `$FF8020`, sets sub flag bit 6, waits for the main CPU, and hands word RAM over and back (`$FF8014` bit 0 and the four phases on `$FF8018`/`$FF8028`, SyncMainWordRamPhase0-3). Arguments go in word RAM at `$BA450` (`$23A450` on the main CPU). These numbers are the driver's: MAIN.BIN's older interface, `CmdJumpTable` at `$FF11BE` with handlers `SubCmd00`-`SubCmd1D` (`docs/segacd_main_shell.md`), not the game shell's.
+SendMainCommand (`$E370`) writes d0 to `$FF8020`, sets sub flag bit 6, waits for the main CPU, and hands word RAM over and back (`$FF8014` bit 0 and the four phases on `$FF8018`/`$FF8028`, SyncMainWordRamPhase0-3). Arguments go in word RAM at `$BA450` (`$23A450` on the main CPU). These numbers are the driver's: MAIN.BIN's older interface, `CmdJumpTable` at `$FF11BE` (`docs/segacd_main_shell.md`, "The older interface"), not the game shell's.
 
 | Routine | Command | Arguments |
 | --- | --- | --- |
 | SendMainCommand00 / 01 (`$E338`, `$E354`) | `$00`, `$01` | d0.w, d1.w, a0.l |
-| SendMainCommand02Inline (`$E320`) | `$02` | nine words after the call |
+| SendMainCommand02Inline (`$E320`) | `$02` | nine words after the call (SetUpDisplayCommand) |
 | SendMainCommand03 (`$E310`) | `$03` | |
-| CallMainLinkedResource (`$E12A`) | `$04` | d4, a2 |
-| SetMainLinkedResource (`$E8E2`) | `$05` | the pointer at `$1094C` |
-| SendMainCommand06 / 07 / 08 | `$06`-`$08` | drawing state and pointers |
-| SendMainCommand0BInline, SendMainCommand0B, SendMainCommand0C, SendMainCommand0DInline | `$0B`-`$0D` | a length-prefixed block, inline or at a1 |
-| SendMainCommand0E (`$E6FC`) | `$0E` | `$10AE4`-`$10B07` |
+| SendMainLoadTiles (`$E12A`) | `$04` | d4, a2: tiles into VRAM (LoadTilesCommand) |
+| SendMainFontMap (`$E8E2`) | `$05` | the pointer at `$1094C`, CreditsFont: the text font (SetFontMapCommand) |
+| SendMainCommand06 / 07 / 08 | `$06`-`$08` | TileRemap reset; a filled rectangle (d0-d2); a picture (a0-a2, d0-d5) |
+| SendMainCommand0BInline, SendMainCommand0B, SendMainCommand0C, SendMainCommand0DInline | `$0B`-`$0D` | text: a length-prefixed string, inline or at a1 (DrawTextCommand, DrawCodedTextCommand) |
+| SendMainCommand0E (`$E6FC`) | `$0E` | `$10AE4`-`$10B07`: the drawing parameters, font bases among them |
 | ReadMainHvCounter (`$E7E0`) | `$0F` | the reply (HV counter) at `$10BCE` |
-| SendMainCommand10Inline, SendMainCommand12Inline / 12 | `$10`, `$12` | inline or at a1 |
+| SendMainCommand10Inline, SendMainCommand12Inline / 12 | `$10`, `$12` | recoloured tiles; a cell rectangle copy (inline or at a1) |
 | WriteMainVdpControl (`$E958`) | `$13` | a VDP control word |
 | SendMainCommand14-19 | `$14`-`$19` | |
 | PrepareMainFilmDisplay (`$EC80`) | `$1A` | VDP set-up for the film |

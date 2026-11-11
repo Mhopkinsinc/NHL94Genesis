@@ -1393,7 +1393,7 @@ STARTER.BIN,$306E,CopyStarterSpriteData,Sierra C name tag
 STARTER.BIN,$30BA,StepStarterAnimation,Sierra C name tag
 STARTER.BIN,$3102,InitStarterAnimation,Sierra C name tag
 STARTER.BIN,$3118,WaitDriverFrames,Sierra C name tag
-STARTER.BIN,$312A,CallMainLinkedResource,Sierra C name tag
+STARTER.BIN,$312A,SendMainLoadTiles,Sierra C name tag
 STARTER.BIN,$314C,ClearStarterPaletteAndWait,Sierra C name tag
 STARTER.BIN,$317A,WaitStarterTransfer,Sierra C name tag
 STARTER.BIN,$3198,ReadStarterPads,Sierra C name tag
@@ -1439,7 +1439,7 @@ STARTER.BIN,$3862,SyncMainWordRamPhase2,Sierra C name tag
 STARTER.BIN,$3880,SyncMainWordRamPhase3,Sierra C name tag
 STARTER.BIN,$389E,SendMainCommand12Inline,Sierra C name tag
 STARTER.BIN,$38C4,SendMainCommand12,Sierra C name tag
-STARTER.BIN,$38E2,SetMainLinkedResource,Sierra C name tag
+STARTER.BIN,$38E2,SendMainFontMap,Sierra C name tag
 STARTER.BIN,$38F6,SendMainCommand0B,Sierra C name tag
 STARTER.BIN,$3958,WriteMainVdpControl,Sierra C name tag
 STARTER.BIN,$3970,SendIndexedMainCommand0C,Sierra C name tag

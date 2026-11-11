@@ -2,8 +2,8 @@
 ; Word-RAM blit and VDP DMA. Continues the call at the end of maincd.asm.
 ; Assemble with /o oz- (see tools/segacd.json; npm run build:segacd).
 
-X_FF151C	equ	$FF151C
-X_FF169C	equ	$FF169C
+WaitForVdpDma	equ	$FF151C
+SetVramWriteAddress	equ	$FF169C
 DecompressBytecode	equ	$FF210E
 remapTablePtr	equ	$FF2912
 
@@ -39,7 +39,7 @@ LFF12B6	move.w	sr,-(sp)
 	movem.l	d0-d4/a0-a2,-(sp)
 	exg.l	d0,d1
 	movea.l	a0,a2
-	bsr.w	X_FF169C
+	bsr.w	SetVramWriteAddress
 	subq.w	#$1,d1
 LFF12D8	moveq	#$3,d0
 	move.w	(a2)+,d2
@@ -115,7 +115,7 @@ SubCmd03					;command $03 (CmdJumpTable): clear VRAM (64 KB), word RAM flags kep
 	move.w	$23C6E8.l,-(sp)
 	bset.b	#$4,$23C6E8.l
 	moveq	#$0,d0
-	bsr.w	X_FF169C
+	bsr.w	SetVramWriteAddress
 	move.w	#$3FFF,d0
 	clr.l	d1
 LFF13C4	move.l	d1,(a0)
@@ -196,7 +196,7 @@ LFF1466	move.w	#$8154,(a1)
 	move.w	#$2700,sr
 	move.w	$FF2910.l,(a1)
 	move.w	$FF290E.l,(a1)
-	bsr.w	X_FF151C
+	bsr.w	WaitForVdpDma
 	move.w	#$8164,(a1)
 	cmpa.l	#$200000,a0
 	blt.w	LFF14FC

@@ -9,7 +9,7 @@ X_FF1130	equ	$FF1130
 X_FF1F9E	equ	$FF1F9E
 X_FF11A4	equ	$FF11A4
 X_FF1F78	equ	$FF1F78
-X_FF20BE	equ	$FF20BE
+FillVram	equ	$FF20BE
 X_FF177C	equ	$FF177C
 
 	org	$FF22C0
@@ -36,11 +36,11 @@ SubCmd15					;command $15 (CmdJumpTable): two configured VRAM fills
 	move.w	#$800,d0
 	move.w	$FF2852.l,d1
 	move.w	#$7FF,d2
-	bsr.w	X_FF20BE
+	bsr.w	FillVram
 	move.w	#$1000,d0
 	move.w	$FF2856.l,d1
 	move.w	#$7FF,d2
-	bsr.w	X_FF20BE
+	bsr.w	FillVram
 	rts
 SubCmd16					;command $16 (CmdJumpTable): a word at $FF2A24 plus the next word, to VSRAM address 2
 	lea.l	$23A450.l,a1

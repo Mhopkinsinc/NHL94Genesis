@@ -63,25 +63,55 @@ MainShellEntry (`$FF45A8`) sets the stack at `$FFFC00`, clears `$A12010`-`$A1201
 
 ## The older interface
 
-`RunSubCommand` (`maincd.asm`, `$FF1006`) serves these until command `$1E`; the game shell runs it for command `$3E`. `DispatchSubCommand` adds the long from `CmdJumpTable` (`$FF11BE`) to the table address. STARTER.BIN's driver sends these during the start-up (`docs/segacd_starter_driver.md`). The handlers are labelled `SubCmdNN` in the older fragments, with the command's job as the comment; the three that had names keep them.
+`RunSubCommand` (`maincd.asm`, `$FF1006`) serves these until command `$1E`; the game shell runs it for command `$3E`. `DispatchSubCommand` adds the long from `CmdJumpTable` (`$FF11BE`) to the table address. STARTER.BIN's driver sends these during the start-up (`docs/segacd_starter_driver.md`). The parameters are in word RAM at `$23A450` (the sub CPU's `$BA450`), and what a command gives back is written there too. A pointer from the sub CPU is a word RAM address on its side (`$80000` on), so the handlers add `$180000` to reach the same bytes at `$200000`. The drawing handlers have CD-only names; the rest are labelled `SubCmdNN` with the command's job as the comment.
 
 | Cmd | Handler | What it does |
 | --- | --- | --- |
 | `$00` / `$01` | SubCmd00 / SubCmd01 (`maindma`) | DMA to VRAM from `$23A450` parameters; `$01` keeps word RAM flag bit 4 |
-| `$02` | SubCmd02 (`maincont`) | display set-up from word RAM |
+| `$02` | SetUpDisplayCommand (`maincont`) | the VRAM layout (H scroll, sprites, planes A and B, window), the plane size, H32 or H40, one colour for the whole palette |
 | `$03` | SubCmd03 (`maindma`) | clear VRAM |
-| `$04` / `$05` | CallLinkedPtr / StoreLinkedPtr (`maincd`) | call / keep a translated sub CPU pointer |
-| `$06`-`$0A` | SubCmd06-SubCmd0A (`maincont`) | the drawing state and drawing with translated pointers |
-| `$0B`-`$0D` | SubCmd0B-SubCmd0D (`maincont`, `mainblit`) | length-prefixed text and blocks (the credits lines) |
-| `$0E` | SubCmd0E (`mainblit`) | `$24` bytes of drawing state to `$FF2860` |
-| `$0F` | SubCmd0F (`mainblit`) | the HV counter into `$23A450` |
-| `$10`-`$12` | SubCmd10-SubCmd12 (`mainblit`) | the linked routine with d4, drawing parameters, the block at `$23A450` |
+| `$04` | LoadTilesCommand (`maincd`) | tiles (a count word, bit 15 set when packed) into VRAM at character d4; d4 back, moved past them |
+| `$05` | SetFontMapCommand (`maincd`) | the font of the text commands into FontMapPtr (`$FF2884`) |
+| `$06` | ResetTileRemapCommand (`maincont`) | clear TileRemap (below) |
+| `$07` | FillCellsCommand (`maincont`) | fill a rectangle of cells with one cell word |
+| `$08` | DrawPictureCommand (`maincont`) | a picture: palette lines, a rectangle of its map, its tiles |
+| `$09` | LoadRemappedTilesCommand (`maincont`) | load only the tiles TileRemap marks |
+| `$0A` | DrawRemappedMapCommand (`maincont`) | a rectangle of a map, its tiles renumbered through TileRemap |
+| `$0B` | DrawTextCommand (`maincont`) | a string through the font |
+| `$0C` / `$0D` | DrawCodedTextCommand / DrawCodedTextCommand2 (`mainblit`) | a string with text codes (two copies of one handler) |
+| `$0E` | SetDrawingParametersCommand (`mainblit`) | `$24` bytes to `$FF2860`-`$FF2883`, the font bases at `$FF287A` among them |
+| `$0F` | ReadHvCounterToWordRamCommand (`mainblit`) | the HV counter into `$23A450` |
+| `$10` | LoadRecolouredTilesCommand (`mainblit`) | as `$04`, each pixel through an eight-byte colour map |
+| `$11` | DrawFrameRowCommand (`mainblit`) | one row of a frame: an end cell, a middle cell repeated, the other end |
+| `$12` | CopyCellRectanglesCommand (`mainblit`) | copy a rectangle of cells from one place in the planes to another (VRAM copy DMA, row by row) |
 | `$13` | SubCmd13 (`mainvdp`) | a word to VDP control |
-| `$14`, `$15`, `$17`, `$18` | SubCmd14 / 15 / 17 / 18 (`mainvdp`, `maincont`) | clear the tables and VSRAM, VRAM fills |
+| `$14`, `$15` | SubCmd14 / SubCmd15 (`mainvdp`) | clear the tables and VSRAM |
+| `$17` | ClearHScrollAndSpritesCommand (`maincont`) | clear the H scroll table and the first sprite |
+| `$18` | FillVramCommand (`maincont`) | FillVram: d0 bytes of the word d2 at VRAM d1 |
 | `$16`, `$19`, `$1D` | SubCmd16 / 19 / 1D (`mainvdp`) | VSRAM (vertical scroll; `$1D` is the credits scroll) |
 | `$1A` / `$1B` | SubCmd1A / SubCmd1B (`mainvdp`) | VDP set-up for the film; the film (the C code at `$FF2E00`) |
 | `$1C` | SubCmd1C (`mainvdp`) | VDP registers `$9100`, `$9213`, `$8B03` |
 | `$1E` | SetCmdPending (`maincd`) | the end: `RunSubCommand` returns |
+
+### Drawing
+
+The commands draw into the planes at a cursor that the sub CPU sends with each command and gets back after it (STARTER.BIN keeps it at `$10B0A`-`$10B10`):
+
+| Variable | Use |
+| --- | --- |
+| `$FF2DB2` / `$FF2DB4` | x and y, in cells |
+| `$FF2DB6` | the attribute: bits 11-15 of each cell word (flips, palette, priority) |
+| `$FF2DB8` | the plane: 0 A, 4 B, 8 the window (an offset into the pairs at `$FF2852`) |
+| `$FF2DBA` | DrawCodedText's font: twice the index of a base at `$FF287A`; 4 picks DrawBigCharacter |
+
+SetUpDisplayCommand sets the pairs at `$FF2852` (plane A's address and width as log2 cells, plane B's, the window's: 32 or 64 cells for H32 or H40), the plane height at `$FF285E` and the H scroll and sprite table addresses at `$FF284E` / `$FF2850`. SetVramWriteToCursor turns the cursor into a VRAM write address; FillCellRectangle and the map drawers go row by row from it, and y comes back moved down.
+
+- **Pictures.** DrawPictureCommand takes a palette (a0), a map (a1: width, height, cell words) and tiles (a2), the three parts of a `.map.jim`; STARTER.BIN draws its screens with it (ShowHighScoreScreen). The palette lines whose bits are set in d5 go to the palette buffer at `$23A850`; d3 rows of d2 cells from column d0, row d1 of the map are drawn, each + d4 and with the attribute; then the tiles go to VRAM at character d4, and d4 comes back moved past them.
+- **Only the tiles in use.** ResetTileRemapCommand clears TileRemap (`$FF2A1A`, one byte per tile of a big tile set) and sets the next index (`$FF2A18`) to 1. DrawRemappedMapCommand draws like DrawPictureCommand but gives a tile the next index the first time the map uses it; LoadRemappedTilesCommand then unpacks the set and sends only the marked tiles, each to character d4 + index - 1 (FlushOutputBuffer's skip mode).
+- **Text.** The font is a `.map.jim` (SetFontMapCommand): its map gives the cell of each character code, and a font base (`$FF287A`, `$FF287C`, `$FF287E`) is added. DrawText (`$0B`) reads a length word and bytes: a character, `$40` for the cell `$7FF`, 0 for nothing, or -n: the attribute and the plane from n, then x and y bytes. DrawCodedText (`$0C`, `$0D`) reads -n as text code n through TextCodeTable: 1 plane, 2 attribute, 3 x, 4 y, 5 and 6 move x and y, 7 the font, 8 all of them; `^` skips a cell. STARTER.BIN draws the credits lines this way (DrawCreditsLines).
+- **Frames and copies.** DrawFrameRowCommand draws a row from three cell words (an end, the middle repeated, the other end) and moves on to the next three, so calls one after another draw a box. CopyCellRectanglesCommand takes a source and a destination (x, y, plane 1-3), a width and a row count, and copies each row with a VRAM copy DMA.
+
+DrawTextInline, DrawCodedTextInline and CopyCellRectanglesInline take the block after the `bsr`; nothing in MAIN.BIN calls them. DrawThreeCellGauge (`$FF1E30`, three cells, d1 of them on) is in no table entry, and no caller was found.
 
 ## The sound engine
 

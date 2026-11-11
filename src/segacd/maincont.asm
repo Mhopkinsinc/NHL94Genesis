@@ -1,9 +1,19 @@
 ; MAIN.BIN $500-$CB7 (runtime $FF1500-$FF1CB7). Emitted by tools/emit_m68k.py.
-; Rest of the DMA routine, the $23A450 copy, and a 9-long table at $FF1C94.
+; Rest of the DMA routine, then the older interface's display set-up and drawing commands (cells, pictures,
+; text) and TextCodeTable. docs/segacd_main_shell.md "The older interface".
 
 DecompressGraphicsPlain	equ	$FF1272
 DecompressBytecode	equ	$FF210E
-X_FF20BE	equ	$FF20BE
+FillVram	equ	$FF20BE
+FontMapPtr	equ	$FF2884
+TextCodeSetAll	equ	$FF1CB8
+TextCodeSetPlane	equ	$FF1CCC
+TextCodeSetAttribute	equ	$FF1CE2
+TextCodeSetX	equ	$FF1CF4
+TextCodeSetY	equ	$FF1D04
+TextCodeMoveX	equ	$FF1D14
+TextCodeMoveY	equ	$FF1D24
+TextCodeSetFont	equ	$FF1D34
 
 	org	$FF1500
 
@@ -16,11 +26,14 @@ X_FF20BE	equ	$FF20BE
 LFF1514	move.w	(sp)+,sr
 	movem.l	(sp)+,d2-d3/a1
 	rts
-LFF151C	move.w	$C00004.l,d2
+WaitForVdpDma							;until the VDP status DMA bit clears
+	move.w	$C00004.l,d2
 	btst	#$1,d2
-	bne.b	LFF151C
+	bne.b	WaitForVdpDma
 	rts
-SubCmd02					;command $02 (CmdJumpTable): display set-up from word RAM
+SetUpDisplayCommand						;command $02: nine words: the H scroll, sprite, plane A, plane B and window
+										;addresses, the plane width (log2 cells), the plane height (cells), the H32 bit, one colour
+										;for the whole palette (uploaded by the V interrupt); then the VDP registers
 	lea.l	$23A450.l,a0
 	move.w	(a0)+,$FF284E.l
 	move.w	(a0)+,$FF2850.l
@@ -38,7 +51,7 @@ SubCmd02					;command $02 (CmdJumpTable): display set-up from word RAM
 LFF1574	move.w	d0,(a0)+
 	dbra	d1,LFF1574
 	move.w	#$18,$23A8D0.l
-	bsr.w	LFF1734
+	bsr.w	WaitForPaletteUpload
 	move.w	$23C6E8.l,-(sp)
 	bset.b	#$4,$23C6E8.l
 	move.w	#$8F02,$C00004.l
@@ -96,7 +109,8 @@ LFF160E	ori.w	#$9000,d0
 	move.l	#$0,(a0)
 	move.w	(sp)+,$23C6E8.l
 	rts
-LFF169C	movea.l	#$C00000,a0
+SetVramWriteAddress						;d0 a VRAM address: the VDP write command; a0 the data port
+	movea.l	#$C00000,a0
 	asl.l	#$2,d0
 	lsr.w	#$2,d0
 	ori.w	#$4000,d0
@@ -104,7 +118,9 @@ LFF169C	movea.l	#$C00000,a0
 	andi.w	#$3,d0
 	move.l	d0,$4(a0)
 	rts
-LFF16B6	movem.l	d0-d2,-(sp)
+SetVramWriteToCursor					;the cell at x ($FF2DB2), y ($FF2DB4) of the plane $FF2DB8 picks (0 A, 4 B,
+										;8 window: the address and width pairs at $FF2852)
+	movem.l	d0-d2,-(sp)
 	move.w	$FF2DB2.l,d0
 	move.w	$FF2DB4.l,d1
 	lea.l	$FF2852.l,a0
@@ -114,16 +130,17 @@ LFF16B6	movem.l	d0-d2,-(sp)
 	add.w	d1,d0
 	add.w	d0,d0
 	add.w	(a0),d0
-	bsr.w	LFF169C
+	bsr.w	SetVramWriteAddress
 	movem.l	(sp)+,d0-d2
 	rts
-LFF16E8	movem.l	d0-d3/a0,-(sp)
+FillCellRectangle						;d0 cells by d1 rows of the cell word d2 from the cursor; y wraps at the plane height
+	movem.l	d0-d3/a0,-(sp)
 	move.w	$23C6E8.l,-(sp)
 	bset.b	#$4,$23C6E8.l
 	moveq	#-1,d3
 	add.w	$FF285E.l,d3
 	movem.w	d0-d1,-(sp)
-LFF1706	bsr.w	LFF16B6
+LFF1706	bsr.w	SetVramWriteToCursor
 	move.w	(sp),d0
 	subq.w	#$1,d0
 LFF170E	move.w	d2,(a0)
@@ -136,7 +153,8 @@ LFF170E	move.w	d2,(a0)
 	move.w	(sp)+,$23C6E8.l
 	movem.l	(sp)+,d0-d3/a0
 	rts
-LFF1734	move.w	sr,-(sp)
+WaitForPaletteUpload					;until the V interrupt marks $23A8D0 done (negative)
+	move.w	sr,-(sp)
 	move.w	$23C6E8.l,-(sp)
 	bclr.b	#$4,$23C6E8.l
 	move.w	#$2500,sr
@@ -145,7 +163,7 @@ LFF1748	tst.w	$23A8D0.l
 	move.w	(sp)+,$23C6E8.l
 	move.w	(sp)+,sr
 	rts
-SubCmd06					;command $06 (CmdJumpTable): clear $398 bytes of drawing state at $FF2A1A, set $FF2A18
+ResetTileRemapCommand					;command $06: clear TileRemap ($FF2A1A, $398 bytes), next index ($FF2A18) 1
 	movem.l	d0/a0,-(sp)
 	lea.l	$FF2A1A.l,a0
 	move.w	#$1CB,d0
@@ -154,23 +172,24 @@ LFF1768	clr.w	(a0)+
 	move.b	#$1,$FF2A18.l
 	movem.l	(sp)+,d0/a0
 	rts
-SubCmd17					;command $17 (CmdJumpTable): clear the configured VRAM tables
+ClearHScrollAndSpritesCommand			;command $17: clear the H scroll table and the first sprite
 	bset.b	#$4,$23C6E8.l
 	andi.b	#$9C,$23C6E8.l
 	move.w	$FF284E.l,d0
-	bsr.w	LFF169C
+	bsr.w	SetVramWriteAddress
 	moveq	#$0,d1
 	move.w	#$DF,d0
 LFF179C	move.l	d1,(a0)
 	dbra	d0,LFF179C
 	move.w	$FF2850.l,d0
-	bsr.w	LFF169C
+	bsr.w	SetVramWriteAddress
 	moveq	#$0,d0
 	move.l	d0,(a0)
 	move.l	d0,(a0)
 	bclr.b	#$4,$23C6E8.l
 	rts
-SubCmd07					;command $07 (CmdJumpTable): drawing: loads the drawing state, draws, writes the state back
+FillCellsCommand						;command $07: width, height, a cell word, x, y, plane: FillCellRectangle;
+										;x, y (moved down) and plane back
 	lea.l	$23A450.l,a0
 	move.w	(a0)+,d0
 	move.w	(a0)+,d1
@@ -178,20 +197,22 @@ SubCmd07					;command $07 (CmdJumpTable): drawing: loads the drawing state, draw
 	move.w	(a0)+,$FF2DB2.l
 	move.w	(a0)+,$FF2DB4.l
 	move.w	(a0)+,$FF2DB8.l
-	bsr.w	LFF16E8
+	bsr.w	FillCellRectangle
 	lea.l	$23A450.l,a0
 	move.w	$FF2DB2.l,(a0)+
 	move.w	$FF2DB4.l,(a0)+
 	move.w	$FF2DB8.l,(a0)+
 	rts
-SubCmd18					;command $18 (CmdJumpTable): a VRAM fill with d0 / d1 / d2 from $23A450
+FillVramCommand							;command $18: FillVram, d0 bytes, d1 address, d2 word from $23A450
 	lea.l	$23A450.l,a0
 	move.w	(a0)+,d0
 	move.w	(a0)+,d1
 	move.w	(a0)+,d2
-	bsr.w	X_FF20BE
+	bsr.w	FillVram
 	rts
-LFF180A	move.w	$FF2DB4.l,-(sp)
+DrawRemappedMap							;as DrawPicture without palette or tiles, each cell TileRemap index - 1 + d4:
+										;TileRemap ($FF2A1A) numbers the tiles in the order they are met
+	move.w	$FF2DB4.l,-(sp)
 	move.w	$23C6E8.l,-(sp)
 	bset.b	#$4,$23C6E8.l
 	movem.l	d0-d3/d5-d6/a0-a3,-(sp)
@@ -201,7 +222,7 @@ LFF180A	move.w	$FF2DB4.l,-(sp)
 	andi.w	#$F800,d5
 	move.w	$E(sp),d2
 	subq.w	#$1,d2
-LFF183A	bsr.w	LFF16B6
+LFF183A	bsr.w	SetVramWriteToCursor
 	move.w	d6,d0
 	mulu.w	(a1),d0
 	add.w	$2(sp),d0
@@ -232,7 +253,8 @@ LFF186E	move.b	(a3,d3.w),d3
 	move.w	(sp)+,$23C6E8.l
 	move.w	(sp)+,$FF2DB4.l
 	rts
-LFF18A8	move.w	$23C6E8.l,-(sp)
+LoadRemappedTiles						;a0 packed tiles: only those TileRemap marks, each to character d4 + index - 1
+	move.w	$23C6E8.l,-(sp)
 	bset.b	#$4,$23C6E8.l
 	moveq	#$1,d1
 	lea.l	$FF2A1A.l,a3
@@ -242,7 +264,9 @@ LFF18A8	move.w	$23C6E8.l,-(sp)
 	add.w	d1,d4
 	move.w	(sp)+,$23C6E8.l
 	rts
-LFF18D4	move.w	$FF2DB4.l,-(sp)
+DrawPicture								;the palette lines of mask d5 from a0 into the palette buffer $23A850; d3 rows of d2
+										;cells of the map at a1 from column d0, row d1, + d4, the attribute; the tiles a2 at d4
+	move.w	$FF2DB4.l,-(sp)
 	move.w	$23C6E8.l,-(sp)
 	bset.b	#$4,$23C6E8.l
 	movem.l	d0-d3/d5-d6/a0-a3,-(sp)
@@ -261,7 +285,7 @@ LFF190A	moveq	#$1F,d0
 	andi.w	#$F800,d5
 	move.w	$E(sp),d2
 	subq.w	#$1,d2
-LFF1922	bsr.w	LFF16B6
+LFF1922	bsr.w	SetVramWriteToCursor
 	move.w	d6,d0
 	mulu.w	(a1),d0
 	add.w	$2(sp),d0
@@ -282,7 +306,8 @@ LFF1936	move.w	$4(a1,d0.w),d3
 	move.w	(sp)+,$23C6E8.l
 	move.w	(sp)+,$FF2DB4.l
 	rts
-SubCmd08					;command $08 (CmdJumpTable): drawing with three translated pointers
+DrawPictureCommand						;command $08: a .map.jim picture: a0 palette, a1 map, a2 tiles (sub CPU word
+										;RAM pointers, + $180000), d0-d5, attribute, x, y, plane: DrawPicture; d4 and the state back
 	lea.l	$23A450.l,a5
 	movea.l	(a5)+,a0
 	movea.l	(a5)+,a1
@@ -300,7 +325,7 @@ SubCmd08					;command $08 (CmdJumpTable): drawing with three translated pointers
 	move.w	(a5)+,$FF2DB2.l
 	move.w	(a5)+,$FF2DB4.l
 	move.w	(a5)+,$FF2DB8.l
-	bsr.w	LFF18D4
+	bsr.w	DrawPicture
 	lea.l	$23A450.l,a5
 	move.w	d4,(a5)+
 	move.w	$FF2DB6.l,(a5)+
@@ -308,15 +333,16 @@ SubCmd08					;command $08 (CmdJumpTable): drawing with three translated pointers
 	move.w	$FF2DB4.l,(a5)+
 	move.w	$FF2DB8.l,(a5)+
 	rts
-SubCmd09					;command $09 (CmdJumpTable): drawing with one translated pointer
+LoadRemappedTilesCommand				;command $09: a0 packed tiles, d4 the first character: LoadRemappedTiles;
+										;d4 back
 	lea.l	$23A450.l,a5
 	movea.l	(a5)+,a0
 	adda.l	#$180000,a0
 	move.w	(a5),d4
-	bsr.w	LFF18A8
+	bsr.w	LoadRemappedTiles
 	move.w	d4,$23A450.l
 	rts
-SubCmd0A					;command $0A (CmdJumpTable): drawing with three translated pointers
+DrawRemappedMapCommand					;command $0A: as $08 (only a1, the map, is used): DrawRemappedMap
 	lea.l	$23A450.l,a5
 	movea.l	(a5)+,a0
 	movea.l	(a5)+,a1
@@ -334,13 +360,15 @@ SubCmd0A					;command $0A (CmdJumpTable): drawing with three translated pointers
 	move.w	(a5)+,$FF2DB2.l
 	move.w	(a5)+,$FF2DB4.l
 	move.w	(a5),$FF2DB8.l
-	bsr.w	LFF180A
+	bsr.w	DrawRemappedMap
 	move.w	d4,$23A450.l
 	rts
-LFF1A3A	move.w	$23C6E8.l,-(sp)
+DrawText								;a1 a length word and bytes: a character, its cell from the font map (FontMapPtr) +
+										;$FF287A; $40 the cell $7FF; 0 nothing; -n attribute and plane from n, then x and y bytes
+	move.w	$23C6E8.l,-(sp)
 	bset.b	#$4,$23C6E8.l
 	movem.l	d0-d3/a0/a2,-(sp)
-	bsr.w	LFF16B6
+	bsr.w	SetVramWriteToCursor
 	move.w	$FF2DB6.l,d2
 	move.w	(a1)+,d3
 	subq.w	#$2,d3
@@ -365,7 +393,7 @@ LFF1A5E	move.b	(a1)+,d0
 	move.b	(a1)+,d1
 	ext.w	d1
 	move.w	d1,$FF2DB4.l
-	bsr.w	LFF16B6
+	bsr.w	SetVramWriteToCursor
 	subq.w	#$2,d3
 	bra.w	LFF1AD8
 LFF1AA8	cmpi.b	#$40,d0
@@ -373,7 +401,7 @@ LFF1AA8	cmpi.b	#$40,d0
 	move.w	#$7FF,d0
 	bra.w	LFF1ACE
 LFF1AB8	asl.w	#$1,d0
-	movea.l	$FF2884.l,a2
+	movea.l	(FontMapPtr).l,a2
 	adda.l	$4(a2),a2
 	move.w	$4(a2,d0.w),d0
 	add.w	$FF287A.l,d0
@@ -384,31 +412,34 @@ LFF1AD8	dbra	d3,LFF1A5E
 	movem.l	(sp)+,d0-d3/a0/a2
 	move.w	(sp)+,$23C6E8.l
 	rts
+DrawTextInline							;DrawText with the string after the call
 	move.l	a1,-(sp)
 	movea.l	$4(sp),a1
-	bsr.w	LFF1A3A
+	bsr.w	DrawText
 	move.l	a1,$4(sp)
 	movea.l	(sp)+,a1
 	rts
-SubCmd0B					;command $0B (CmdJumpTable): text: a length-prefixed block with the drawing state (STARTER credits lines)
+DrawTextCommand							;command $0B: attribute, plane, x, y, font base, a string: DrawText; the state back
 	lea.l	$23A450.l,a1
 	move.w	(a1)+,$FF2DB6.l
 	move.w	(a1)+,$FF2DB8.l
 	move.w	(a1)+,$FF2DB2.l
 	move.w	(a1)+,$FF2DB4.l
 	move.w	(a1)+,$FF287A.l
-	bsr.w	LFF1A3A
+	bsr.w	DrawText
 	lea.l	$23A450.l,a1
 	move.w	$FF2DB6.l,(a1)+
 	move.w	$FF2DB8.l,(a1)+
 	move.w	$FF2DB2.l,(a1)+
 	move.w	$FF2DB4.l,(a1)
 	rts
+DrawCodedText							;a1 a length word and bytes: a character (DrawCodedCharacter), or -n text code n
+										;(TextCodeTable)
 	move.w	$23C6E8.l,-(sp)
 	bset.b	#$4,$23C6E8.l
 	movem.l	d0-d3/a0/a2-a3,-(sp)
 	lea.l	$FF287A.l,a3
-	bsr.w	LFF16B6
+	bsr.w	SetVramWriteToCursor
 	move.w	$FF2DB6.l,d2
 	move.w	(a1)+,d3
 	subq.w	#$2,d3
@@ -418,18 +449,20 @@ LFF1B6C	move.b	(a1)+,d0
 	bgt.w	LFF1B88
 	neg.w	d0
 	asl.w	#$2,d0
-	movea.l	#$FF1C94,a2
+	movea.l	#TextCodeTable,a2
 	movea.l	(a2,d0.w),a2
 	jsr	(a2)
 	bra.w	LFF1B8C
-LFF1B88	bsr.w	LFF1B9C
+LFF1B88	bsr.w	DrawCodedCharacter
 LFF1B8C	dbra	d3,LFF1B6C
 	movem.l	(sp)+,d0-d3/a0/a2-a3
 	move.w	(sp)+,$23C6E8.l
 	rts
-LFF1B9C	move.w	$FF2DBA.l,d1
+DrawCodedCharacter						;font $FF2DBA (4: DrawBigCharacter, else a base at $FF287A + it); $40 the cell
+										;$7FF, '^' a cell skipped
+	move.w	$FF2DBA.l,d1
 	cmpi.w	#$4,d1
-	beq.w	LFF1BEC
+	beq.w	DrawBigCharacter
 	cmpi.b	#$40,d0
 	bne.w	LFF1BBA
 	move.w	#$7FF,d0
@@ -437,7 +470,7 @@ LFF1B9C	move.w	$FF2DBA.l,d1
 LFF1BBA	cmpi.b	#$5E,d0
 	beq.w	LFF1BE2
 	asl.w	#$1,d0
-	movea.l	$FF2884.l,a2
+	movea.l	(FontMapPtr).l,a2
 	adda.l	$4(a2),a2
 	move.w	$4(a2,d0.w),d0
 	add.w	(a3,d1.w),d0
@@ -446,8 +479,10 @@ LFF1BD6	add.w	d2,d0
 	addq.w	#$1,$FF2DB2.l
 	rts
 LFF1BE2	addq.w	#$1,$FF2DB2.l
-	bra.w	LFF16B6
-LFF1BEC	cmpi.b	#$61,d0
+	bra.w	SetVramWriteToCursor
+DrawBigCharacter						;two cells high, one or two wide (width bytes at $FF2DBC), from the font at $FF2888;
+										;nothing in MAIN.BIN writes either
+	cmpi.b	#$61,d0
 	blt.w	LFF1C00
 	cmpi.b	#$7A,d0
 	bgt.w	LFF1C00
@@ -464,12 +499,12 @@ LFF1C00	movem.l	d4-d7/a0,-(sp)
 LFF1C1E	add.w	d5,d5
 	movea.l	$FF2888.l,a0
 	adda.l	$4(a0),a0
-LFF1C2A	bsr.w	LFF1C58
+LFF1C2A	bsr.w	WriteBigCharacterCell
 	move.w	(a0),d7
 	add.w	d7,d7
 	add.w	d7,d5
 	addq.w	#$1,$FF2DB4.l
-	bsr.w	LFF1C58
+	bsr.w	WriteBigCharacterCell
 	sub.w	d7,d5
 	subq.w	#$1,$FF2DB4.l
 	addq.w	#$1,$FF2DB2.l
@@ -477,7 +512,8 @@ LFF1C2A	bsr.w	LFF1C58
 	dbra	d4,LFF1C2A
 	movem.l	(sp)+,d4-d7/a0
 	rts
-LFF1C58	movem.l	d1/a0,-(sp)
+WriteBigCharacterCell
+	movem.l	d1/a0,-(sp)
 	move.w	(a3,d1.w),d6
 	add.w	$4(a0,d5.w),d6
 	add.w	d2,d6
@@ -489,16 +525,18 @@ LFF1C58	movem.l	d1/a0,-(sp)
 	add.w	$FF2DB2.l,d0
 	add.w	d0,d0
 	add.w	(a0),d0
-	bsr.w	LFF169C
+	bsr.w	SetVramWriteAddress
 	move.w	d6,(a0)
 	movem.l	(sp)+,d1/a0
 	rts
+TextCodeTable							;code 0 nothing (an rts in mainvdp), 1 plane, 2 attribute, 3 x, 4 y, 5 x +=, 6 y +=,
+										;7 font, 8 all
 	dc.l	$FF2698
-	dc.l	$FF1CCC
-	dc.l	$FF1CE2
-	dc.l	$FF1CF4
-	dc.l	$FF1D04
-	dc.l	$FF1D14
-	dc.l	$FF1D24
-	dc.l	$FF1D34
-	dc.l	$FF1CB8
+	dc.l	TextCodeSetPlane
+	dc.l	TextCodeSetAttribute
+	dc.l	TextCodeSetX
+	dc.l	TextCodeSetY
+	dc.l	TextCodeMoveX
+	dc.l	TextCodeMoveY
+	dc.l	TextCodeSetFont
+	dc.l	TextCodeSetAll
