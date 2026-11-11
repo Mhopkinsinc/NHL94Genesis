@@ -23,7 +23,7 @@ Res00
 	dc.l	R0_ScoutingReportText-Res00			; 0 -> $47CFC
 	dc.l	R0_TeamLogoBitmaps-Res00			; 1 -> TeamLogoBitmapsPtr
 	dc.l	R0_FeaturedPictures-Res00			; 2 -> FeaturedPicturesPtr
-	dc.l	R0_03-Res00			; 3 -> $47DA4
+	dc.l	R0_ScoutingSpeechClips-Res00			; 3 -> ScoutingSpeechClipsPtr
 	dc.l	R0_SmallFontMap-Res00			; 4 -> SmallFontMapPtr
 	dc.l	R0_HotMap-Res00			; 5 -> HotMapPtr
 	dc.l	R0_ColdMap-Res00			; 6 -> ColdMapPtr
@@ -46,7 +46,7 @@ Res00
 R0_ScoutingReportText	incbin	..\cdbin\GRAPH2.BIN,$5C,61370	;the scouting script (the disc has its own, longer than the cartridge text)
 R0_TeamLogoBitmaps	incbin	..\cdbin\GRAPH2.BIN,$F016,27768	;the team logos: a table of offsets, then the pictures (resource 4 holds the same)
 R0_FeaturedPictures	incbin	..\cdbin\GRAPH2.BIN,$15C8E,132154	;the player pictures: a table of offsets, then the pictures (resource 3 holds the same)
-R0_03	incbin	..\cdbin\GRAPH2.BIN,$360C8,8960	;not known (resource 98 holds the same)
+R0_ScoutingSpeechClips	incbin	..\cdbin\GRAPH2.BIN,$360C8,8960	;the scouting report's speech clips: start sector and sectors of RON*.PCM files (resource 98 holds the same)
 R0_SmallFontMap	incbin	..\cdbin\GRAPH2.BIN,$383C8,3278	;= SmallFont.map.jim
 R0_HotMap	incbin	..\cdbin\GRAPH2.BIN,$39096,550	;= Hot.map.jim
 R0_ColdMap	incbin	..\cdbin\GRAPH2.BIN,$392BC,754	;= Cold.map.jim
@@ -820,7 +820,8 @@ Res97	incbin	..\cdbin\GRAPH2.BIN,$2E1800,20424
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2E6800-*,0				;zero fill to sector $5CD
 
-;	resource 98 (sector $5CD, 8,964 bytes): resource 0 piece 3 without the end mark; no load of this one found
+;	resource 98 (sector $5CD, 8,964 bytes):
+;	resource 0 piece 3 (the scouting speech clips) without the end mark; no load of this one found
 Res98	incbin	..\cdbin\GRAPH2.BIN,$2E6800,8960
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2E9000-*,0				;zero fill to the end of the last sector

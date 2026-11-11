@@ -19,7 +19,8 @@ PACK0 = [
     ("ScoutingReportText", "$47CFC", None, "the scouting script (the disc has its own, longer than the cartridge text)"),
     ("TeamLogoBitmaps", "TeamLogoBitmapsPtr", None, "the team logos: a table of offsets, then the pictures (resource 4 holds the same)"),
     ("FeaturedPictures", "FeaturedPicturesPtr", None, "the player pictures: a table of offsets, then the pictures (resource 3 holds the same)"),
-    (None, "$47DA4", None, "not known (resource 98 holds the same)"),
+    ("ScoutingSpeechClips", "ScoutingSpeechClipsPtr", None,
+     "the scouting report's speech clips: start sector and sectors of RON*.PCM files (resource 98 holds the same)"),
     ("SmallFontMap", "SmallFontMapPtr", "SmallFont.map.jim", None),
     ("HotMap", "HotMapPtr", "Hot.map.jim", None),
     ("ColdMap", "ColdMapPtr", "Cold.map.jim", None),
@@ -116,7 +117,7 @@ def main():
             "which installs it in the sub CPU PCM driver; the list at HOCKEY.BIN $223D6 loads the samples",
         97: "the arena scoreboard frame around the film window ($0808 picture, 40 x 28). STARTER.BIN loads it\n"
             "(d0 = $61) into $C436",
-        98: "resource 0 piece 3 without the end mark; no load of this one found",
+        98: "resource 0 piece 3 (the scouting speech clips) without the end mark; no load of this one found",
     }
     for r in range(35, 64):
         res[r] = (f"per team: {byres[r]}'s TeamGfxList graphics (HOCKEY.BIN $2A9FA lists one per team; LoadGameGfx\n"

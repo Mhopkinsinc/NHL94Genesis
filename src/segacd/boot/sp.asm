@@ -4,6 +4,8 @@
 ;	(function number in d7), the file table, then the Sierra C SDK code STARTER.BIN has too, and zeros.
 
 
+TimerCountdown	equ	$8228
+PcmServiceEnabled	equ	$822A
 GTableBuffer	equ	$9B58
 PlayerCallerSp	equ	$A358
 PlayerReturn	equ	$A35C
@@ -28,14 +30,27 @@ X_6E64	equ	$6E64
 X_7F64	equ	$7F64
 X_7F8A	equ	$7F8A
 X_7FAE	equ	$7FAE
+X_97E4	equ	$97E4
+X_97EC	equ	$97EC
+X_97F4	equ	$97F4
+X_9804	equ	$9804
+X_980C	equ	$980C
+X_9814	equ	$9814
 X_9825	equ	$9825
+X_982A	equ	$982A
 X_982B	equ	$982B
+X_982C	equ	$982C
 X_982D	equ	$982D
 X_982F	equ	$982F
+X_9830	equ	$9830
 X_9831	equ	$9831
-X_983C	equ	$983C
-X_9840	equ	$9840
-X_9850	equ	$9850
+X_9832	equ	$9832
+X_9834	equ	$9834
+X_98D4	equ	$98D4
+X_9954	equ	$9954
+X_99D4	equ	$99D4
+X_9AD4	equ	$9AD4
+X_9ADC	equ	$9ADC
 X_9ADD	equ	$9ADD
 X_9B20	equ	$9B20
 X_9B2C	equ	$9B2C
@@ -2462,7 +2477,7 @@ OSInitMainSound
 	move.w	#$5,d0
 	jsr	(PcmDriverEntry).l
 	jsr	(StartTimerInterrupt).l
-	move.w	#$1,$822A.l
+	move.w	#$1,(PcmServiceEnabled).l
 	rts
 OSInitMainSoundDriver
 	lea	(PcmDriverEntry).l,a0
@@ -2484,7 +2499,7 @@ OSInitMainSoundDriver
 	move.w	#$0,d0
 	jsr	(PcmDriverEntry).l
 	jsr	(StartTimerInterrupt).l
-	move.w	#$1,$822A.l
+	move.w	#$1,(PcmServiceEnabled).l
 	rts
 OSStopMainSoundHInt
 	btst.b	#$7,$FF800E.l
@@ -2500,7 +2515,7 @@ OSStopMainSoundHInt
 	btst.b	#$6,$FF800E.l
 	bne.s	.L81C2
 	bclr.b	#$7,$FF800F.l
-	move.w	#$0,$822A.l
+	move.w	#$0,(PcmServiceEnabled).l
 	rts
 OSStopTimer
 	movea.l	$6C.l,a0
@@ -2524,42 +2539,42 @@ StartTimerInterrupt
 TimerInterrupt
 	move.l	d0,-(sp)
 	move.w	#$84,$FF8030.l
-	tst.w	$822A.l
+	tst.w	(PcmServiceEnabled).l
 	beq.s	.L8248
 	move.w	#$1,d0
 	jsr	(PcmDriverEntry).l
 .L8248
-	subi.w	#$1,$8228.l
+	subi.w	#$1,(TimerCountdown).l
 	bpl.w	.L825C
-	move.w	#$F,$8228.l
+	move.w	#$F,(TimerCountdown).l
 .L825C
 	move.l	(sp)+,d0
 	rte
 PcmDriverEntry
-	bra.w	.L82E6
-.L8264
+	bra.w	DispatchPcmCommand
+PcmCommandQueue
 	dcb.b	130,0
-.L82E6
+DispatchPcmCommand
 	cmpi.b	#$80,d0
 	bcs.s	.L82F0
-	bra.w	.L86CC
+	bra.w	DispatchPackedPcmCommand
 .L82F0
 	tst.w	d0
 	bne.s	.L82F8
-	bra.w	.L8A9E
+	bra.w	InitPcmDriver
 .L82F8
 	subi.w	#$1,d0
 	bne.s	.L8302
-	bra.w	.L835C
+	bra.w	ServicePcmDriver
 .L8302
 	subi.w	#$1,d0
 	bne.s	.L830E
 	nop
-	bra.w	.L90E2
+	bra.w	ControlPcmSampleAllocation
 .L830E
 	subi.w	#$1,d0
 	bne.s	.L8318
-	bra.w	.L8BAC
+	bra.w	PlayPcmSample
 .L8318
 	subi.w	#$1,d0
 	bne.s	.L8320
@@ -2567,61 +2582,61 @@ PcmDriverEntry
 .L8320
 	subi.w	#$1,d0
 	bne.s	.L832A
-	bra.w	.L9152
+	bra.w	SetPcmRecordDirectory
 .L832A
 	subi.w	#$1,d0
 	bne.s	.L8334
-	bra.w	.L9166
+	bra.w	LoadPcmRecordList
 .L8334
 	subi.w	#$1,d0
 	bne.s	.L833E
-	bra.w	.L95B0
+	bra.w	PcmCommandNoOp
 .L833E
 	subi.w	#$1,d0
 	bne.s	.L8348
-	bra.w	.L9248
+	bra.w	SetPcmSoundLoopOffset
 .L8348
 	subi.w	#$1,d0
 	bne.s	.L8352
-	bra.w	.L9290
+	bra.w	PlayPcmStream
 .L8352
 	move.w	#$1,d0
 	ori.b	#$1,ccr
 	rts
-.L835C
+ServicePcmDriver
 	movem.l	d0-d7/a0-a6,-(sp)
-	lea	.L97D8(pc),a0
+	lea	PcmServiceBusy(pc),a0
 	cmpi.w	#$0,(a0)
 	beq.s	.L836C
 	bra.s	.L83A4
 .L836C
 	move.w	#$FFFF,(a0)
-	bsr.w	.L83AA
+	bsr.w	DrainPcmCommandQueue
 	move.w	$FF800C.l,d0
-	sub.w	.L9826(pc),d0
+	sub.w	PcmLastTimerTick(pc),d0
 	andi.w	#$FFF,d0
 	cmpi.w	#$20,d0
 	bcs.s	.L839C
-	bsr.w	.L83FC
-	bsr.w	.L85BE
-	lea	.L9826(pc),a0
+	bsr.w	UpdatePcmEnvelopes
+	bsr.w	ServicePcmStream
+	lea	PcmLastTimerTick(pc),a0
 	move.w	$FF800C.l,d0
 	move.w	d0,(a0)
 .L839C
-	lea	.L97D8(pc),a0
+	lea	PcmServiceBusy(pc),a0
 	move.w	#$0,(a0)
 .L83A4
 	movem.l	(sp)+,d0-d7/a0-a6
 	rts
-.L83AA
+DrainPcmCommandQueue
 	movem.l	d0-d1/a0-a1,-(sp)
 .L83AE
-	lea	.L8264(pc),a0
+	lea	PcmCommandQueue(pc),a0
 	cmpi.w	#$0,(a0)
 	beq.s	.L83F6
 	move.l	$2(a0),d0
-	bsr.w	.L86CC
-	lea	.L8264(pc),a0
+	bsr.w	DispatchPackedPcmCommand
+	lea	PcmCommandQueue(pc),a0
 	move.w	(a0),d0
 	move.w	#$FFFF,(a0)
 	adda.l	#$2,a0
@@ -2635,55 +2650,55 @@ PcmDriverEntry
 	move.l	(a1)+,(a0)+
 	dbf	d1,.L83E4
 .L83EA
-	lea	.L8264(pc),a0
+	lea	PcmCommandQueue(pc),a0
 	subi.w	#$1,d0
 	move.w	d0,(a0)
 	bra.s	.L83AE
 .L83F6
 	movem.l	(sp)+,d0-d1/a0-a1
 	rts
-.L83FC
+UpdatePcmEnvelopes
 	movem.l	d1-d4/a0-a2,-(sp)
-	lea	.L9828(pc),a0
+	lea	PcmCurrentChannel(pc),a0
 	move.w	#$0,(a0)
 .L8408
-	move.b	.L97DA(pc),d0
-	move.w	.L9828(pc),d2
+	move.b	PcmChannelOffMask(pc),d0
+	move.w	PcmCurrentChannel(pc),d2
 	btst	d2,d0
 	bne.w	.L85A6
 	lsl.w	#$2,d2
 	lea	$FF0021.l,a0
 	cmpi.b	#$0,$2(a0,d2.w)
 	bne.s	.L8442
-	lea	.L97DA(pc),a0
-	move.w	.L9828(pc),d0
+	lea	PcmChannelOffMask(pc),a0
+	move.w	PcmCurrentChannel(pc),d0
 	move.b	(a0),d2
 	bset	d0,d2
 	move.b	d2,(a0)
 	move.b	d2,$FF0011.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	bra.w	.L85A6
 .L8442
-	move.w	.L9828(pc),d2
-	lea	.L9804(pc),a0
+	move.w	PcmCurrentChannel(pc),d2
+	lea	X_9804(pc),a0
 	cmpi.b	#$FF,(a0,d2.w)
 	beq.w	.L85A6
 	clr.w	d1
 	move.b	(a0,d2.w),d1
 	move.w	#$4,d0
-	bsr.w	.L906E
+	bsr.w	FindPcmRecord
 	bcs.w	.L85A6
-	lea	.L9814(pc),a1
-	move.w	.L9828(pc),d0
+	lea	X_9814(pc),a1
+	move.w	PcmCurrentChannel(pc),d0
 	lsl.w	#$1,d0
 	move.w	$FF800C.l,d1
-	sub.w	.L9826(pc),d1
+	sub.w	PcmLastTimerTick(pc),d1
 	andi.w	#$FFF,d1
 	lsr.w	#$5,d1
 	add.w	(a1,d0.w),d1
 	move.w	d1,(a1,d0.w)
-	lea	.L980C(pc),a2
-	move.w	.L9828(pc),d1
+	lea	X_980C(pc),a2
+	move.w	PcmCurrentChannel(pc),d1
 	clr.w	d2
 	move.b	(a2,d1.w),d2
 	addi.w	#$1,d2
@@ -2701,7 +2716,7 @@ PcmDriverEntry
 	cmp.b	$2(a0),d2
 	bne.s	.L84DA
 	lea	X_9825(pc),a1
-	move.w	.L9828(pc),d3
+	move.w	PcmCurrentChannel(pc),d3
 	btst.b	d3,(a1)
 	beq.s	.L84DA
 	move.b	$1(a0),(a2,d1.w)
@@ -2710,17 +2725,17 @@ PcmDriverEntry
 	addi.b	#$1,d2
 	cmp.b	(a0),d2
 	bcs.s	.L84FE
-	lea	.L97DA(pc),a0
-	move.w	.L9828(pc),d0
+	lea	PcmChannelOffMask(pc),a0
+	move.w	PcmCurrentChannel(pc),d0
 	move.b	(a0),d1
 	bset	d0,d1
 	move.b	d1,$FF0011.l
 	move.b	d1,(a0)
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	bra.w	.L85A6
 .L84FE
-	lea	.L980C(pc),a1
-	move.w	.L9828(pc),d0
+	lea	X_980C(pc),a1
+	move.w	PcmCurrentChannel(pc),d0
 	clr.w	d1
 	move.b	(a1,d0.w),d1
 	lsl.w	#$1,d1
@@ -2742,8 +2757,8 @@ PcmDriverEntry
 	move.b	$1(a0,d1.w),d2
 	bra.s	.L857A
 .L853E
-	lea	.L9814(pc),a1
-	move.w	.L9828(pc),d0
+	lea	X_9814(pc),a1
+	move.w	PcmCurrentChannel(pc),d0
 	lsl.w	#$1,d0
 	move.w	(a1,d0.w),d3
 	lsl.w	#$8,d3
@@ -2766,8 +2781,8 @@ PcmDriverEntry
 	move.b	$1(a0,d1.w),d2
 	add.w	d3,d2
 .L857A
-	lea	.L97F4(pc),a1
-	move.w	.L9828(pc),d0
+	lea	X_97F4(pc),a1
+	move.w	PcmCurrentChannel(pc),d0
 	clr.w	d3
 	move.b	(a1,d0.w),d3
 	lsl.w	#$1,d3
@@ -2775,11 +2790,11 @@ PcmDriverEntry
 	lsr.w	#$8,d2
 	ori.b	#$C0,d0
 	move.b	d0,$FF000F.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	move.b	d2,$FF0001.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 .L85A6
-	lea	.L9828(pc),a0
+	lea	PcmCurrentChannel(pc),a0
 	addi.w	#$1,(a0)
 	cmpi.w	#$8,(a0)
 	beq.s	.L85B8
@@ -2787,89 +2802,89 @@ PcmDriverEntry
 .L85B8
 	movem.l	(sp)+,d1-d4/a0-a2
 	rts
-.L85BE
+ServicePcmStream
 	movem.l	d0-d1/a0,-(sp)
-	move.w	.L9838(pc),d0
+	move.w	PcmStreamActive(pc),d0
 	beq.w	.L86C6
-	move.b	.L97DA(pc),d0
-	move.w	.L9848(pc),d1
+	move.b	PcmChannelOffMask(pc),d0
+	move.w	PcmStreamChannel(pc),d1
 	btst	d1,d0
 	beq.s	.L85E2
-	lea	.L9838(pc),a0
+	lea	PcmStreamActive(pc),a0
 	move.w	#$0,(a0)
 	bra.w	.L86C6
 .L85E2
-	move.l	.L984A(pc),d0
+	move.l	PcmStreamSource(pc),d0
 	cmpi.l	#$FFFFFFFF,d0
 	bne.s	.L8618
-	move.w	.L9848(pc),d0
+	move.w	PcmStreamChannel(pc),d0
 	ori.b	#$C0,d0
 	move.b	d0,$FF000F.l
 	move.b	#$0,$FF0009.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	move.b	#$0,$FF000B.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	bra.w	.L86C6
 .L8618
 	clr.l	d0
-	move.w	.L9848(pc),d0
+	move.w	PcmStreamChannel(pc),d0
 	lsl.w	#$2,d0
 	addi.l	#$FF0021,d0
 	movea.l	d0,a0
 	move.b	$2(a0),d0
 	lsl.w	#$8,d0
 	move.b	(a0),d0
-	move.w	.L9846(pc),d1
+	move.w	PcmStreamLastHalf(pc),d1
 	bne.s	.L8680
-	cmp.w	.L983A(pc),d0
+	cmp.w	PcmStreamHalfA(pc),d0
 	bcs.w	.L86C6
-	move.w	.L983A(pc),d1
-	add.w	X_983C(pc),d1
+	move.w	PcmStreamHalfA(pc),d1
+	add.w	PcmStreamHalfASize(pc),d1
 	cmp.w	d1,d0
 	bcc.s	.L86C6
 	move.w	#$1,d0
-	bsr.w	.L949E
-	move.w	.L9848(pc),d0
+	bsr.w	FillPcmStreamHalf
+	move.w	PcmStreamChannel(pc),d0
 	ori.b	#$C0,d0
 	move.b	d0,$FF000F.l
-	bsr.w	.L95B2
-	move.w	.L9842(pc),d0
+	bsr.w	PcmWriteDelay
+	move.w	PcmStreamLoopB(pc),d0
 	move.b	d0,$FF0009.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	lsr.w	#$8,d0
 	move.b	d0,$FF000B.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	bra.s	.L86C6
 .L8680
-	cmp.w	.L983E(pc),d0
+	cmp.w	PcmStreamHalfB(pc),d0
 	bcs.s	.L86C6
-	move.w	.L983E(pc),d1
-	add.w	X_9840(pc),d1
+	move.w	PcmStreamHalfB(pc),d1
+	add.w	PcmStreamHalfBSize(pc),d1
 	cmp.w	d1,d0
 	bcc.s	.L86C6
 	move.w	#$0,d0
-	bsr.w	.L949E
-	move.w	.L9848(pc),d0
+	bsr.w	FillPcmStreamHalf
+	move.w	PcmStreamChannel(pc),d0
 	ori.b	#$C0,d0
 	move.b	d0,$FF000F.l
-	bsr.w	.L95B2
-	move.w	.L9844(pc),d0
+	bsr.w	PcmWriteDelay
+	move.w	PcmStreamLoopA(pc),d0
 	move.b	d0,$FF0009.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	lsr.w	#$8,d0
 	move.b	d0,$FF000B.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 .L86C6
 	movem.l	(sp)+,d0-d1/a0
 	rts
-.L86CC
+DispatchPackedPcmCommand
 	cmpi.b	#$8F,d0
 	bgt.s	.L86D6
-	bra.w	.L886E
+	bra.w	StopPackedPcmSound
 .L86D6
 	cmpi.b	#$9F,d0
 	bgt.s	.L86E0
-	bra.w	.L8716
+	bra.w	PlayPackedPcmSound
 .L86E0
 	cmpi.b	#$AF,d0
 	bgt.s	.L86E8
@@ -2881,7 +2896,7 @@ PcmDriverEntry
 .L86F0
 	cmpi.b	#$CF,d0
 	bgt.s	.L86FA
-	bra.w	.L8970
+	bra.w	SetPcmSoundMapping
 .L86FA
 	cmpi.b	#$DF,d0
 	bgt.s	.L8702
@@ -2889,14 +2904,14 @@ PcmDriverEntry
 .L8702
 	cmpi.b	#$EF,d0
 	bgt.s	.L870C
-	bra.w	.L8994
+	bra.w	SetPcmPitchControl
 .L870C
 	move.w	#$1,d0
 	ori.b	#$1,ccr
 	rts
-.L8716
+PlayPackedPcmSound
 	movem.l	d1-d2/a0-a1,-(sp)
-	lea	.L95C2(pc),a0
+	lea	PcmAllocPosition(pc),a0
 	move.b	d0,d1
 	andi.w	#$F,d1
 	move.l	d0,d2
@@ -2911,65 +2926,65 @@ PcmDriverEntry
 	swap	d1
 	andi.w	#$FF,d1
 	move.w	d1,$26C(a0)
-	move.w	.L982A(pc),d2
-	lea	.L9854(pc),a0
+	move.w	X_982A(pc),d2
+	lea	PcmSoundMapping(pc),a0
 	clr.w	d1
 	move.b	(a0,d2.w),d1
 .L8752
-	lea	.L9830(pc),a0
+	lea	X_9830(pc),a0
 	move.w	d1,(a0)
 	move.w	#$0,d0
-	bsr.w	.L906E
+	bsr.w	FindPcmRecord
 	bcs.w	.L8868
-	lea	.L9834(pc),a1
+	lea	X_9834(pc),a1
 	move.l	a0,(a1)
 	cmpi.b	#$7,(a0)
 	bne.s	.L8780
-	move.w	.L982C(pc),d0
+	move.w	X_982C(pc),d0
 	addi.w	#$2,d0
 	clr.w	d1
 	move.b	(a0,d0.w),d1
 	bra.s	.L8752
 .L8780
-	bsr.w	.L8FCE
+	bsr.w	SelectPcmChannel
 	bcc.s	.L878A
 	bra.w	.L8868
 .L878A
-	move.w	.L9828(pc),d0
-	lea	.L97DC(pc),a0
+	move.w	PcmCurrentChannel(pc),d0
+	lea	PcmChannelSlot(pc),a0
 	move.b	X_982B(pc),(a0,d0.w)
-	lea	.L97E4(pc),a0
+	lea	X_97E4(pc),a0
 	move.b	X_9831(pc),(a0,d0.w)
-	lea	.L97EC(pc),a0
+	lea	X_97EC(pc),a0
 	move.b	X_982D(pc),(a0,d0.w)
-	lea	.L97F4(pc),a0
+	lea	X_97F4(pc),a0
 	move.b	X_982F(pc),(a0,d0.w)
-	lea	.L97FC(pc),a0
-	movea.l	.L9834(pc),a1
+	lea	PcmChannelPriority(pc),a0
+	movea.l	X_9834(pc),a1
 	move.b	$1(a1),(a0,d0.w)
-	move.w	.L9832(pc),d0
+	move.w	X_9832(pc),d0
 	btst	#$0,d0
 	beq.s	.L87D4
 	btst	#$1,d0
 	beq.s	.L884C
 .L87D4
-	move.b	.L97DA(pc),d0
-	move.w	.L9828(pc),d1
+	move.b	PcmChannelOffMask(pc),d0
+	move.w	PcmCurrentChannel(pc),d1
 	bset	d1,d0
 	move.b	d0,$FF0011.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	ori.b	#$C0,d1
 	move.b	d1,$FF000F.l
-	bsr.w	.L95B2
-	movea.l	.L9834(pc),a0
+	bsr.w	PcmWriteDelay
+	movea.l	X_9834(pc),a0
 	clr.w	d0
 	move.b	$2(a0),d0
 	lsl.w	#$1,d0
-	lea	.L95C6(pc),a1
+	lea	PcmSampleAddress(pc),a1
 	move.w	(a1,d0.w),d1
 	lsr.w	#$8,d1
 	move.b	d1,$FF000D.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	move.b	$5(a0),d1
 	lsl.w	#$8,d1
 	move.b	$6(a0),d1
@@ -2981,25 +2996,25 @@ PcmDriverEntry
 	add.w	(a1,d0.w),d1
 .L882E
 	move.b	d1,$FF0009.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	lsr.w	#$8,d1
 	move.b	d1,$FF000B.l
-	bsr.w	.L95B2
-	bsr.w	.L89E8
-	bsr.w	.L8F0E
+	bsr.w	PcmWriteDelay
+	bsr.w	StartPcmEnvelope
+	bsr.w	UpdatePcmPan
 .L884C
-	bsr.w	.L8CE4
-	lea	.L97DA(pc),a0
-	move.w	.L9828(pc),d0
+	bsr.w	UpdatePcmFrequency
+	lea	PcmChannelOffMask(pc),a0
+	move.w	PcmCurrentChannel(pc),d0
 	move.b	(a0),d1
 	bclr	d0,d1
 	move.b	d1,$FF0011.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	move.b	d1,(a0)
 .L8868
 	movem.l	(sp)+,d1-d2/a0-a1
 	rts
-.L886E
+StopPackedPcmSound
 	movem.l	d1-d3/a0-a2,-(sp)
 	clr.w	d1
 	move.b	d0,d1
@@ -3008,23 +3023,23 @@ PcmDriverEntry
 	swap	d2
 	lsr.w	#$8,d2
 	or.b	d2,d1
-	lea	.L982A(pc),a0
+	lea	X_982A(pc),a0
 	move.w	d1,(a0)
 	move.w	d0,d1
 	lsr.w	#$8,d1
-	lea	.L982C(pc),a0
+	lea	X_982C(pc),a0
 	move.w	d1,(a0)
-	lea	.L9854(pc),a0
-	move.w	.L982A(pc),d0
+	lea	PcmSoundMapping(pc),a0
+	move.w	X_982A(pc),d0
 	clr.w	d1
 	move.b	(a0,d0.w),d1
 .L88A0
 	move.w	#$0,d0
-	bsr.w	.L906E
+	bsr.w	FindPcmRecord
 	bcs.w	.L896A
 	cmpi.b	#$7,(a0)
 	bne.s	.L88C2
-	move.w	.L982C(pc),d0
+	move.w	X_982C(pc),d0
 	addi.w	#$1,d0
 	clr.w	d1
 	move.b	(a0,d0.w),d1
@@ -3035,12 +3050,12 @@ PcmDriverEntry
 	move.b	$6(a0),d0
 	cmpi.w	#$FFFF,d0
 	beq.w	.L896A
-	move.b	.L97DA(pc),d0
+	move.b	PcmChannelOffMask(pc),d0
 	clr.w	d1
-	lea	.L97DC(pc),a1
-	lea	.L97EC(pc),a2
-	move.w	.L982A(pc),d2
-	move.w	.L982C(pc),d3
+	lea	PcmChannelSlot(pc),a1
+	lea	X_97EC(pc),a2
+	move.w	X_982A(pc),d2
+	move.w	X_982C(pc),d3
 .L88EA
 	btst	d1,d0
 	bne.s	.L894C
@@ -3052,26 +3067,26 @@ PcmDriverEntry
 	beq.s	.L8936
 	lea	X_9825(pc),a1
 	bclr.b	d1,(a1)
-	lea	.L9828(pc),a1
+	lea	PcmCurrentChannel(pc),a1
 	move.w	d1,(a1)
 	clr.w	d1
 	move.b	$D(a0),d1
 	move.w	#$4,d0
-	bsr.w	.L906E
+	bsr.w	FindPcmRecord
 	bcs.s	.L896A
-	lea	.L980C(pc),a1
-	move.w	.L9828(pc),d0
+	lea	X_980C(pc),a1
+	move.w	PcmCurrentChannel(pc),d0
 	move.b	$2(a0),(a1,d0.w)
 	lsl.w	#$1,d0
-	lea	.L9814(pc),a1
+	lea	X_9814(pc),a1
 	move.w	#$0,(a1,d0.w)
 	bra.s	.L896A
 .L8936
-	lea	.L97DA(pc),a0
+	lea	PcmChannelOffMask(pc),a0
 	bset	d1,d0
 	move.b	d0,(a0)
 	move.b	d0,$FF0011.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	clr.w	d0
 	bra.s	.L896A
 .L894C
@@ -3085,7 +3100,7 @@ PcmDriverEntry
 .L896A
 	movem.l	(sp)+,d1-d3/a0-a2
 	rts
-.L8970
+SetPcmSoundMapping
 	movem.l	d1-d2/a0,-(sp)
 	move.l	d0,d1
 	swap	d1
@@ -3094,12 +3109,12 @@ PcmDriverEntry
 	andi.w	#$F,d2
 	or.b	d1,d2
 	lsr.w	#$8,d0
-	lea	.L9854(pc),a0
+	lea	PcmSoundMapping(pc),a0
 	move.b	d0,(a0,d2.w)
 	clr.w	d0
 	movem.l	(sp)+,d1-d2/a0
 	rts
-.L8994
+SetPcmPitchControl
 	movem.l	d1-d2/a0,-(sp)
 	move.l	d0,d1
 	swap	d1
@@ -3108,132 +3123,132 @@ PcmDriverEntry
 	andi.w	#$F,d2
 	or.b	d1,d2
 	lsr.w	#$8,d0
-	lea	.L9A54(pc),a0
+	lea	PcmPitchControl(pc),a0
 	move.b	d0,(a0,d2.w)
-	lea	.L9828(pc),a0
+	lea	PcmCurrentChannel(pc),a0
 	move.w	#$0,(a0)
 .L89B8
-	move.w	.L9828(pc),d0
-	move.b	.L97DA(pc),d1
+	move.w	PcmCurrentChannel(pc),d0
+	move.b	PcmChannelOffMask(pc),d1
 	btst	d0,d1
 	beq.s	.L89D2
-	lea	.L97DC(pc),a0
+	lea	PcmChannelSlot(pc),a0
 	cmp.b	(a0,d0.w),d2
 	bne.s	.L89D2
-	bsr.w	.L8CE4
+	bsr.w	UpdatePcmFrequency
 .L89D2
-	lea	.L9828(pc),a0
+	lea	PcmCurrentChannel(pc),a0
 	addi.w	#$1,(a0)
 	cmpi.w	#$8,(a0)
 	bne.s	.L89B8
 	clr.w	d0
 	movem.l	(sp)+,d1-d2/a0
 	rts
-.L89E8
+StartPcmEnvelope
 	movem.l	d1-d2/a0,-(sp)
-	movea.l	.L9834(pc),a0
+	movea.l	X_9834(pc),a0
 	clr.w	d1
 	move.b	$D(a0),d1
-	lea	.L9804(pc),a0
-	move.w	.L9828(pc),d0
+	lea	X_9804(pc),a0
+	move.w	PcmCurrentChannel(pc),d0
 	move.b	d1,(a0,d0.w)
 	cmpi.b	#$FF,d1
 	beq.s	.L8A12
 	move.w	#$4,d0
-	bsr.w	.L906E
+	bsr.w	FindPcmRecord
 	bcc.s	.L8A40
 .L8A12
-	move.w	.L9828(pc),d0
+	move.w	PcmCurrentChannel(pc),d0
 	ori.b	#$C0,d0
 	move.b	d0,$FF000F.l
-	bsr.w	.L95B2
-	lea	.L97F4(pc),a0
-	move.w	.L9828(pc),d0
+	bsr.w	PcmWriteDelay
+	lea	X_97F4(pc),a0
+	move.w	PcmCurrentChannel(pc),d0
 	move.b	(a0,d0.w),d1
 	lsl.w	#$1,d1
 	move.b	d1,$FF0001.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	clr.w	d0
 	bra.s	.L8A98
 .L8A40
 	clr.w	d0
 	move.b	$4(a0),d0
-	lea	.L97F4(pc),a0
-	move.w	.L9828(pc),d1
+	lea	X_97F4(pc),a0
+	move.w	PcmCurrentChannel(pc),d1
 	clr.w	d2
 	move.b	(a0,d1.w),d2
 	lsl.w	#$1,d2
 	mulu.w	d2,d0
 	lsr.w	#$8,d0
-	move.w	.L9828(pc),d1
+	move.w	PcmCurrentChannel(pc),d1
 	ori.b	#$C0,d1
 	move.b	d1,$FF000F.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	move.b	d0,$FF0001.l
-	bsr.w	.L95B2
-	lea	.L980C(pc),a0
-	move.w	.L9828(pc),d0
+	bsr.w	PcmWriteDelay
+	lea	X_980C(pc),a0
+	move.w	PcmCurrentChannel(pc),d0
 	move.b	#$0,(a0,d0.w)
 	lea	X_9825(pc),a0
 	bset.b	d0,(a0)
 	lsl.w	#$1,d0
-	lea	.L9814(pc),a0
+	lea	X_9814(pc),a0
 	move.w	#$0,(a0,d0.w)
 	clr.w	d0
 .L8A98
 	movem.l	(sp)+,d1-d2/a0
 	rts
-.L8A9E
+InitPcmDriver
 	movem.l	d0/a0-a1,-(sp)
-	lea	.L95C2(pc),a0
+	lea	PcmAllocPosition(pc),a0
 	move.w	#$100,$0(a0)
 	move.w	#$100,$2(a0)
-	lea	.L97C8(pc),a1
+	lea	PcmRecordDirectories(pc),a1
 	move.w	#$3,d0
 .L8ABA
 	move.l	#$FFFFFFFF,(a1)+
 	dbf	d0,.L8ABA
 	move.b	#$FF,$218(a0)
-	lea	.L9854(pc),a0
+	lea	PcmSoundMapping(pc),a0
 	move.w	#$7F,d0
 .L8AD2
 	move.b	#$0,(a0)+
 	dbf	d0,.L8AD2
-	lea	.L98D4(pc),a0
+	lea	X_98D4(pc),a0
 	move.w	#$7F,d0
 .L8AE2
 	move.b	#$0,(a0)+
 	dbf	d0,.L8AE2
-	lea	.L9954(pc),a0
+	lea	X_9954(pc),a0
 	move.w	#$7F,d0
 .L8AF2
 	move.b	#$7F,(a0)+
 	dbf	d0,.L8AF2
-	lea	.L99D4(pc),a0
+	lea	X_99D4(pc),a0
 	move.w	#$7F,d0
 .L8B02
 	move.b	#$40,(a0)+
 	dbf	d0,.L8B02
-	lea	.L9A54(pc),a0
+	lea	PcmPitchControl(pc),a0
 	move.w	#$7F,d0
 .L8B12
 	move.b	#$40,(a0)+
 	dbf	d0,.L8B12
-	lea	.L9AD4(pc),a0
+	lea	X_9AD4(pc),a0
 	move.w	#$7,d0
 .L8B22
 	move.b	#$FF,(a0)+
 	dbf	d0,.L8B22
-	lea	.L95C2(pc),a0
+	lea	PcmAllocPosition(pc),a0
 	move.b	#$80,$51B(a0)
 	move.b	#$80,$51C(a0)
 	move.b	#$80,$51D(a0)
-	lea	.L9ADC(pc),a0
+	lea	X_9ADC(pc),a0
 	move.b	#$FF,(a0)
-	lea	.L8264(pc),a0
+	lea	PcmCommandQueue(pc),a0
 	move.w	#$0,(a0)
 	move.b	#$80,$FF000F.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	lea	$FF2001.l,a0
 	move.w	#$EB,d0
 	move.b	#$80,(a0)
@@ -3247,21 +3262,21 @@ PcmDriverEntry
 	dc.b	'NqNqNqNqQ'
 	dc.b	$C8
 	dc.w	$FFEC
-	lea	.L97D8(pc),a0
+	lea	PcmServiceBusy(pc),a0
 	move.w	#$0,(a0)
-	lea	.L9838(pc),a0
+	lea	PcmStreamActive(pc),a0
 	move.w	#$0,(a0)
 	movem.l	(sp)+,d0/a0-a1
 	rts
-.L8BAC
+PlayPcmSample
 	movem.l	d1-d7/a0,-(sp)
-	move.b	.L97DA(pc),d0
+	move.b	PcmChannelOffMask(pc),d0
 	move.w	#$7,d5
 .L8BB8
 	btst	d5,d0
 	bne.s	.L8BF8
 	dbf	d5,.L8BB8
-	lea	.L97FC(pc),a0
+	lea	PcmChannelPriority(pc),a0
 	move.w	#$FFFF,d5
 	move.b	#$FF,d6
 	clr.w	d0
@@ -3281,14 +3296,14 @@ PcmDriverEntry
 	ori.b	#$1,ccr
 	bra.w	.L8CDE
 .L8BF8
-	lea	.L9828(pc),a0
+	lea	PcmCurrentChannel(pc),a0
 	move.w	d5,(a0)
-	lea	.L97DA(pc),a0
+	lea	PcmChannelOffMask(pc),a0
 	move.b	(a0),d0
 	bset	d5,d0
 	move.b	d0,$FF0011.l
-	bsr.w	.L95B2
-	lea	.L95C6(pc),a0
+	bsr.w	PcmWriteDelay
+	lea	PcmSampleAddress(pc),a0
 	lsl.w	#$1,d1
 	cmpi.w	#$FFFF,(a0,d1.w)
 	bne.s	.L8C2A
@@ -3296,54 +3311,54 @@ PcmDriverEntry
 	ori.b	#$1,ccr
 	bra.w	.L8CDE
 .L8C2A
-	move.w	.L9828(pc),d0
+	move.w	PcmCurrentChannel(pc),d0
 	ori.b	#$C0,d0
 	move.b	d0,$FF000F.l
 	move.w	(a0,d1.w),d0
 	lsr.w	#$8,d0
 	move.b	d0,$FF000D.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	move.b	#$0,$FF0009.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	move.b	#$0,$FF000B.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	move.b	d2,$FF0005.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	lsr.w	#$8,d2
 	move.b	d2,$FF0007.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	move.b	d3,$FF0001.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	move.b	d4,$FF0003.l
-	bsr.w	.L95B2
-	lea	.L97DA(pc),a0
-	move.w	.L9828(pc),d0
+	bsr.w	PcmWriteDelay
+	lea	PcmChannelOffMask(pc),a0
+	move.w	PcmCurrentChannel(pc),d0
 	move.b	(a0),d1
 	bclr	d0,d1
 	move.b	d1,(a0)
 	move.b	d1,$FF0011.l
-	bsr.w	.L95B2
-	lea	.L97DC(pc),a0
+	bsr.w	PcmWriteDelay
+	lea	PcmChannelSlot(pc),a0
 	move.b	#$FF,(a0,d0.w)
-	lea	.L97E4(pc),a0
+	lea	X_97E4(pc),a0
 	move.b	#$FF,(a0,d0.w)
-	lea	.L97EC(pc),a0
+	lea	X_97EC(pc),a0
 	move.b	#$FF,(a0,d0.w)
-	lea	.L97F4(pc),a0
+	lea	X_97F4(pc),a0
 	move.b	#$FF,(a0,d0.w)
-	lea	.L97FC(pc),a0
+	lea	PcmChannelPriority(pc),a0
 	move.b	#$0,(a0,d0.w)
-	lea	.L9804(pc),a0
+	lea	X_9804(pc),a0
 	move.b	#$FF,(a0,d0.w)
 .L8CDE
 	movem.l	(sp)+,d1-d7/a0
 	rts
-.L8CE4
+UpdatePcmFrequency
 	movem.l	d1-d6/a0-a1,-(sp)
-	movea.l	.L9834(pc),a0
+	movea.l	X_9834(pc),a0
 	dc.b	'B@BA4:'
 	dc.w	$0B36
-	lea	.L97EC(pc),a1
+	lea	X_97EC(pc),a1
 	move.b	(a1,d2.w),d3
 	cmp.b	$3(a0),d3
 	blt.s	.L8D0A
@@ -3355,8 +3370,8 @@ PcmDriverEntry
 	sub.b	(a1,d2.w),d3
 	sub.b	d3,d0
 .L8D14
-	move.w	.L982A(pc),d2
-	lea	.L9A54(pc),a1
+	move.w	X_982A(pc),d2
+	lea	PcmPitchControl(pc),a1
 	clr.w	d3
 	move.b	(a1,d2.w),d3
 	cmpi.b	#$40,d3
@@ -3392,8 +3407,8 @@ PcmDriverEntry
 	move.b	$A(a0),d2
 	cmpi.b	#$FF,d2
 	beq.s	.L8DD4
-	move.w	.L982A(pc),d3
-	lea	.L98D4(pc),a1
+	move.w	X_982A(pc),d3
+	lea	X_98D4(pc),a1
 	clr.w	d4
 	move.b	(a1,d3.w),d4
 	beq.s	.L8DD4
@@ -3462,15 +3477,15 @@ PcmDriverEntry
 	mulu.w	d1,d3
 	lsr.w	#$8,d3
 	add.w	d3,d2
-	move.w	.L9828(pc),d0
+	move.w	PcmCurrentChannel(pc),d0
 	ori.b	#$C0,d0
 	move.b	d0,$FF000F.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	move.b	d2,$FF0005.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	lsr.w	#$8,d2
 	move.b	d2,$FF0007.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	clr.w	d0
 	movem.l	(sp)+,d1-d6/a0-a1
 	rts
@@ -3546,21 +3561,21 @@ PcmDriverEntry
 	moveq	#$9,d1
 	moveq	#-47,d4
 	or.b	d0,d0
-.L8F0E
+UpdatePcmPan
 	movem.l	d1-d3/a0,-(sp)
-	move.w	.L9828(pc),d0
-	lea	.L97DC(pc),a0
+	move.w	PcmCurrentChannel(pc),d0
+	lea	PcmChannelSlot(pc),a0
 	clr.w	d3
 	move.b	(a0,d0.w),d3
-	lea	.L9954(pc),a0
+	lea	X_9954(pc),a0
 	clr.w	d2
 	move.b	(a0,d3.w),d2
 	lsl.w	#$1,d2
-	lea	.L9854(pc),a0
+	lea	PcmSoundMapping(pc),a0
 	clr.w	d1
 	move.b	(a0,d3.w),d1
 	move.w	#$0,d0
-	bsr.w	.L906E
+	bsr.w	FindPcmRecord
 	bcs.w	.L8FC8
 	clr.w	d1
 	move.b	$B(a0),d1
@@ -3568,16 +3583,16 @@ PcmDriverEntry
 	lsr.w	#$8,d2
 	move.w	d3,d0
 	lsr.w	#$4,d0
-	lea	.L9AD4(pc),a0
+	lea	X_9AD4(pc),a0
 	clr.w	d1
 	move.b	(a0,d0.w),d1
 	mulu.w	d1,d2
 	lsr.w	#$8,d2
 	clr.w	d1
-	move.b	.L9ADC(pc),d1
+	move.b	X_9ADC(pc),d1
 	mulu.w	d1,d2
 	lsr.w	#$8,d2
-	lea	.L99D4(pc),a0
+	lea	X_99D4(pc),a0
 	clr.w	d1
 	move.b	(a0,d3.w),d1
 	cmpi.b	#$40,d1
@@ -3607,38 +3622,38 @@ PcmDriverEntry
 	lsr.b	#$4,d2
 	or.b	d2,d0
 .L8FAA
-	move.w	.L9828(pc),d1
+	move.w	PcmCurrentChannel(pc),d1
 	ori.b	#$C0,d1
 	move.b	d1,$FF000F.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	move.b	d0,$FF0003.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	clr.w	d0
 .L8FC8
 	movem.l	(sp)+,d1-d3/a0
 	rts
-.L8FCE
+SelectPcmChannel
 	movem.l	d1-d2/a0,-(sp)
-	lea	.L9832(pc),a0
+	lea	X_9832(pc),a0
 	move.w	#$0,(a0)
-	movea.l	.L9834(pc),a0
+	movea.l	X_9834(pc),a0
 	btst.b	#$0,$C(a0)
 	beq.s	.L9020
-	lea	.L97E4(pc),a0
-	move.w	.L9830(pc),d0
-	move.b	.L97DA(pc),d1
+	lea	X_97E4(pc),a0
+	move.w	X_9830(pc),d0
+	move.b	PcmChannelOffMask(pc),d1
 	clr.w	d2
 .L8FF4
 	btst	d2,d1
 	bne.s	.L9016
 	cmp.b	(a0)+,d0
 	bne.s	.L9016
-	lea	.L9828(pc),a0
+	lea	PcmCurrentChannel(pc),a0
 	move.w	d2,(a0)
-	lea	.L9834(pc),a0
+	lea	X_9834(pc),a0
 	clr.w	d0
 	move.b	$C(a0),d0
-	lea	.L9832(pc),a0
+	lea	X_9832(pc),a0
 	move.w	d0,(a0)
 	clr.w	d0
 	bra.s	.L9068
@@ -3647,12 +3662,12 @@ PcmDriverEntry
 	cmpi.w	#$8,d2
 	bne.s	.L8FF4
 .L9020
-	move.b	.L97DA(pc),d0
+	move.b	PcmChannelOffMask(pc),d0
 	clr.w	d1
 .L9026
 	btst	d1,d0
 	beq.s	.L9034
-	lea	.L9828(pc),a0
+	lea	PcmCurrentChannel(pc),a0
 	move.w	d1,(a0)
 	clr.w	d0
 	bra.s	.L9068
@@ -3660,14 +3675,14 @@ PcmDriverEntry
 	addi.w	#$1,d1
 	cmpi.w	#$8,d1
 	bne.s	.L9026
-	movea.l	.L9834(pc),a0
+	movea.l	X_9834(pc),a0
 	move.b	$1(a0),d0
-	lea	.L97FC(pc),a0
+	lea	PcmChannelPriority(pc),a0
 	clr.w	d1
 .L904C
 	cmp.b	(a0)+,d0
 	bhi.s	.L905A
-	lea	.L9828(pc),a0
+	lea	PcmCurrentChannel(pc),a0
 	move.w	d1,(a0)
 	clr.w	d0
 	bra.s	.L9068
@@ -3679,9 +3694,9 @@ PcmDriverEntry
 .L9068
 	movem.l	(sp)+,d1-d2/a0
 	rts
-.L906E
+FindPcmRecord
 	movem.l	d1-d4/a1-a2,-(sp)
-	lea	.L97C8(pc),a1
+	lea	PcmRecordDirectories(pc),a1
 	move.w	#$4,d2
 .L907A
 	cmpi.l	#$FFFFFFFF,(a1)
@@ -3723,28 +3738,28 @@ PcmDriverEntry
 .L90DC
 	movem.l	(sp)+,d1-d4/a1-a2
 	rts
-.L90E2
+ControlPcmSampleAllocation
 	move.l	a0,-(sp)
 	or.w	d1,d1
 	bne.s	.L90F6
-	lea	.L95C2(pc),a0
+	lea	PcmAllocPosition(pc),a0
 	move.w	#$100,$2(a0)
 	clr.w	d0
 	bra.s	.L914C
 .L90F6
 	cmpi.w	#$1,d1
 	bne.s	.L910A
-	lea	.L95C2(pc),a0
+	lea	PcmAllocPosition(pc),a0
 	move.w	$0(a0),$2(a0)
 	clr.w	d0
 	bra.s	.L914C
 .L910A
 	cmpi.w	#$2,d1
 	bne.s	.L9144
-	lea	.L95C2(pc),a0
+	lea	PcmAllocPosition(pc),a0
 	move.w	$2(a0),$0(a0)
 	move.w	$2(a0),d0
-	lea	.L95C6(pc),a0
+	lea	PcmSampleAddress(pc),a0
 	move.w	#$FF,d1
 .L9126
 	cmpi.w	#$FFFF,(a0)
@@ -3762,14 +3777,14 @@ PcmDriverEntry
 	ori.b	#$1,ccr
 .L914C
 	dc.b	'B@ _Nu'
-.L9152
+SetPcmRecordDirectory
 	movem.l	d1/a1,-(sp)
 	lsl.w	#$2,d1
-	lea	.L97C8(pc),a1
+	lea	PcmRecordDirectories(pc),a1
 	move.l	a0,(a1,d1.w)
 	movem.l	(sp)+,d1/a1
 	rts
-.L9166
+LoadPcmRecordList
 	movem.l	d1/a0-a1,-(sp)
 	movea.l	a0,a1
 .L916C
@@ -3780,24 +3795,24 @@ PcmDriverEntry
 .L9176
 	move.w	(a1),d0
 	move.w	$2(a1),d1
-	bsr.w	.L906E
+	bsr.w	FindPcmRecord
 	bcs.s	.L91BE
 	cmpi.w	#$2,(a1)
 	bne.s	.L91B6
-	bsr.w	.L91C8
+	bsr.w	CopyPcmWaveData
 	bcs.s	.L91C2
-	lea	.L95C6(pc),a0
+	lea	PcmSampleAddress(pc),a0
 	move.w	$2(a1),d0
 	lsl.w	#$1,d0
-	move.w	.L95C2(pc),d1
+	move.w	PcmAllocPosition(pc),d1
 	move.w	d1,(a0,d0.w)
-	add.w	.L97C6(pc),d1
+	add.w	PcmLastWaveLength(pc),d1
 	or.b	d1,d1
 	beq.s	.L91B0
 	andi.w	#$FF00,d1
 	addi.w	#$100,d1
 .L91B0
-	lea	.L95C2(pc),a0
+	lea	PcmAllocPosition(pc),a0
 	move.w	d1,(a0)
 .L91B6
 	adda.l	#$4,a1
@@ -3807,27 +3822,27 @@ PcmDriverEntry
 .L91C2
 	movem.l	(sp)+,d1/a0-a1
 	rts
-.L91C8
+CopyPcmWaveData
 	movem.l	d1-d2/a0-a1,-(sp)
-	lea	.L97C6(pc),a1
+	lea	PcmLastWaveLength(pc),a1
 	move.w	d0,(a1)
-	move.w	.L95C2(pc),d1
+	move.w	PcmAllocPosition(pc),d1
 	beq.s	.L91EC
 	clr.w	d1
-	sub.w	.L95C2(pc),d1
+	sub.w	PcmAllocPosition(pc),d1
 	cmp.w	d0,d1
 	bhi.s	.L91EC
 	move.w	#$4,d0
 	ori.b	#$1,ccr
 	bra.s	.L9242
 .L91EC
-	move.w	.L95C2(pc),d2
+	move.w	PcmAllocPosition(pc),d2
 	lsr.w	#$8,d2
 	lsr.w	#$4,d2
 	ori.b	#$80,d2
 	move.b	d2,$FF000F.l
-	bsr.w	.L95B2
-	move.w	.L95C2(pc),d1
+	bsr.w	PcmWriteDelay
+	move.w	PcmAllocPosition(pc),d1
 	andi.l	#$FFF,d1
 	lsl.l	#$1,d1
 	addi.l	#$FF2001,d1
@@ -3840,7 +3855,7 @@ PcmDriverEntry
 	bne.s	.L923C
 	addi.b	#$1,d2
 	move.b	d2,$FF000F.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	movea.l	#$FF2001,a1
 .L923C
 	dbf	d0,.L9216
@@ -3848,11 +3863,11 @@ PcmDriverEntry
 .L9242
 	movem.l	(sp)+,d1-d2/a0-a1
 	rts
-.L9248
+SetPcmSoundLoopOffset
 	movem.l	d1-d3/a0,-(sp)
 	movem.l	d2-d3,-(sp)
 	move.w	#$0,d0
-	bsr.w	.L906E
+	bsr.w	FindPcmRecord
 	movem.l	(sp)+,d2-d3
 	bcs.s	.L928A
 	cmpi.w	#$0,d3
@@ -3874,32 +3889,32 @@ PcmDriverEntry
 .L928A
 	movem.l	(sp)+,d1-d3/a0
 	rts
-.L9290
+PlayPcmStream
 	movem.l	d1-d4/a0-a2,-(sp)
 	move.w	sr,-(sp)
 	move.w	#$2700,sr
 	cmpa.l	#$FFFFFFFF,a0
 	bne.s	.L92E2
-	lea	.L9838(pc),a0
+	lea	PcmStreamActive(pc),a0
 	cmpi.w	#$0,(a0)
 	bne.s	.L92B2
 	clr.w	d0
 	bra.w	.L9496
 .L92B2
 	move.w	#$0,(a0)
-	move.w	.L9848(pc),d0
+	move.w	PcmStreamChannel(pc),d0
 	ori.b	#$C0,d0
 	move.b	d0,$FF000F.l
 	move.b	#$0,$FF0009.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	move.b	#$0,$FF000B.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	clr.w	d0
 	bra.w	.L9496
 .L92E2
 	cmpa.l	#$0,a0
 	bne.s	.L9304
-	move.w	.L9838(pc),d0
+	move.w	PcmStreamActive(pc),d0
 	bne.s	.L92FE
 	move.l	#$FFFFFFFF,d0
 	andi.b	#$FE,ccr
@@ -3908,18 +3923,18 @@ PcmDriverEntry
 	clr.l	d0
 	bra.w	.L9496
 .L9304
-	move.w	.L9838(pc),d0
+	move.w	PcmStreamActive(pc),d0
 	beq.s	.L9316
 	move.w	#$7,d0
 	ori.b	#$1,ccr
 	bra.w	.L9496
 .L9316
-	lea	.L984A(pc),a1
+	lea	PcmStreamSource(pc),a1
 	move.l	a0,(a1)+
 	move.w	d1,(a1)+
 	move.w	d2,(a1)+
 	move.w	d3,(a1)+
-	lea	.L95C2(pc),a0
+	lea	PcmAllocPosition(pc),a0
 	clr.w	d0
 	sub.w	(a0),d0
 	cmpi.w	#$800,d0
@@ -3935,7 +3950,7 @@ PcmDriverEntry
 .L9344
 	move.w	#$400,d0
 .L9348
-	lea	.L983A(pc),a1
+	lea	PcmStreamHalfA(pc),a1
 	move.w	(a0),d1
 	move.w	d1,(a1)+
 	move.w	d0,(a1)+
@@ -3943,16 +3958,16 @@ PcmDriverEntry
 	move.w	d1,(a1)+
 	move.w	d0,(a1)
 	clr.w	d0
-	bsr.w	.L949E
+	bsr.w	FillPcmStreamHalf
 	move.w	#$1,d0
-	bsr.w	.L949E
-	move.b	.L97DA(pc),d0
+	bsr.w	FillPcmStreamHalf
+	move.b	PcmChannelOffMask(pc),d0
 	move.w	#$7,d1
 .L936E
 	btst	d1,d0
 	bne.s	.L93AE
 	dbf	d1,.L936E
-	lea	.L97FC(pc),a0
+	lea	PcmChannelPriority(pc),a0
 	move.w	#$FFFF,d1
 	move.b	#$FF,d2
 	clr.w	d0
@@ -3972,68 +3987,68 @@ PcmDriverEntry
 	ori.b	#$1,ccr
 	bra.w	.L9496
 .L93AE
-	lea	.L9848(pc),a0
+	lea	PcmStreamChannel(pc),a0
 	move.w	d1,(a0)
-	lea	.L97DA(pc),a0
+	lea	PcmChannelOffMask(pc),a0
 	move.b	(a0),d0
 	bset	d1,d0
 	move.b	d0,$FF0011.l
-	bsr.w	.L95B2
-	move.w	.L9848(pc),d0
+	bsr.w	PcmWriteDelay
+	move.w	PcmStreamChannel(pc),d0
 	ori.b	#$C0,d0
 	move.b	d0,$FF000F.l
-	move.w	.L983A(pc),d0
+	move.w	PcmStreamHalfA(pc),d0
 	lsr.w	#$8,d0
 	move.b	d0,$FF000D.l
-	bsr.w	.L95B2
-	move.w	.L9842(pc),d0
+	bsr.w	PcmWriteDelay
+	move.w	PcmStreamLoopB(pc),d0
 	move.b	d0,$FF0009.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	lsr.w	#$8,d0
 	move.b	d0,$FF000B.l
-	bsr.w	.L95B2
-	move.w	.L984E(pc),d0
+	bsr.w	PcmWriteDelay
+	move.w	PcmStreamFrequency(pc),d0
 	move.b	d0,$FF0005.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	lsr.w	#$8,d0
 	move.b	d0,$FF0007.l
-	bsr.w	.L95B2
-	move.w	X_9850(pc),d0
+	bsr.w	PcmWriteDelay
+	move.w	PcmStreamEnvelope(pc),d0
 	move.b	d0,$FF0001.l
-	bsr.w	.L95B2
-	move.w	.L9852(pc),d0
+	bsr.w	PcmWriteDelay
+	move.w	PcmStreamPan(pc),d0
 	move.b	d0,$FF0003.l
-	bsr.w	.L95B2
-	lea	.L97DA(pc),a0
-	move.w	.L9848(pc),d0
+	bsr.w	PcmWriteDelay
+	lea	PcmChannelOffMask(pc),a0
+	move.w	PcmStreamChannel(pc),d0
 	move.b	(a0),d1
 	bclr	d0,d1
 	move.b	d1,(a0)
 	move.b	d1,$FF0011.l
-	bsr.w	.L95B2
-	lea	.L97DC(pc),a0
-	move.w	.L9848(pc),d0
+	bsr.w	PcmWriteDelay
+	lea	PcmChannelSlot(pc),a0
+	move.w	PcmStreamChannel(pc),d0
 	move.b	#$FF,(a0,d0.w)
-	lea	.L97E4(pc),a0
+	lea	X_97E4(pc),a0
 	move.b	#$FF,(a0,d0.w)
-	lea	.L97EC(pc),a0
+	lea	X_97EC(pc),a0
 	move.b	#$FF,(a0,d0.w)
-	lea	.L97F4(pc),a0
+	lea	X_97F4(pc),a0
 	move.b	#$FF,(a0,d0.w)
-	lea	.L97FC(pc),a0
+	lea	PcmChannelPriority(pc),a0
 	move.b	#$0,(a0,d0.w)
-	lea	.L9804(pc),a0
+	lea	X_9804(pc),a0
 	move.b	#$FF,(a0,d0.w)
-	lea	.L9838(pc),a0
+	lea	PcmStreamActive(pc),a0
 	move.w	#$FFFF,(a0)
 	clr.w	d0
 .L9496
 	move.w	(sp)+,sr
 	movem.l	(sp)+,d1-d4/a0-a2
 	rts
-.L949E
+FillPcmStreamHalf
 	movem.l	d0-d3/a0-a1,-(sp)
-	move.l	.L984A(pc),d1
+	move.l	PcmStreamSource(pc),d1
 	cmpi.l	#$FFFFFFFF,d1
 	bne.s	.L94B4
 	clr.w	d0
@@ -4041,24 +4056,24 @@ PcmDriverEntry
 .L94B4
 	cmpi.w	#$0,d0
 	bne.s	.L94C4
-	move.w	.L983A(pc),d2
-	move.w	X_983C(pc),d3
+	move.w	PcmStreamHalfA(pc),d2
+	move.w	PcmStreamHalfASize(pc),d3
 	bra.s	.L94CC
 .L94C4
-	move.w	.L983E(pc),d2
-	move.w	X_9840(pc),d3
+	move.w	PcmStreamHalfB(pc),d2
+	move.w	PcmStreamHalfBSize(pc),d3
 .L94CC
 	move.w	d2,d1
 	lsr.w	#$8,d2
 	lsr.w	#$4,d2
 	ori.b	#$80,d2
 	move.b	d2,$FF000F.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	andi.l	#$FFF,d1
 	lsl.l	#$1,d1
 	addi.l	#$FF2001,d1
 	movea.l	d1,a1
-	movea.l	.L984A(pc),a0
+	movea.l	PcmStreamSource(pc),a0
 	subi.w	#$1,d3
 .L94F8
 	move.b	(a0)+,d1
@@ -4068,63 +4083,63 @@ PcmDriverEntry
 	bne.s	.L951E
 	addi.b	#$1,d2
 	move.b	d2,$FF000F.l
-	bsr.w	.L95B2
+	bsr.w	PcmWriteDelay
 	movea.l	#$FF2001,a1
 .L951E
 	cmpi.b	#$FF,d1
 	beq.s	.L9576
 	dbf	d3,.L94F8
 	move.b	#$FF,(a1)
-	lea	.L984A(pc),a1
+	lea	PcmStreamSource(pc),a1
 	cmpi.w	#$0,d0
 	bne.s	.L9556
 	clr.l	d1
-	move.w	X_983C(pc),d1
+	move.w	PcmStreamHalfASize(pc),d1
 	add.l	(a1),d1
 	move.l	d1,(a1)
-	lea	.L9842(pc),a1
-	move.w	.L983E(pc),d1
+	lea	PcmStreamLoopB(pc),a1
+	move.w	PcmStreamHalfB(pc),d1
 	move.w	d1,(a1)
-	lea	.L9846(pc),a1
+	lea	PcmStreamLastHalf(pc),a1
 	move.w	#$0,(a1)
 	clr.w	d0
 	bra.s	.L959C
 .L9556
 	clr.l	d1
-	move.w	X_9840(pc),d1
+	move.w	PcmStreamHalfBSize(pc),d1
 	add.l	(a1),d1
 	move.l	d1,(a1)
-	lea	.L9844(pc),a1
-	move.w	.L983A(pc),d1
+	lea	PcmStreamLoopA(pc),a1
+	move.w	PcmStreamHalfA(pc),d1
 	move.w	d1,(a1)
-	lea	.L9846(pc),a1
+	lea	PcmStreamLastHalf(pc),a1
 	move.w	#$1,(a1)
 	clr.w	d0
 	bra.s	.L959C
 .L9576
-	lea	.L984A(pc),a1
+	lea	PcmStreamSource(pc),a1
 	move.l	#$FFFFFFFF,(a1)
 	cmpi.w	#$0,d0
 	bne.s	.L9592
-	lea	.L9842(pc),a1
+	lea	PcmStreamLoopB(pc),a1
 	move.w	#$0,(a1)
 	clr.w	d0
 	bra.s	.L959C
 .L9592
-	lea	.L9844(pc),a1
+	lea	PcmStreamLoopA(pc),a1
 	move.w	#$0,(a1)
 	clr.w	d0
 .L959C
 	movem.l	(sp)+,d0-d3/a0-a1
 	rts
-.L95A2
+WaitCdbiosReady
 	move.w	#$80,d0
 	jsr	$5F22.l
-	bcs.s	.L95A2
+	bcs.s	WaitCdbiosReady
 	rts
-.L95B0
+PcmCommandNoOp
 	rts
-.L95B2
+PcmWriteDelay
 	move.l	d0,-(sp)
 	move.w	#$28,d0
 .L95B8
@@ -4132,89 +4147,79 @@ PcmDriverEntry
 	dbf	d0,.L95B8
 	move.l	(sp)+,d0
 	rts
-.L95C2
+PcmAllocPosition
 	ori.b	#$0,d0
-.L95C6
+PcmSampleAddress
 	dcb.b	512,0
-.L97C6
+PcmLastWaveLength
 	dc.w	$0000
-.L97C8
+PcmRecordDirectories
 	dcb.b	16,0
-.L97D8
+PcmServiceBusy
 	dc.w	$0000
-.L97DA
+PcmChannelOffMask
 	dc.w	$0000
-.L97DC
+PcmChannelSlot
 	ori.b	#$0,d0
 	ori.b	#$0,d0
-.L97E4
 	ori.b	#$0,d0
 	ori.b	#$0,d0
-.L97EC
 	ori.b	#$0,d0
 	ori.b	#$0,d0
-.L97F4
 	ori.b	#$0,d0
 	ori.b	#$0,d0
-.L97FC
+PcmChannelPriority
 	ori.b	#$0,d0
 	ori.b	#$0,d0
-.L9804
 	ori.b	#$0,d0
 	ori.b	#$0,d0
-.L980C
 	ori.b	#$0,d0
 	ori.b	#$0,d0
-.L9814
 	dcb.b	18,0
-.L9826
+PcmLastTimerTick
 	dc.w	$0000
-.L9828
+PcmCurrentChannel
 	dc.w	$0000
-.L982A
 	dc.w	$0000
-.L982C
 	ori.b	#$0,d0
-.L9830
 	dc.w	$0000
-.L9832
 	dc.w	$0000
-.L9834
 	ori.b	#$0,d0
-.L9838
+PcmStreamActive
 	dc.w	$0000
-.L983A
+PcmStreamHalfA
+	dc.w	$0000
+PcmStreamHalfASize
+	dc.w	$0000
+PcmStreamHalfB
+	dc.w	$0000
+PcmStreamHalfBSize
+	dc.w	$0000
+PcmStreamLoopB
+	dc.w	$0000
+PcmStreamLoopA
+	dc.w	$0000
+PcmStreamLastHalf
+	dc.w	$0000
+PcmStreamChannel
+	dc.w	$0000
+PcmStreamSource
 	ori.b	#$0,d0
-.L983E
-	ori.b	#$0,d0
-.L9842
+PcmStreamFrequency
 	dc.w	$0000
-.L9844
+PcmStreamEnvelope
 	dc.w	$0000
-.L9846
+PcmStreamPan
 	dc.w	$0000
-.L9848
-	dc.w	$0000
-.L984A
-	ori.b	#$0,d0
-.L984E
-	ori.b	#$0,d0
-.L9852
-	dc.w	$0000
-.L9854
+PcmSoundMapping
 	dcb.b	128,0
-.L98D4
 	dcb.b	128,0
-.L9954
 	dcb.b	128,0
-.L99D4
 	dcb.b	128,0
-.L9A54
+PcmPitchControl
 	dcb.b	128,0
-.L9AD4
 	ori.b	#$0,d0
 	ori.b	#$0,d0
-.L9ADC
 	ori.b	#$0,d0
 SyncWithMain
 	btst.b	#$7,$FF800E.l

@@ -53,5 +53,5 @@ StanleyCupSpritePtr	dc.l	0			;$47D94 R0_StanleyCupSprite; StanleyCupSprite 2
 HotMapPtr	dc.l	0			;$47D98 R0_HotMap, R1_HotMap; logos94 loads it for a hot player
 ColdMapPtr	dc.l	0			;$47D9C R0_ColdMap, R1_ColdMap; logos94: the cold player icon
 	dc.l	0				;$47DA0 GRAPH2 resource 96, the game's PCM samples (LoadGameGfx; for OSInitMainSound, boot/sp.asm)
-	dc.l	0				;$47DA4 R0_03: not known
+ScoutingSpeechClipsPtr	dc.l	0			;$47DA4 R0_ScoutingSpeechClips: the scouting report's speech clips (scout94_2, scoutopen copies them to $C458)
 	dc.l	0				;$47DA8 R1_24: the same form as HomeTeamGfxPtr; LoadHomeTeamGfx (ui94) takes it instead when $17468 is set

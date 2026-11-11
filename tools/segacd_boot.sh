@@ -48,9 +48,64 @@ SP_LABELS=(
   --label OSInitMainSoundDriver=0x8122    # $F: main command $40 with PcmDriverEntry in $FF8022
   --label OSStopMainSoundHInt=0x818E      # 9: main command $2A
   --label OSStopTimer=0x81DE              # $D: the saved timer vector put back
-  --label StartTimerInterrupt=0x81F2      # TimerInterrupt on the level 3 vector, interval $84, level 3 enabled
-  --label TimerInterrupt=0x822C
+  --label StartTimerInterrupt=0x81F2      # TimerInterrupt into the BIOS level 3 jmp (the vector at $6C + 2), interval $84, level 3 enabled
+  --label TimerInterrupt=0x822C           # level 3 (gate array timer): interval $84 again; command 1 while PcmServiceEnabled
   --label PcmDriverEntry=0x8260           # bra.w to the PCM driver, then its 130-byte command queue (as in STARTER.BIN)
+# The PCM driver: STARTER.BIN's driver (docs/segacd_starter_driver.md) with command 9 added, so its routines
+# have the names of their STARTER twins (found by equal byte runs).
+  --label PcmCommandQueue=0x8264          # count word, then packed longs (DrainPcmCommandQueue); the main CPU's sound engine fills it
+  --label DispatchPcmCommand=0x82E6       # d0.w commands 0-9; d0.b >= $80 goes to DispatchPackedPcmCommand
+  --label ServicePcmDriver=0x835C         # command 1: drain the queue, update the channels every $20 timer ticks, ServicePcmStream
+  --label DrainPcmCommandQueue=0x83AA     # packed longs from PcmCommandQueue
+  --label UpdatePcmEnvelopes=0x83FC       # eight channels: playback address, envelope segments
+  --label ServicePcmStream=0x85BE         # command 9's stream: refill the half the channel has left, point the loop at the other
+  --label DispatchPackedPcmCommand=0x86CC # by command byte range ($80-$EF)
+  --label PlayPackedPcmSound=0x8716       # $90-$9F: pick a channel, start, loop, frequency, envelope, pan
+  --label StopPackedPcmSound=0x886E       # $80-$8F: release or disable the matching channel
+  --label SetPcmSoundMapping=0x8970       # $B0-$CF
+  --label SetPcmPitchControl=0x8994       # $E0-$EF, then the frequency update
+  --label StartPcmEnvelope=0x89E8         # record type 4: envelope id, position, first level
+  --label InitPcmDriver=0x8A9E            # command 0
+  --label PlayPcmSample=0x8BAC            # command 3: explicit frequency, envelope, pan
+  --label UpdatePcmFrequency=0x8CE4       # note + pitch control through the pitch table
+  --label UpdatePcmPan=0x8F0E             # levels and pan to $FF0003
+  --label SelectPcmChannel=0x8FCE         # reuse, a disabled channel, or replace by priority
+  --label FindPcmRecord=0x906E            # search the record directories by type and id
+  --label ControlPcmSampleAllocation=0x90E2 # command 2: reset / save / restore PcmAllocPosition
+  --label SetPcmRecordDirectory=0x9152    # command 5: a0 into directory d1
+  --label LoadPcmRecordList=0x9166        # command 6: type/id pairs to $FFFF, uploads type-2 samples
+  --label CopyPcmWaveData=0x91C8          # odd bytes of $FF2001-$FF3FFF, bank by bank
+  --label SetPcmSoundLoopOffset=0x9248    # command 8: the word at offset 5 of a type-0 record
+  --label PlayPcmStream=0x9290            # command 9 (not in STARTER): a0 -1 stop, 0 ask, else stream a0 (ends at $FF); d1 frequency, d2 envelope, d3 pan
+  --label FillPcmStreamHalf=0x949E        # d0 = 0 half A, 1 half B: copy the next bytes from PcmStreamSource, $FF after them
+  --label WaitCdbiosReady=0x95A2          # BIOS $80 (CDBCHK) until carry clear
+  --label PcmCommandNoOp=0x95B0           # command 7: rts
+  --label PcmWriteDelay=0x95B2            # nop / dbf after PCM register writes
+  --label PcmAllocPosition=0x95C2         # the next free wave RAM address (STARTER's $D362), then the saved one
+  --label PcmSampleAddress=0x95C6         # 256 words: each wave sample id's wave RAM address ($FFFF: not loaded)
+  --label PcmLastWaveLength=0x97C6        # CopyPcmWaveData's byte count, added to PcmAllocPosition
+  --label PcmRecordDirectories=0x97C8     # four longs (SetPcmRecordDirectory d1), searched by FindPcmRecord
+  --label PcmServiceBusy=0x97D8           # ServicePcmDriver's reentry guard
+  --label PcmChannelOffMask=0x97DA        # what was last written to $FF0011 (a set bit: channel off)
+  --label PcmChannelSlot=0x97DC           # one byte per channel: the packed-command slot it plays for
+  --label PcmChannelPriority=0x97FC       # one byte per channel, SelectPcmChannel's replace order
+  --label PcmLastTimerTick=0x9826         # $FF800C when the channels were last updated
+  --label PcmCurrentChannel=0x9828        # the channel the update loops are on (0-7)
+  --label PcmStreamActive=0x9838          # not zero while command 9's stream plays
+  --label PcmStreamHalfA=0x983A           # wave RAM address of half A
+  --label PcmStreamHalfASize=0x983C       # $400 bytes, or half of a smaller free wave RAM rounded down to $100
+  --label PcmStreamHalfB=0x983E           # wave RAM address of half B (right after half A)
+  --label PcmStreamHalfBSize=0x9840
+  --label PcmStreamLoopB=0x9842           # the loop address once half A is filled: half B (zero after the end byte)
+  --label PcmStreamLoopA=0x9844           # the loop address once half B is filled: half A (zero after the end byte)
+  --label PcmStreamLastHalf=0x9846        # the half filled last: 0 A, 1 B
+  --label PcmStreamChannel=0x9848
+  --label PcmStreamSource=0x984A          # the next byte to copy; -1 once the $FF end byte is reached
+  --label PcmStreamFrequency=0x984E       # d1 of command 9
+  --label PcmStreamEnvelope=0x9850        # d2 of command 9
+  --label PcmStreamPan=0x9852             # d3 of command 9
+  --label PcmSoundMapping=0x9854          # 128 bytes, one per packed-command slot: packed $B0-$CF (STARTER's $D5D0)
+  --label PcmPitchControl=0x9A54          # 128 bytes, one per slot: packed $E0-$EF, $40 at init (STARTER's $D7D0)
   --label SyncWithMain=0x9AE0             # the flag bit 6 / 7 handshake
   --label ReadSectors=0xA3F8              # (LBA, sectors, address): BIOS reads through $5F22, five tries
   --cdname GTableBuffer=0x9B58
@@ -62,6 +117,8 @@ SP_LABELS=(
   --cdname FilmStopFlag=0xA36A
   --cdname KeptWord=0xA36C
   --cdname SavedTimerVector=0xA36E
+  --cdname TimerCountdown=0x8228          # TimerInterrupt counts it 15 to 0 and round again; nothing reads it
+  --cdname PcmServiceEnabled=0x822A       # set by services 8 and $F, cleared by 9: TimerInterrupt runs command 1 while set
 )
 port() {  # name start end base [options...]
   local n=$1 s=$2 e=$3 b=$4
