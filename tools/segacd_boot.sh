@@ -67,7 +67,8 @@ SP_LABELS=(
   --label StartPcmEnvelope=0x89E8         # record type 4: envelope id, position, first level
   --label InitPcmDriver=0x8A9E            # command 0
   --label PlayPcmSample=0x8BAC            # command 3: explicit frequency, envelope, pan
-  --label UpdatePcmFrequency=0x8CE4       # note + pitch control through the pitch table
+  --label UpdatePcmFrequency=0x8CE4       # the note against the record's root, fine tune, pitch bend, modulation: PcmPitchTable
+  --label PcmPitchTable=0x8EAC            # frequency steps of semitones 0-48 above the root: $0800 (as recorded), doubling every 12
   --label UpdatePcmPan=0x8F0E             # levels and pan to $FF0003
   --label SelectPcmChannel=0x8FCE         # reuse, a disabled channel, or replace by priority
   --label FindPcmRecord=0x906E            # search the record directories by type and id
@@ -88,9 +89,23 @@ SP_LABELS=(
   --label PcmServiceBusy=0x97D8           # ServicePcmDriver's reentry guard
   --label PcmChannelOffMask=0x97DA        # what was last written to $FF0011 (a set bit: channel off)
   --label PcmChannelSlot=0x97DC           # one byte per channel: the packed-command slot it plays for
-  --label PcmChannelPriority=0x97FC       # one byte per channel, SelectPcmChannel's replace order
+  --label PcmChannelSound=0x97E4          # one byte per channel: the sound (type 0 record id)
+  --label PcmChannelNote=0x97EC           # one byte per channel: the note
+  --label PcmChannelVelocity=0x97F4       # one byte per channel: the velocity (the level, before the envelope)
+  --label PcmChannelPriority=0x97FC       # one byte per channel: the smaller byte wins (SelectPcmChannel); the stream gets 0
+  --label PcmChannelEnvelope=0x9804       # one byte per channel: the envelope (type 4 record id), $FF none
+  --label PcmChannelSegment=0x980C        # one byte per channel: the envelope segment it is in
+  --label PcmChannelSegmentTime=0x9814    # one word per channel: time in that segment ($FF800C ticks / 32)
+  --label PcmEnvelopeHeld=0x9825          # a bit per channel: the note is held, so the envelope loops at its sustain segment
   --label PcmLastTimerTick=0x9826         # $FF800C when the channels were last updated
   --label PcmCurrentChannel=0x9828        # the channel the update loops are on (0-7)
+  --label PcmEventSlot=0x982A             # the packed command being played or stopped: slot (word)
+  --label PcmEventNote=0x982C             # its note (word)
+  --label PcmEventVelocity=0x982E         # its velocity (word)
+  --label PcmEventSound=0x9830            # the sound PcmSoundMapping (and a key map record) gives (word)
+  --label PcmReuseFlags=0x9832            # SelectPcmChannel: the record's flags byte $C when a channel already playing the
+                                          # sound is taken (bit 1 clear: it keeps playing, only the frequency changes)
+  --label PcmEventRecord=0x9834           # the sound's type 0 record
   --label PcmStreamActive=0x9838          # not zero while command 9's stream plays
   --label PcmStreamHalfA=0x983A           # wave RAM address of half A
   --label PcmStreamHalfASize=0x983C       # $400 bytes, or half of a smaller free wave RAM rounded down to $100
@@ -105,7 +120,13 @@ SP_LABELS=(
   --label PcmStreamEnvelope=0x9850        # d2 of command 9
   --label PcmStreamPan=0x9852             # d3 of command 9
   --label PcmSoundMapping=0x9854          # 128 bytes, one per packed-command slot: packed $B0-$CF (STARTER's $D5D0)
+  --label PcmSlotModulation=0x98D4        # 128 bytes, one per slot: modulation depth, 0 at init and nothing writes it
+  --label PcmSlotLevel=0x9954             # 128 bytes, one per slot: $7F at init
+  --label PcmSlotPan=0x99D4               # 128 bytes, one per slot: $40 (centre) at init
   --label PcmPitchControl=0x9A54          # 128 bytes, one per slot: packed $E0-$EF, $40 at init (STARTER's $D7D0)
+  --label PcmGroupLevel=0x9AD4            # 8 bytes, one per 16 slots (the long's top byte / 16): $FF at init
+  --label PcmMasterLevel=0x9ADC           # $FF at init
+  --label PcmModulationLevels=0x9ADD      # 3 bytes picked by a record's byte $A: $80 (none) at init, nothing writes them
   --label SyncWithMain=0x9AE0             # the flag bit 6 / 7 handshake
   --label ReadSectors=0xA3F8              # (LBA, sectors, address): BIOS reads through $5F22, five tries
   --cdname GTableBuffer=0x9B58
@@ -119,6 +140,16 @@ SP_LABELS=(
   --cdname SavedTimerVector=0xA36E
   --cdname TimerCountdown=0x8228          # TimerInterrupt counts it 15 to 0 and round again; nothing reads it
   --cdname PcmServiceEnabled=0x822A       # set by services 8 and $F, cleared by 9: TimerInterrupt runs command 1 while set
+  --cdname PcmEventSlotByte=0x982B        # the low bytes of the PcmEvent words
+  --cdname PcmEventNoteByte=0x982D
+  --cdname PcmEventVelocityByte=0x982F
+  --cdname PcmEventSoundByte=0x9831
+)
+# Code the decoder would take for text (an rts, unlk / addq / jmp, nops spell letters), and the PCM driver's
+# pitch table (words, not instructions).
+SP_RANGES=(
+  --code 0x6346-0x6348 --code 0x6BE6-0x6BEE --code 0x7D7C-0x7D86 --code 0x8032-0x8038
+  --code 0x8260-0x8EAC --data 0x8EAC-0x8F0E --code 0x8F0E-0x95C2
 )
 port() {  # name start end base [options...]
   local n=$1 s=$2 e=$3 b=$4
@@ -130,6 +161,6 @@ port() {  # name start end base [options...]
 }
 
 port ip 0x784 0x1000 0xFEFE00 "${IP_LABELS[@]}" --note 'The initial program after Sega'"'"'s security block (security.asm): it sets the interrupt level and the\nV / H interrupt vectors, waits for the sub CPU, takes word RAM, copies MAIN.BIN ($EC02 bytes, which the\nsystem program put in word RAM) to $FF1000 and jumps to it. Then zeros to the system program.'
-port sp 0x1000 0x8000 0x5000 "${SP_LABELS[@]}" --note 'The system program (sub CPU $6000, module MAIN SEGAOS): the header, the service dispatch at $6044\n(function number in d7), the file table, then the Sierra C SDK code STARTER.BIN has too, and zeros.'
+port sp 0x1000 0x8000 0x5000 "${SP_LABELS[@]}" "${SP_RANGES[@]}" --note 'The system program (sub CPU $6000, module MAIN SEGAOS): the header, the service dispatch at $6044\n(function number in d7), the file table, then the Sierra C SDK code STARTER.BIN has too, and zeros.'
 
 exit $fail

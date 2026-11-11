@@ -27,7 +27,8 @@ SUBDRV_LABELS=(
   --label StartPcmEnvelope=0xCB28         # record type 4: envelope id, position, first level
   --label InitPcmDriver=0xCBDE            # command 0
   --label PlayPcmSample=0xCCCE            # command 3: explicit frequency, envelope, pan
-  --label UpdatePcmFrequency=0xCE06       # note + pitch control through the table at $CF5E, to $FF0005/$FF0007
+  --label UpdatePcmFrequency=0xCE06       # note + pitch control through PcmPitchTable, to $FF0005/$FF0007
+  --label PcmPitchTable=0xCF5E            # frequency steps of semitones 0-48 above a sample's root: $0800, doubling every 12
   --label UpdatePcmPan=0xCFC0             # levels and pan to $FF0003
   --label SelectPcmChannel=0xD080         # reuse, a disabled channel, or replace by priority
   --label FindPcmRecord=0xD120            # search the two directories at $D568/$D56C by type and id
@@ -147,7 +148,7 @@ port() {  # name start end [options...]
 # $54EC), startertail's jsr $27A6A is its own code at file $1CA6A. The older subboot.asm, pcmclear.asm,
 # cdcwait.asm ... were first written at $21300 and are at $B000 now (same bytes).
 port subhdr 0x90 0x1542 "${SUBHDR_LABELS[@]}" --note 'Zeros after subboot.asm (the stack top is $C41C), a file record (HOCKEY.BIN, $01FF), the words\nstartertail shares at $C42E-$C452, then the driver'"'"'s two entries: StarterDriverEntry (the start-up) and\nDispatchPcmCommandEntry (PCM commands). Names given here; docs/segacd_starter_driver.md.'
-port subdrv 0x1542 0x3A0C "${SUBDRV_LABELS[@]}" --note 'The sub CPU driver module: the PCM sound driver (commands 0-8 and packed commands, records, eight\nchannels, envelopes), then the start-up sequence (screens, samples, two stages, film, credits), the commands\nit sends to the main CPU, word RAM handover, frames, pads. Names given here; docs/segacd_starter_driver.md.\nTables between routines (the pitch table near $CF5E, inline command words) show as instructions.\npcmclear.asm follows.'
+port subdrv 0x1542 0x3A0C "${SUBDRV_LABELS[@]}" --code 0xC542-0xCF5E --data 0xCF5E-0xCFC0 --code 0xCFC0-0xD362 --note 'The sub CPU driver module: the PCM sound driver (commands 0-8 and packed commands, records, eight\nchannels, envelopes), then the start-up sequence (screens, samples, two stages, film, credits), the commands\nit sends to the main CPU, word RAM handover, frames, pads. Names given here; docs/segacd_starter_driver.md.\nInline command words after some calls show as instructions; PcmPitchTable is words.\npcmclear.asm follows.'
 port subdrv_2 0x3A8A 0x3D94 "${SUBDRV2_LABELS[@]}" --note 'The end of the sub CPU driver module, between cdcwait.asm and filmrun.asm: the frame callback,\nRunStarterFilm (film operations 0, 1, 2 through StarterFilmEntry, which branches to filmrun.asm at $ED94),\nthe saved arguments and the DRVINIT block (with HOCKEY.SEG). docs/segacd_starter_driver.md.'
 port subirq 0x40FA 0x4336 --note 'After pcmchip.asm: a long that keeps the BIOS vector at $5F90 (the first line, decoded as an\nori.b #0), code that hooks that vector with its own handler and puts it back, then the C function Wait.'
 port subtext 0x4788 0x49FA --note 'SwapMeg, DrawText, NumStr, HexStr, aprint: text to the main CPU (SendCommandToMain, the\nDoDrawTextCommand side is in maintext.asm) and number formatting.'

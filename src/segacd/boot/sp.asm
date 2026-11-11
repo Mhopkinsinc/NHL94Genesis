@@ -6,6 +6,10 @@
 
 TimerCountdown	equ	$8228
 PcmServiceEnabled	equ	$822A
+PcmEventSlotByte	equ	$982B
+PcmEventNoteByte	equ	$982D
+PcmEventVelocityByte	equ	$982F
+PcmEventSoundByte	equ	$9831
 GTableBuffer	equ	$9B58
 PlayerCallerSp	equ	$A358
 PlayerReturn	equ	$A35C
@@ -30,28 +34,6 @@ X_6E64	equ	$6E64
 X_7F64	equ	$7F64
 X_7F8A	equ	$7F8A
 X_7FAE	equ	$7FAE
-X_97E4	equ	$97E4
-X_97EC	equ	$97EC
-X_97F4	equ	$97F4
-X_9804	equ	$9804
-X_980C	equ	$980C
-X_9814	equ	$9814
-X_9825	equ	$9825
-X_982A	equ	$982A
-X_982B	equ	$982B
-X_982C	equ	$982C
-X_982D	equ	$982D
-X_982F	equ	$982F
-X_9830	equ	$9830
-X_9831	equ	$9831
-X_9832	equ	$9832
-X_9834	equ	$9834
-X_98D4	equ	$98D4
-X_9954	equ	$9954
-X_99D4	equ	$99D4
-X_9AD4	equ	$9AD4
-X_9ADC	equ	$9ADC
-X_9ADD	equ	$9ADD
 X_9B20	equ	$9B20
 X_9B2C	equ	$9B2C
 X_9B40	equ	$9B40
@@ -151,7 +133,8 @@ SegaOSMain
 	jsr	(SyncWithMain).l
 	jmp	(X_B000).l
 	move.w	#$FFFF,(ReadHookFlag).l
-	dc.b	'NuHOCKEY.BIN'
+	rts
+	dc.b	'HOCKEY.BIN'
 	dc.w	$0000,$5241
 	dc.w	$4D2E
 	dc.w	$4249
@@ -690,8 +673,10 @@ FilmSwitch
 	dbf	d7,.L6B2E
 .L6BE2
 	movem.l	(sp)+,d0-d7/a0-a5
-	dc.b	'N^ _PON'
-	dc.b	$D0
+	unlk	a6
+	movea.l	(sp)+,a0
+	addq.w	#$8,sp
+	jmp	(a0)
 	movea.l	#$FF0000,a0
 	move.b	#$FF,$11(a0)
 	moveq	#$14,d0
@@ -2164,8 +2149,10 @@ AudioIdle
 	jsr	AudioPlayPos(pc)
 	move.l	d0,d7
 	tst.l	$C(a4)
-	dc.b	'XOgB ,'
-	dc.w	$0004,$9087
+	addq.w	#$4,sp
+	beq.s	.L7DC2
+	move.l	$4(a4),d0
+	sub.l	d7,d0
 	moveq	#$8,d1
 	cmp.l	d0,d1
 	ble.s	.L7DC2
@@ -2407,7 +2394,9 @@ AudioBusy
 .L802E
 	divu.w	(sp)+,d0
 	move.w	d0,d1
-	dc.b	'B@H@Nu'
+	clr.w	d0
+	swap	d0
+	rts
 .L8038
 	swap	d1
 	move.w	d2,(sp)
@@ -2680,7 +2669,7 @@ UpdatePcmEnvelopes
 	bra.w	.L85A6
 .L8442
 	move.w	PcmCurrentChannel(pc),d2
-	lea	X_9804(pc),a0
+	lea	PcmChannelEnvelope(pc),a0
 	cmpi.b	#$FF,(a0,d2.w)
 	beq.w	.L85A6
 	clr.w	d1
@@ -2688,7 +2677,7 @@ UpdatePcmEnvelopes
 	move.w	#$4,d0
 	bsr.w	FindPcmRecord
 	bcs.w	.L85A6
-	lea	X_9814(pc),a1
+	lea	PcmChannelSegmentTime(pc),a1
 	move.w	PcmCurrentChannel(pc),d0
 	lsl.w	#$1,d0
 	move.w	$FF800C.l,d1
@@ -2697,7 +2686,7 @@ UpdatePcmEnvelopes
 	lsr.w	#$5,d1
 	add.w	(a1,d0.w),d1
 	move.w	d1,(a1,d0.w)
-	lea	X_980C(pc),a2
+	lea	PcmChannelSegment(pc),a2
 	move.w	PcmCurrentChannel(pc),d1
 	clr.w	d2
 	move.b	(a2,d1.w),d2
@@ -2715,7 +2704,7 @@ UpdatePcmEnvelopes
 	move.b	(a2,d1.w),d2
 	cmp.b	$2(a0),d2
 	bne.s	.L84DA
-	lea	X_9825(pc),a1
+	lea	PcmEnvelopeHeld(pc),a1
 	move.w	PcmCurrentChannel(pc),d3
 	btst.b	d3,(a1)
 	beq.s	.L84DA
@@ -2734,7 +2723,7 @@ UpdatePcmEnvelopes
 	bsr.w	PcmWriteDelay
 	bra.w	.L85A6
 .L84FE
-	lea	X_980C(pc),a1
+	lea	PcmChannelSegment(pc),a1
 	move.w	PcmCurrentChannel(pc),d0
 	clr.w	d1
 	move.b	(a1,d0.w),d1
@@ -2757,7 +2746,7 @@ UpdatePcmEnvelopes
 	move.b	$1(a0,d1.w),d2
 	bra.s	.L857A
 .L853E
-	lea	X_9814(pc),a1
+	lea	PcmChannelSegmentTime(pc),a1
 	move.w	PcmCurrentChannel(pc),d0
 	lsl.w	#$1,d0
 	move.w	(a1,d0.w),d3
@@ -2781,7 +2770,7 @@ UpdatePcmEnvelopes
 	move.b	$1(a0,d1.w),d2
 	add.w	d3,d2
 .L857A
-	lea	X_97F4(pc),a1
+	lea	PcmChannelVelocity(pc),a1
 	move.w	PcmCurrentChannel(pc),d0
 	clr.w	d3
 	move.b	(a1,d0.w),d3
@@ -2926,21 +2915,21 @@ PlayPackedPcmSound
 	swap	d1
 	andi.w	#$FF,d1
 	move.w	d1,$26C(a0)
-	move.w	X_982A(pc),d2
+	move.w	PcmEventSlot(pc),d2
 	lea	PcmSoundMapping(pc),a0
 	clr.w	d1
 	move.b	(a0,d2.w),d1
 .L8752
-	lea	X_9830(pc),a0
+	lea	PcmEventSound(pc),a0
 	move.w	d1,(a0)
 	move.w	#$0,d0
 	bsr.w	FindPcmRecord
 	bcs.w	.L8868
-	lea	X_9834(pc),a1
+	lea	PcmEventRecord(pc),a1
 	move.l	a0,(a1)
 	cmpi.b	#$7,(a0)
 	bne.s	.L8780
-	move.w	X_982C(pc),d0
+	move.w	PcmEventNote(pc),d0
 	addi.w	#$2,d0
 	clr.w	d1
 	move.b	(a0,d0.w),d1
@@ -2952,17 +2941,17 @@ PlayPackedPcmSound
 .L878A
 	move.w	PcmCurrentChannel(pc),d0
 	lea	PcmChannelSlot(pc),a0
-	move.b	X_982B(pc),(a0,d0.w)
-	lea	X_97E4(pc),a0
-	move.b	X_9831(pc),(a0,d0.w)
-	lea	X_97EC(pc),a0
-	move.b	X_982D(pc),(a0,d0.w)
-	lea	X_97F4(pc),a0
-	move.b	X_982F(pc),(a0,d0.w)
+	move.b	PcmEventSlotByte(pc),(a0,d0.w)
+	lea	PcmChannelSound(pc),a0
+	move.b	PcmEventSoundByte(pc),(a0,d0.w)
+	lea	PcmChannelNote(pc),a0
+	move.b	PcmEventNoteByte(pc),(a0,d0.w)
+	lea	PcmChannelVelocity(pc),a0
+	move.b	PcmEventVelocityByte(pc),(a0,d0.w)
 	lea	PcmChannelPriority(pc),a0
-	movea.l	X_9834(pc),a1
+	movea.l	PcmEventRecord(pc),a1
 	move.b	$1(a1),(a0,d0.w)
-	move.w	X_9832(pc),d0
+	move.w	PcmReuseFlags(pc),d0
 	btst	#$0,d0
 	beq.s	.L87D4
 	btst	#$1,d0
@@ -2976,7 +2965,7 @@ PlayPackedPcmSound
 	ori.b	#$C0,d1
 	move.b	d1,$FF000F.l
 	bsr.w	PcmWriteDelay
-	movea.l	X_9834(pc),a0
+	movea.l	PcmEventRecord(pc),a0
 	clr.w	d0
 	move.b	$2(a0),d0
 	lsl.w	#$1,d0
@@ -3023,14 +3012,14 @@ StopPackedPcmSound
 	swap	d2
 	lsr.w	#$8,d2
 	or.b	d2,d1
-	lea	X_982A(pc),a0
+	lea	PcmEventSlot(pc),a0
 	move.w	d1,(a0)
 	move.w	d0,d1
 	lsr.w	#$8,d1
-	lea	X_982C(pc),a0
+	lea	PcmEventNote(pc),a0
 	move.w	d1,(a0)
 	lea	PcmSoundMapping(pc),a0
-	move.w	X_982A(pc),d0
+	move.w	PcmEventSlot(pc),d0
 	clr.w	d1
 	move.b	(a0,d0.w),d1
 .L88A0
@@ -3039,7 +3028,7 @@ StopPackedPcmSound
 	bcs.w	.L896A
 	cmpi.b	#$7,(a0)
 	bne.s	.L88C2
-	move.w	X_982C(pc),d0
+	move.w	PcmEventNote(pc),d0
 	addi.w	#$1,d0
 	clr.w	d1
 	move.b	(a0,d0.w),d1
@@ -3053,9 +3042,9 @@ StopPackedPcmSound
 	move.b	PcmChannelOffMask(pc),d0
 	clr.w	d1
 	lea	PcmChannelSlot(pc),a1
-	lea	X_97EC(pc),a2
-	move.w	X_982A(pc),d2
-	move.w	X_982C(pc),d3
+	lea	PcmChannelNote(pc),a2
+	move.w	PcmEventSlot(pc),d2
+	move.w	PcmEventNote(pc),d3
 .L88EA
 	btst	d1,d0
 	bne.s	.L894C
@@ -3065,7 +3054,7 @@ StopPackedPcmSound
 	bne.s	.L894C
 	cmpi.b	#$FF,$D(a0)
 	beq.s	.L8936
-	lea	X_9825(pc),a1
+	lea	PcmEnvelopeHeld(pc),a1
 	bclr.b	d1,(a1)
 	lea	PcmCurrentChannel(pc),a1
 	move.w	d1,(a1)
@@ -3074,11 +3063,11 @@ StopPackedPcmSound
 	move.w	#$4,d0
 	bsr.w	FindPcmRecord
 	bcs.s	.L896A
-	lea	X_980C(pc),a1
+	lea	PcmChannelSegment(pc),a1
 	move.w	PcmCurrentChannel(pc),d0
 	move.b	$2(a0),(a1,d0.w)
 	lsl.w	#$1,d0
-	lea	X_9814(pc),a1
+	lea	PcmChannelSegmentTime(pc),a1
 	move.w	#$0,(a1,d0.w)
 	bra.s	.L896A
 .L8936
@@ -3146,10 +3135,10 @@ SetPcmPitchControl
 	rts
 StartPcmEnvelope
 	movem.l	d1-d2/a0,-(sp)
-	movea.l	X_9834(pc),a0
+	movea.l	PcmEventRecord(pc),a0
 	clr.w	d1
 	move.b	$D(a0),d1
-	lea	X_9804(pc),a0
+	lea	PcmChannelEnvelope(pc),a0
 	move.w	PcmCurrentChannel(pc),d0
 	move.b	d1,(a0,d0.w)
 	cmpi.b	#$FF,d1
@@ -3162,7 +3151,7 @@ StartPcmEnvelope
 	ori.b	#$C0,d0
 	move.b	d0,$FF000F.l
 	bsr.w	PcmWriteDelay
-	lea	X_97F4(pc),a0
+	lea	PcmChannelVelocity(pc),a0
 	move.w	PcmCurrentChannel(pc),d0
 	move.b	(a0,d0.w),d1
 	lsl.w	#$1,d1
@@ -3173,7 +3162,7 @@ StartPcmEnvelope
 .L8A40
 	clr.w	d0
 	move.b	$4(a0),d0
-	lea	X_97F4(pc),a0
+	lea	PcmChannelVelocity(pc),a0
 	move.w	PcmCurrentChannel(pc),d1
 	clr.w	d2
 	move.b	(a0,d1.w),d2
@@ -3186,13 +3175,13 @@ StartPcmEnvelope
 	bsr.w	PcmWriteDelay
 	move.b	d0,$FF0001.l
 	bsr.w	PcmWriteDelay
-	lea	X_980C(pc),a0
+	lea	PcmChannelSegment(pc),a0
 	move.w	PcmCurrentChannel(pc),d0
 	move.b	#$0,(a0,d0.w)
-	lea	X_9825(pc),a0
+	lea	PcmEnvelopeHeld(pc),a0
 	bset.b	d0,(a0)
 	lsl.w	#$1,d0
-	lea	X_9814(pc),a0
+	lea	PcmChannelSegmentTime(pc),a0
 	move.w	#$0,(a0,d0.w)
 	clr.w	d0
 .L8A98
@@ -3214,17 +3203,17 @@ InitPcmDriver
 .L8AD2
 	move.b	#$0,(a0)+
 	dbf	d0,.L8AD2
-	lea	X_98D4(pc),a0
+	lea	PcmSlotModulation(pc),a0
 	move.w	#$7F,d0
 .L8AE2
 	move.b	#$0,(a0)+
 	dbf	d0,.L8AE2
-	lea	X_9954(pc),a0
+	lea	PcmSlotLevel(pc),a0
 	move.w	#$7F,d0
 .L8AF2
 	move.b	#$7F,(a0)+
 	dbf	d0,.L8AF2
-	lea	X_99D4(pc),a0
+	lea	PcmSlotPan(pc),a0
 	move.w	#$7F,d0
 .L8B02
 	move.b	#$40,(a0)+
@@ -3234,7 +3223,7 @@ InitPcmDriver
 .L8B12
 	move.b	#$40,(a0)+
 	dbf	d0,.L8B12
-	lea	X_9AD4(pc),a0
+	lea	PcmGroupLevel(pc),a0
 	move.w	#$7,d0
 .L8B22
 	move.b	#$FF,(a0)+
@@ -3243,7 +3232,7 @@ InitPcmDriver
 	move.b	#$80,$51B(a0)
 	move.b	#$80,$51C(a0)
 	move.b	#$80,$51D(a0)
-	lea	X_9ADC(pc),a0
+	lea	PcmMasterLevel(pc),a0
 	move.b	#$FF,(a0)
 	lea	PcmCommandQueue(pc),a0
 	move.w	#$0,(a0)
@@ -3251,17 +3240,23 @@ InitPcmDriver
 	bsr.w	PcmWriteDelay
 	lea	$FF2001.l,a0
 	move.w	#$EB,d0
+.L8B66
 	move.b	#$80,(a0)
 	adda.l	#$2,a0
-	dc.b	'NqNqNqNqQ'
-	dc.b	$C8
-	dc.w	$FFEC
+	nop
+	nop
+	nop
+	nop
+	dbf	d0,.L8B66
 	move.w	#$F,d0
+.L8B80
 	move.b	#$FF,(a0)
 	adda.l	#$2,a0
-	dc.b	'NqNqNqNqQ'
-	dc.b	$C8
-	dc.w	$FFEC
+	nop
+	nop
+	nop
+	nop
+	dbf	d0,.L8B80
 	lea	PcmServiceBusy(pc),a0
 	move.w	#$0,(a0)
 	lea	PcmStreamActive(pc),a0
@@ -3340,25 +3335,26 @@ PlayPcmSample
 	bsr.w	PcmWriteDelay
 	lea	PcmChannelSlot(pc),a0
 	move.b	#$FF,(a0,d0.w)
-	lea	X_97E4(pc),a0
+	lea	PcmChannelSound(pc),a0
 	move.b	#$FF,(a0,d0.w)
-	lea	X_97EC(pc),a0
+	lea	PcmChannelNote(pc),a0
 	move.b	#$FF,(a0,d0.w)
-	lea	X_97F4(pc),a0
+	lea	PcmChannelVelocity(pc),a0
 	move.b	#$FF,(a0,d0.w)
 	lea	PcmChannelPriority(pc),a0
 	move.b	#$0,(a0,d0.w)
-	lea	X_9804(pc),a0
+	lea	PcmChannelEnvelope(pc),a0
 	move.b	#$FF,(a0,d0.w)
 .L8CDE
 	movem.l	(sp)+,d1-d7/a0
 	rts
 UpdatePcmFrequency
 	movem.l	d1-d6/a0-a1,-(sp)
-	movea.l	X_9834(pc),a0
-	dc.b	'B@BA4:'
-	dc.w	$0B36
-	lea	X_97EC(pc),a1
+	movea.l	PcmEventRecord(pc),a0
+	clr.w	d0
+	clr.w	d1
+	move.w	PcmCurrentChannel(pc),d2
+	lea	PcmChannelNote(pc),a1
 	move.b	(a1,d2.w),d3
 	cmp.b	$3(a0),d3
 	blt.s	.L8D0A
@@ -3370,7 +3366,7 @@ UpdatePcmFrequency
 	sub.b	(a1,d2.w),d3
 	sub.b	d3,d0
 .L8D14
-	move.w	X_982A(pc),d2
+	move.w	PcmEventSlot(pc),d2
 	lea	PcmPitchControl(pc),a1
 	clr.w	d3
 	move.b	(a1,d2.w),d3
@@ -3407,15 +3403,15 @@ UpdatePcmFrequency
 	move.b	$A(a0),d2
 	cmpi.b	#$FF,d2
 	beq.s	.L8DD4
-	move.w	X_982A(pc),d3
-	lea	X_98D4(pc),a1
+	move.w	PcmEventSlot(pc),d3
+	lea	PcmSlotModulation(pc),a1
 	clr.w	d4
 	move.b	(a1,d3.w),d4
 	beq.s	.L8DD4
 	clr.w	d5
 	move.b	$9(a0),d5
 	beq.s	.L8DD4
-	lea	X_9ADD(pc),a1
+	lea	PcmModulationLevels(pc),a1
 	clr.w	d6
 	move.b	(a1,d2.w),d6
 	cmpi.b	#$80,d6
@@ -3470,7 +3466,7 @@ UpdatePcmFrequency
 .L8E04
 	ext.w	d0
 	lsl.w	#$1,d0
-	lea	.L8EAC(pc),a1
+	lea	PcmPitchTable(pc),a1
 	move.w	(a1,d0.w),d2
 	move.w	$2(a1,d0.w),d3
 	sub.w	d2,d3
@@ -3513,61 +3509,26 @@ UpdatePcmFrequency
 	dc.w	$0400,$043D
 	dc.w	$047D
 	dc.w	$04C2
-	dc.w	$050A
-.L8E9E
-	bchg.b	d2,(sp)
+	movep.w	$557(a2),d2
 	bclr.b	d2,$5FE(a0)
 	addi.w	#$6BA,(a1)+
 	btst.b	d3,-(a1)
 	dc.w	$078D
-.L8EAC
-	dc.w	$0800
-	dc.w	$087A
-	dc.w	$08FB
-	bclr	d4,d3
-	dc.w	$0A14,$0AAE
-	bchg.b	d5,(a0)
-	dc.w	$0BFD
-	dc.w	$0CB3
-	dc.w	$0D74,$0E41
-	btst.b	d7,(a2)+
-	move.b	d0,d0
-	dc.w	$10F4
-	dc.w	$11F6
-	move.b	d7,-(a1)
-	move.b	$1556(a1),d2
-	move.b	-(a1),(a3)
-	dc.w	$17F9
-	move.b	-(a6),$1AE9(a4)
-	move.b	d2,(a6)
-	move.b	(a4,d2.w),d7
-	move.l	-(sp),$23EB.w
-	move.l	a6,d3
-	movea.l	(a1),a4
-	dc.w	$2AB7
-	move.l	d1,$2FF2(a6)
-	move.w	a4,(a1)+
-	dc.w	$35D1
-	move.w	d4,-(a4)
-	movea.w	$4000(a0),a6
-	dc.w	$43CE
-	lea	(a6),a3
-	dc.w	$4C1C
-	addq.l	#$8,-(a3)
-	subq.w	#$2,$5A82(a6)
-	sle.b	-(a4)
-	bcs.s	.L8E9E
-	dc.w	$6BA3
-	moveq	#$9,d1
-	moveq	#-47,d4
-	or.b	d0,d0
+PcmPitchTable
+	dc.w	$0800,$087A,$08FB,$0983,$0A14,$0AAE,$0B50,$0BFD
+	dc.w	$0CB3,$0D74,$0E41,$0F1A,$1000,$10F4,$11F6,$1307
+	dc.w	$1429,$1556,$16A1,$17F9,$1966,$1AE9,$1C82,$1E34
+	dc.w	$2000,$21E7,$23EB,$260E,$2851,$2AB7,$2D41,$2FF2
+	dc.w	$32CC,$35D1,$3904,$3C68,$4000,$43CE,$47D6,$4C1C
+	dc.w	$50A3,$556E,$5A82,$5FE4,$6598,$6BA3,$7209,$78D1
+	dc.w	$8000
 UpdatePcmPan
 	movem.l	d1-d3/a0,-(sp)
 	move.w	PcmCurrentChannel(pc),d0
 	lea	PcmChannelSlot(pc),a0
 	clr.w	d3
 	move.b	(a0,d0.w),d3
-	lea	X_9954(pc),a0
+	lea	PcmSlotLevel(pc),a0
 	clr.w	d2
 	move.b	(a0,d3.w),d2
 	lsl.w	#$1,d2
@@ -3583,16 +3544,16 @@ UpdatePcmPan
 	lsr.w	#$8,d2
 	move.w	d3,d0
 	lsr.w	#$4,d0
-	lea	X_9AD4(pc),a0
+	lea	PcmGroupLevel(pc),a0
 	clr.w	d1
 	move.b	(a0,d0.w),d1
 	mulu.w	d1,d2
 	lsr.w	#$8,d2
 	clr.w	d1
-	move.b	X_9ADC(pc),d1
+	move.b	PcmMasterLevel(pc),d1
 	mulu.w	d1,d2
 	lsr.w	#$8,d2
-	lea	X_99D4(pc),a0
+	lea	PcmSlotPan(pc),a0
 	clr.w	d1
 	move.b	(a0,d3.w),d1
 	cmpi.b	#$40,d1
@@ -3634,13 +3595,13 @@ UpdatePcmPan
 	rts
 SelectPcmChannel
 	movem.l	d1-d2/a0,-(sp)
-	lea	X_9832(pc),a0
+	lea	PcmReuseFlags(pc),a0
 	move.w	#$0,(a0)
-	movea.l	X_9834(pc),a0
+	movea.l	PcmEventRecord(pc),a0
 	btst.b	#$0,$C(a0)
 	beq.s	.L9020
-	lea	X_97E4(pc),a0
-	move.w	X_9830(pc),d0
+	lea	PcmChannelSound(pc),a0
+	move.w	PcmEventSound(pc),d0
 	move.b	PcmChannelOffMask(pc),d1
 	clr.w	d2
 .L8FF4
@@ -3650,10 +3611,10 @@ SelectPcmChannel
 	bne.s	.L9016
 	lea	PcmCurrentChannel(pc),a0
 	move.w	d2,(a0)
-	lea	X_9834(pc),a0
+	lea	PcmEventRecord(pc),a0
 	clr.w	d0
 	move.b	$C(a0),d0
-	lea	X_9832(pc),a0
+	lea	PcmReuseFlags(pc),a0
 	move.w	d0,(a0)
 	clr.w	d0
 	bra.s	.L9068
@@ -3675,7 +3636,7 @@ SelectPcmChannel
 	addi.w	#$1,d1
 	cmpi.w	#$8,d1
 	bne.s	.L9026
-	movea.l	X_9834(pc),a0
+	movea.l	PcmEventRecord(pc),a0
 	move.b	$1(a0),d0
 	lea	PcmChannelPriority(pc),a0
 	clr.w	d1
@@ -3776,7 +3737,9 @@ ControlPcmSampleAllocation
 	move.w	#$5,d0
 	ori.b	#$1,ccr
 .L914C
-	dc.b	'B@ _Nu'
+	clr.w	d0
+	movea.l	(sp)+,a0
+	rts
 SetPcmRecordDirectory
 	movem.l	d1/a1,-(sp)
 	lsl.w	#$2,d1
@@ -4029,15 +3992,15 @@ PlayPcmStream
 	lea	PcmChannelSlot(pc),a0
 	move.w	PcmStreamChannel(pc),d0
 	move.b	#$FF,(a0,d0.w)
-	lea	X_97E4(pc),a0
+	lea	PcmChannelSound(pc),a0
 	move.b	#$FF,(a0,d0.w)
-	lea	X_97EC(pc),a0
+	lea	PcmChannelNote(pc),a0
 	move.b	#$FF,(a0,d0.w)
-	lea	X_97F4(pc),a0
+	lea	PcmChannelVelocity(pc),a0
 	move.b	#$FF,(a0,d0.w)
 	lea	PcmChannelPriority(pc),a0
 	move.b	#$0,(a0,d0.w)
-	lea	X_9804(pc),a0
+	lea	PcmChannelEnvelope(pc),a0
 	move.b	#$FF,(a0,d0.w)
 	lea	PcmStreamActive(pc),a0
 	move.w	#$FFFF,(a0)
@@ -4162,28 +4125,43 @@ PcmChannelOffMask
 PcmChannelSlot
 	ori.b	#$0,d0
 	ori.b	#$0,d0
+PcmChannelSound
 	ori.b	#$0,d0
 	ori.b	#$0,d0
+PcmChannelNote
 	ori.b	#$0,d0
 	ori.b	#$0,d0
+PcmChannelVelocity
 	ori.b	#$0,d0
 	ori.b	#$0,d0
 PcmChannelPriority
 	ori.b	#$0,d0
 	ori.b	#$0,d0
+PcmChannelEnvelope
 	ori.b	#$0,d0
 	ori.b	#$0,d0
+PcmChannelSegment
 	ori.b	#$0,d0
 	ori.b	#$0,d0
-	dcb.b	18,0
+PcmChannelSegmentTime
+	dcb.b	17,0
+PcmEnvelopeHeld
+	dc.b	$00
 PcmLastTimerTick
 	dc.w	$0000
 PcmCurrentChannel
 	dc.w	$0000
+PcmEventSlot
 	dc.w	$0000
-	ori.b	#$0,d0
+PcmEventNote
 	dc.w	$0000
+PcmEventVelocity
 	dc.w	$0000
+PcmEventSound
+	dc.w	$0000
+PcmReuseFlags
+	dc.w	$0000
+PcmEventRecord
 	ori.b	#$0,d0
 PcmStreamActive
 	dc.w	$0000
@@ -4213,14 +4191,22 @@ PcmStreamPan
 	dc.w	$0000
 PcmSoundMapping
 	dcb.b	128,0
+PcmSlotModulation
 	dcb.b	128,0
+PcmSlotLevel
 	dcb.b	128,0
+PcmSlotPan
 	dcb.b	128,0
 PcmPitchControl
 	dcb.b	128,0
+PcmGroupLevel
 	ori.b	#$0,d0
 	ori.b	#$0,d0
-	ori.b	#$0,d0
+PcmMasterLevel
+	dc.b	$00
+PcmModulationLevels
+	dc.b	$00
+	dc.w	$0000
 SyncWithMain
 	btst.b	#$7,$FF800E.l
 	bne.s	SyncWithMain

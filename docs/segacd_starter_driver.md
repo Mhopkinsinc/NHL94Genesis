@@ -52,7 +52,7 @@ FindPcmRecord (`$D120`) searches the two directories at `$D568`/`$D56C`. A direc
 | `$FF0021` on | playback address reads |
 | `$FF2001`-`$FF3FFF`, odd bytes | wave RAM window (CopyPcmWaveData changes bank as it wraps) |
 
-SelectPcmChannel (`$D080`) reuses a matching channel, then a disabled one, then replaces by the record's priority byte. UpdatePcmFrequency (`$CE06`) interpolates the pitch table at `$CF5E` (data, though the generated source shows it as instructions from about `$CEFE`). UpdatePcmPan (`$CFC0`) combines the levels and pan. PcmWriteDelay (`$D352`) is the short wait after a register write. WaitCdbiosReady (`$D342`) calls BIOS `$80` (CDBCHK) until carry clears; no caller was found.
+SelectPcmChannel (`$D080`) reuses a matching channel, then a disabled one, then replaces by the record's priority byte. UpdatePcmFrequency (`$CE06`) interpolates PcmPitchTable (`$CF5E`, the frequency steps of 0 to 48 semitones above a sample's root note). The system program has the same driver with one more command, and `docs/segacd_boot.md` ("Channels, records and envelopes") has the record and envelope formats and the channel tables, which hold for this copy too. UpdatePcmPan (`$CFC0`) combines the levels and pan. PcmWriteDelay (`$D352`) is the short wait after a register write. WaitCdbiosReady (`$D342`) calls BIOS `$80` (CDBCHK) until carry clears; no caller was found.
 
 ## Start-up sequence and credits
 

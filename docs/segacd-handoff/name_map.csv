@@ -81,6 +81,7 @@ BOOT.BIN,$39E8,StartPcmEnvelope,Sierra C name tag
 BOOT.BIN,$3A9E,InitPcmDriver,Sierra C name tag
 BOOT.BIN,$3BAC,PlayPcmSample,Sierra C name tag
 BOOT.BIN,$3CE4,UpdatePcmFrequency,Sierra C name tag
+BOOT.BIN,$3EAC,PcmPitchTable,Sierra C name tag
 BOOT.BIN,$3F0E,UpdatePcmPan,Sierra C name tag
 BOOT.BIN,$3FCE,SelectPcmChannel,Sierra C name tag
 BOOT.BIN,$406E,FindPcmRecord,Sierra C name tag
@@ -101,9 +102,22 @@ BOOT.BIN,$47C8,PcmRecordDirectories,Sierra C name tag
 BOOT.BIN,$47D8,PcmServiceBusy,Sierra C name tag
 BOOT.BIN,$47DA,PcmChannelOffMask,Sierra C name tag
 BOOT.BIN,$47DC,PcmChannelSlot,Sierra C name tag
+BOOT.BIN,$47E4,PcmChannelSound,Sierra C name tag
+BOOT.BIN,$47EC,PcmChannelNote,Sierra C name tag
+BOOT.BIN,$47F4,PcmChannelVelocity,Sierra C name tag
 BOOT.BIN,$47FC,PcmChannelPriority,Sierra C name tag
+BOOT.BIN,$4804,PcmChannelEnvelope,Sierra C name tag
+BOOT.BIN,$480C,PcmChannelSegment,Sierra C name tag
+BOOT.BIN,$4814,PcmChannelSegmentTime,Sierra C name tag
+BOOT.BIN,$4825,PcmEnvelopeHeld,Sierra C name tag
 BOOT.BIN,$4826,PcmLastTimerTick,Sierra C name tag
 BOOT.BIN,$4828,PcmCurrentChannel,Sierra C name tag
+BOOT.BIN,$482A,PcmEventSlot,Sierra C name tag
+BOOT.BIN,$482C,PcmEventNote,Sierra C name tag
+BOOT.BIN,$482E,PcmEventVelocity,Sierra C name tag
+BOOT.BIN,$4830,PcmEventSound,Sierra C name tag
+BOOT.BIN,$4832,PcmReuseFlags,Sierra C name tag
+BOOT.BIN,$4834,PcmEventRecord,Sierra C name tag
 BOOT.BIN,$4838,PcmStreamActive,Sierra C name tag
 BOOT.BIN,$483A,PcmStreamHalfA,Sierra C name tag
 BOOT.BIN,$483C,PcmStreamHalfASize,Sierra C name tag
@@ -118,7 +132,13 @@ BOOT.BIN,$484E,PcmStreamFrequency,Sierra C name tag
 BOOT.BIN,$4850,PcmStreamEnvelope,Sierra C name tag
 BOOT.BIN,$4852,PcmStreamPan,Sierra C name tag
 BOOT.BIN,$4854,PcmSoundMapping,Sierra C name tag
+BOOT.BIN,$48D4,PcmSlotModulation,Sierra C name tag
+BOOT.BIN,$4954,PcmSlotLevel,Sierra C name tag
+BOOT.BIN,$49D4,PcmSlotPan,Sierra C name tag
 BOOT.BIN,$4A54,PcmPitchControl,Sierra C name tag
+BOOT.BIN,$4AD4,PcmGroupLevel,Sierra C name tag
+BOOT.BIN,$4ADC,PcmMasterLevel,Sierra C name tag
+BOOT.BIN,$4ADD,PcmModulationLevels,Sierra C name tag
 BOOT.BIN,$4AE0,SyncWithMain,Sierra C name tag
 BOOT.BIN,$53F8,ReadSectors,Sierra C name tag
 HOCKEY.BIN,$8,null,teamdata94.asm
@@ -1361,6 +1381,7 @@ STARTER.BIN,$1B28,StartPcmEnvelope,Sierra C name tag
 STARTER.BIN,$1BDE,InitPcmDriver,Sierra C name tag
 STARTER.BIN,$1CCE,PlayPcmSample,Sierra C name tag
 STARTER.BIN,$1E06,UpdatePcmFrequency,Sierra C name tag
+STARTER.BIN,$1F5E,PcmPitchTable,Sierra C name tag
 STARTER.BIN,$1FC0,UpdatePcmPan,Sierra C name tag
 STARTER.BIN,$2080,SelectPcmChannel,Sierra C name tag
 STARTER.BIN,$2120,FindPcmRecord,Sierra C name tag

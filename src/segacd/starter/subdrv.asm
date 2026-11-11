@@ -3,7 +3,7 @@
 ;	The sub CPU driver module: the PCM sound driver (commands 0-8 and packed commands, records, eight
 ;	channels, envelopes), then the start-up sequence (screens, samples, two stages, film, credits), the commands
 ;	it sends to the main CPU, word RAM handover, frames, pads. Names given here; docs/segacd_starter_driver.md.
-;	Tables between routines (the pitch table near $CF5E, inline command words) show as instructions.
+;	Inline command words after some calls show as instructions; PcmPitchTable is words.
 ;	pcmclear.asm follows.
 
 
@@ -667,17 +667,23 @@ InitPcmDriver
 	bsr.w	PcmWriteDelay
 	lea	$FF2001.l,a0
 	move.w	#$EB,d0
+.LCC90
 	move.b	#$80,(a0)
 	adda.l	#$2,a0
-	dc.b	'NqNqNqNqQ'
-	dc.b	$C8
-	dc.w	$FFEC
+	nop
+	nop
+	nop
+	nop
+	dbf	d0,.LCC90
 	move.w	#$F,d0
+.LCCAA
 	move.b	#$FF,(a0)
 	adda.l	#$2,a0
-	dc.b	'NqNqNqNqQ'
-	dc.b	$C8
-	dc.w	$FFEC
+	nop
+	nop
+	nop
+	nop
+	dbf	d0,.LCCAA
 	lea	X_D570(pc),a0
 	move.w	#$0,(a0)
 	movem.l	(sp)+,d0/a0-a1
@@ -770,10 +776,11 @@ PlayPcmSample
 UpdatePcmFrequency
 	movem.l	d1-d6/a0-a1,-(sp)
 	movea.l	X_D5CC(pc),a0
-	dc.b	'B@BA4:'
-	bclr.b	d3,$43FA(a4)
-	bchg.b	d3,$1631(a4)
-	move.l	d0,d0
+	clr.w	d0
+	clr.w	d1
+	move.w	X_D5C0(pc),d2
+	lea	X_D584(pc),a1
+	move.b	(a1,d2.w),d3
 	cmp.b	$3(a0),d3
 	blt.s	.LCE2C
 	sub.b	$3(a0),d3
@@ -838,7 +845,7 @@ UpdatePcmFrequency
 .LCEB6
 	ext.w	d0
 	lsl.w	#$1,d0
-	lea	.LCF5E(pc),a1
+	lea	PcmPitchTable(pc),a1
 	move.w	(a1,d0.w),d2
 	move.w	$2(a1,d0.w),d3
 	sub.w	d2,d3
@@ -881,54 +888,19 @@ UpdatePcmFrequency
 	dc.w	$0400,$043D
 	dc.w	$047D
 	dc.w	$04C2
-	dc.w	$050A
-.LCF50
-	bchg.b	d2,(sp)
+	movep.w	$557(a2),d2
 	bclr.b	d2,$5FE(a0)
 	addi.w	#$6BA,(a1)+
 	btst.b	d3,-(a1)
 	dc.w	$078D
-.LCF5E
-	dc.w	$0800
-	dc.w	$087A
-	dc.w	$08FB
-	bclr	d4,d3
-	dc.w	$0A14,$0AAE
-	bchg.b	d5,(a0)
-	dc.w	$0BFD
-	dc.w	$0CB3
-	dc.w	$0D74,$0E41
-	btst.b	d7,(a2)+
-	move.b	d0,d0
-	dc.w	$10F4
-	dc.w	$11F6
-	move.b	d7,-(a1)
-	move.b	$1556(a1),d2
-	move.b	-(a1),(a3)
-	dc.w	$17F9
-	move.b	-(a6),$1AE9(a4)
-	move.b	d2,(a6)
-	move.b	(a4,d2.w),d7
-	move.l	-(sp),$23EB.w
-	move.l	a6,d3
-	movea.l	(a1),a4
-	dc.w	$2AB7
-	move.l	d1,$2FF2(a6)
-	move.w	a4,(a1)+
-	dc.w	$35D1
-	move.w	d4,-(a4)
-	movea.w	$4000(a0),a6
-	dc.w	$43CE
-	lea	(a6),a3
-	dc.w	$4C1C
-	addq.l	#$8,-(a3)
-	subq.w	#$2,$5A82(a6)
-	sle.b	-(a4)
-	bcs.s	.LCF50
-	dc.w	$6BA3
-	moveq	#$9,d1
-	moveq	#-47,d4
-	or.b	d0,d0
+PcmPitchTable
+	dc.w	$0800,$087A,$08FB,$0983,$0A14,$0AAE,$0B50,$0BFD
+	dc.w	$0CB3,$0D74,$0E41,$0F1A,$1000,$10F4,$11F6,$1307
+	dc.w	$1429,$1556,$16A1,$17F9,$1966,$1AE9,$1C82,$1E34
+	dc.w	$2000,$21E7,$23EB,$260E,$2851,$2AB7,$2D41,$2FF2
+	dc.w	$32CC,$35D1,$3904,$3C68,$4000,$43CE,$47D6,$4C1C
+	dc.w	$50A3,$556E,$5A82,$5FE4,$6598,$6BA3,$7209,$78D1
+	dc.w	$8000
 UpdatePcmPan
 	movem.l	d1-d3/a0,-(sp)
 	move.w	X_D5C0(pc),d0
@@ -1144,7 +1116,9 @@ ControlPcmSampleAllocation
 	move.w	#$5,d0
 	ori.b	#$1,ccr
 .LD1FE
-	dc.b	'B@ _Nu'
+	clr.w	d0
+	movea.l	(sp)+,a0
+	rts
 SetPcmRecordDirectory
 	movem.l	d1/a1,-(sp)
 	lsl.w	#$2,d1

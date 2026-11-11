@@ -506,6 +506,10 @@ def main():
     ap.add_argument("--no-text", action="store_true",
                     help="team data: a quoted line that is not in the public src/teamdata94.asm (player names, "
                          "nicknames) and every CD block are incbin from the disc file, never text")
+    ap.add_argument("--code", action="append", default=[], metavar="START-END",
+                    help="CD-only runtime range that is code: no text runs are taken from it")
+    ap.add_argument("--data", action="append", default=[], metavar="START-END",
+                    help="CD-only runtime range that is data: dc.w rows, not decoded as instructions")
     ap.add_argument("--entry", action="append", default=[], metavar="NAME=ADDR",
                     help="a cartridge label whose callers enter at ADDR, before its first twin line (CD lines in front)")
     ap.add_argument("--label", action="append", default=[], metavar="NAME=ADDR",
@@ -1586,7 +1590,25 @@ class Fragment:
         branch target inside the block, and a printable run of 6+ bytes is text."""
         out = []
         pc = p
+
+        def ranges(opt):
+            r = []
+            for se in getattr(self.a, opt, []) or []:
+                lo, hi = (int(x, 0) - BASE for x in se.split("-"))
+                r.append((lo, hi))
+            return r
+        code_r, data_r = ranges("code"), ranges("data")
         while pc < q:
+            dr = [hi for lo, hi in data_r if lo <= pc < hi]
+            if dr and not pc & 1:               # a table: words, 8 to a row, split where something points
+                e = min(dr[0], q, pc + 16)
+                cut = [t - BASE for t in self.targets if pc < t - BASE < e]
+                if cut:
+                    e = min(cut)
+                e = pc + ((e - pc) & ~1) if e - pc >= 2 else e
+                out.append(("words", pc, e - pc))
+                pc = e
+                continue
             if pc in self.tagspans and self.tagspans[pc][0] <= q:
                 e, name = self.tagspans[pc]
                 out.append(("tag", pc, e - pc))
@@ -1608,7 +1630,7 @@ class Fragment:
             cut = [t - BASE for t in self.targets if pc < t - BASE < k]
             if cut:
                 k = min(cut)                    # a string that is referenced starts there: split the run
-            if k - pc >= 6:
+            if k - pc >= 6 and not any(lo <= pc < hi for lo, hi in code_r):
                 out.append(("text", pc, k - pc))
                 pc = k
                 continue
@@ -1735,6 +1757,11 @@ class Fragment:
             elif u[0] == "raw":
                 pc, n = u[1], u[2]
                 body.append(("raw", self.disc[pc:pc + n], pc))
+            elif u[0] == "words":
+                pc, n = u[1], u[2]
+                raw = self.disc[pc:pc + n]
+                body.append(("data", None, "	dc.w	" + ",".join(f"${int.from_bytes(raw[i:i + 2], 'big'):04X}"
+                                                                for i in range(0, n, 2)), pc, n))
             else:
                 pc, d = u[1], u[2]
                 mn, ops, _ = self.insn_line(d, None, self.scope_of(BASE + pc))

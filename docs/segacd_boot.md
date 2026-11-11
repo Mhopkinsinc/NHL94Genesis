@@ -91,11 +91,11 @@ PlayPcmStream plays a sound longer than wave RAM straight from sub CPU memory, t
 
 | a0 | What it does |
 | --- | --- |
-| -1 | stop: the channel's loop address set to 0 (the silence InitPcmDriver put there), PcmStreamActive cleared |
+| -1 | stop: the channel's loop address set to 0 (the silence InitPcmDriver put there, where the channel is soon turned off), PcmStreamActive cleared |
 | 0 | ask: d0 = 0 while a stream plays, -1 when none does |
 | other | start (d0 = 7, carry set, when one plays): a0 is the sound, ended by a `$FF` byte; d1 the frequency, d2 the envelope, d3 the pan |
 
-Starting cuts the free wave RAM into halves A and B (`$400` bytes each when at least `$800` is free), fills both (FillPcmStreamHalf: the next bytes, then a `$FF` loop mark), takes a channel that is off or else the one with the lowest PcmChannelPriority, and starts it at half A. Each time the channel moves into a half, ServicePcmStream (in command 1, so from the timer) fills the other one and points the loop address at it, so the channel goes round A, B, A ... When the `$FF` end byte has been copied, PcmStreamSource becomes -1 and the loop address 0: the channel plays silence until the stream is stopped. PcmStreamActive is also cleared when the stream's channel is found off.
+Starting cuts the free wave RAM into halves A and B (`$400` bytes each when at least `$800` is free), fills both (FillPcmStreamHalf: the next bytes, then a `$FF` loop mark), takes a channel that is off or else the one with the smallest PcmChannelPriority byte, gives it priority 0, and starts it at half A. Each time the channel moves into a half, ServicePcmStream (in command 1, so from the timer) fills the other one and points the loop address at it, so the channel goes round A, B, A ... When the `$FF` end byte has been copied, PcmStreamSource becomes -1 and the loop address 0. Once the channel plays in wave RAM page 0, UpdatePcmEnvelopes turns it off (as it does for any sound that has ended), and ServicePcmStream, finding the channel off, clears PcmStreamActive: the stream has ended by itself.
 
 The scouting report reads its script aloud this way (`docs/segacd_announce.md`): service 0 reads a clip to LoadPointer and service `$10` sends command 9 with d1 = `$400`, d2 = `$FF`, d3 = `$FFFF`.
 
@@ -105,6 +105,29 @@ StartTimerInterrupt (service 3, and services 8 and `$F`) puts TimerInterrupt int
 
 TimerInterrupt writes `$84` to the timer again and, while PcmServiceEnabled is set (services 8 and `$F` set it, service 9 clears it), calls the driver with d0 = 1: it is what runs the driver. It also counts TimerCountdown from 15 to 0 and round again, which nothing reads.
 
+### Channels, records and envelopes
+
+A note on (packed `$9x`) is a long: the slot (status nibble with the top byte), the note, the velocity. PlayPackedPcmSound keeps them in PcmEventSlot, PcmEventNote and PcmEventVelocity, takes the sound from PcmSoundMapping[slot] and finds its type 0 record. A record whose first byte is 7 is a key map: byte 2 + note is the sound to use instead (StopPackedPcmSound reads byte 1 + note, one off). The bytes of a type 0 record (a sound) that the driver reads:
+
+| Byte | Use |
+| --- | --- |
+| 1 | priority: the smaller byte wins (a sound takes a playing channel only when that channel's byte is not below its own) |
+| 2 | the wave sample id (PcmSampleAddress: the start) |
+| 3 | the root note: the note that plays at the recorded rate |
+| 4 | fine tune (signed) |
+| 5-6 | the loop offset in the sample (`$FFFF`: none; the channel then runs into page 0 and is turned off, and a note off has nothing to stop) |
+| 7 / 8 | the pitch bend range up / down (times PcmPitchControl's distance from `$40`) |
+| 9 / `$A` | the modulation depth and which PcmModulationLevels byte drives it (`$FF`: none); with PcmSlotModulation at 0 it does nothing here |
+| `$B` | the level (UpdatePcmPan: PcmSlotLevel * 2 * it, times PcmGroupLevel and PcmMasterLevel, then PcmSlotPan) |
+| `$C` | flags: bit 0, a note of this sound takes a channel already playing it; bit 1 clear, that channel is not restarted |
+| `$D` | the envelope (type 4 record id), `$FF` none: the envelope level is then the velocity * 2 |
+
+SelectPcmChannel takes a channel playing the same sound (when bit 0 of byte `$C` says so), then one that is off, then the first whose PcmChannelPriority is not below the record's; with none, the note is not played. The stream's channel gets priority 0, so no sound takes it. The channel's tables (PcmChannelSlot, PcmChannelSound, PcmChannelNote, PcmChannelVelocity, PcmChannelPriority, PcmChannelEnvelope) are filled, the start and loop addresses written, and StartPcmEnvelope, UpdatePcmPan and UpdatePcmFrequency run.
+
+UpdatePcmFrequency takes the note's distance from the root, adds fine tune, pitch bend and modulation as a fraction of a semitone, and reads PcmPitchTable (`$8EAC`): the frequency step for 0 to 48 semitones above the root, `$0800` (the recorded rate) doubling every 12, between two entries by the fraction.
+
+A type 4 record (an envelope): byte 0 the segment count, byte 1 the segment to loop back to, byte 2 the sustain segment, then from byte 4 a level and a time for each segment (level, time, level, time ...). Segment s goes from its level to the next one's in its time, counted in `$FF800C` ticks / 32 (PcmChannelSegmentTime). While the note is held (its PcmEnvelopeHeld bit), reaching segment byte 2 goes back to segment byte 1 (the sustain loop); a note off clears the bit and moves the channel to segment byte 2 (the release), and the channel is turned off when it reaches the last level. The channel's envelope register gets the level * velocity * 2 / 256.
+
 ## Not worked out
 
-What FilmSwitch's other arguments are; the driver's per-channel tables (`$97E4`-`$9834`, left as `X_` addresses) and the per-slot tables at `$98D4`-`$99D4`.
+What FilmSwitch's other arguments are. Which packed commands the main CPU's sound engine sends and which records resource 96 holds (the sounds, key maps and envelopes of the game).
