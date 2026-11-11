@@ -81,7 +81,7 @@ Arguments 4 to 8 go to FilmDisplayArgs, and FilmOpen hands them to the main CPU 
 
 Open also hooks two BIOS jumps: FilmHook on `$5F34` (FilmFrameTicks + 1, then the callback) and FilmReadInterrupt on `$5F8E` (the sectors of a read as they arrive, through BIOS `$8B`-`$8D`: the first sector's header must match FilmReadSector, and a BIOS error sets FilmReadError). Close puts both back.
 
-PLAYER.BIN is the only caller of OSPlayFilm, with d0 = 1 and an `rts` as the callback: each team's film list (`docs/segacd_player.md`) holds the sectors of its `GOAL`, `HIT`, `THNDR` and `STNLY` films. 145 of the disc's 199 films (besides the intro) are in those lists; no code found plays the other 54, and nothing calls OSPlayFilm with d0 = 0.
+PLAYER.BIN is the only caller of OSPlayFilm, with d0 = 1 and an `rts` as the callback: each team's film list (`docs/segacd_player.md`) holds the sectors of its `GOAL`, `HIT`, `THNDR` and `STNLY` films. 145 of the disc's 199 films (besides the intro) are in those lists, and nothing calls OSPlayFilm with d0 = 0. The other 54 are on the disc but nothing refers to them: no other table of film sectors exists in any file (as longs: the LBA, the LBA - 150 or the BCD minute / second / frame), all 52 calls of `$6044` (28 in HOCKEY.BIN, 11 in STARTER.BIN, 13 in PLAYER.BIN) load a constant service number and only PLAYER's team film call is service 7, and only STARTER's own copy of the film code calls into it (for the intro).
 
 ## Sound
 

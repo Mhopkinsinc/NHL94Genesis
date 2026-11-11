@@ -64,7 +64,7 @@
      passes, shots, checks, hits, the crowd, the glass (`docs/segacd_main_shell.md` "The sound engine").
      Sound operation 4 plays a DAC sample through the Z80, but in this build it never sounds: the 68000 polls the
      Z80's request byte at `$0072`, the Z80 program keeps it at `$0092`, no DAC samples are registered, and
-     nothing sends command `$23` (`docs/segacd_main_shell.md`). Left: 54 of the disc's films are in no PLAYER list.
+     nothing sends command `$23` (`docs/segacd_main_shell.md`). 54 of the disc's films are in no PLAYER list and verified unreferenced (no other film sector table in any file, every `$6044` call has a constant service number, only PLAYER's is service 7).
 - Open questions:
   - Answered: the team struct is one word longer from `tmap` on because `tmsort` is a long on the disc (the sort
     objects are in sub CPU RAM above `$FFFF`): each cartridge `movea.w tmsort(aN)` is `movea.l $22(aN)`.
