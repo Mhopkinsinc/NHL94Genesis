@@ -25,6 +25,7 @@
 - 2026-11-10 hockey: SNASM pads `dc.w` to an even address; data at an odd address is `dc.b`. (records94)
 - 2026-11-10 hockey: `move #$2700,sr` (interrupts off) became `bclr.b #5,$FF800F` around screen setups; `jsr MenuWaitVblank` became `jsr $6044.w` (BIOS). (records94 `NameEntryScreen`, cards94)
 - 2026-11-10 owner (Abdul, PR #239): Sega CD code goes in the Sega CD folder and does not touch the existing work. The older fragments in `src/segacd/` stay as they are; a 94G twin is written in parts around them (`name.asm`, `name_2.asm`). Align code, symbols and file names with 94G where possible.
+- 2026-11-10 boot: the disc's boot sectors hold code (the initial program and the system program with the `$6044` services); they are not a file, so `tools/segacd_bootarea.py` copies them from a disc image to `cdbin/BOOT.BIN` and the build skips `src/segacd/boot/` without it. (docs/segacd_boot.md)
 - 2026-11-10 owner (Abdul, later): the older fragments may be corrected (bases, names), keeping their bytes; CD-only names are fine for now.
 - 2026-11-10 hockey: a constant defined in a 94G code file (`collrad = 8` in collide94) belongs to that file's fragment; other fragments get their own equate, never `hockey.inc`. (collide94: `collrad` multiply defined)
 - 2026-11-10 hockey: the disc team data differs from the cartridge's in places and may hold names the cartridge lists do not have; port it with `--no-text` (every non-public quoted line and every CD block is incbin from the disc). (teamdata94)

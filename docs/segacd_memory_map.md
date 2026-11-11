@@ -18,8 +18,8 @@
 
 | Runtime | What |
 | --- | --- |
-| `$0000`-`$5FFF` | sub CPU BIOS (HOCKEY.BIN calls `$5F22` and `$6044` directly; the cartridge's `MenuWaitVblank` call became `jsr $6044.w`) |
-| `$6000`-`$60FF` | BIOS entry points (`$6044` is the dispatcher, function number in `d7`) |
+| `$0000`-`$5FFF` | sub CPU BIOS (HOCKEY.BIN calls `$5F22` directly) |
+| `$6000`-`$A4DD` | the disc's system program (`src/segacd/boot/sp.asm`, `docs/segacd_boot.md`): SegaOSCall at `$6044` (service number in `d7`), the services, a PCM driver, the SDK film player |
 | `$B090` | the boot keeps the BIOS vector from `$6038` here |
 | up to `$C458` | stack (grows down from `$C458`) |
 | `$C000`-`$ED93` | the sub CPU driver module from STARTER.BIN (file `$1000`-`$3D93`, runtime = file + `$B000`) |

@@ -1430,7 +1430,9 @@ class Fragment:
         for k, o in enumerate(dops):
             t = None
             if it is None and o["mode"] == "abs" and (o["value"] >= 0x10000 or
-                                                      (self.a.plain and base in ("jsr", "jmp", "lea", "pea"))):
+                                                      (self.a.plain and base in ("jsr", "jmp", "lea", "pea")) or
+                                                      (self.a.plain and any(self.dsym.get(n) == o["value"]
+                                                                            for n in self.cdnames))):
                 n = self.rev_name(o["value"])
                 if n:
                     t = f"({n}).{o['size']}"

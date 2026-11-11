@@ -2,6 +2,7 @@
 // The disc files are not in the repo. Put them in cdbin/ :
 //   cdbin/MAIN.BIN  cdbin/STARTER.BIN  cdbin/HOCKEY.BIN
 //   cdbin/PLAYER.BIN  cdbin/GRAPH2.BIN  cdbin/GTABLE.BIN
+// and, for src/segacd/boot/, cdbin/BOOT.BIN (the boot area: tools/segacd_bootarea.py; skipped when missing).
 
 const fs = require('fs');
 const path = require('path');
@@ -42,6 +43,10 @@ function compare(builtRel, discRel, length) {
 }
 
 function compareAt(builtRel, discRel, discOff, length) {
+  if (discRel === 'cdbin/BOOT.BIN' && !fs.existsSync(path.join(root, discRel))) {
+    console.log(builtRel + ' skipped (no cdbin/BOOT.BIN: tools/segacd_bootarea.py copies it from a disc image)');
+    return;
+  }
   const built = read(builtRel);
   const disc = read(discRel);
   const n = length;
@@ -189,3 +194,7 @@ compareAt('output/segacd/starter/startertail.bin', 'cdbin/STARTER.BIN', 0x1AF0E,
 compareAt('output/segacd/data/gtable.bin', 'cdbin/GTABLE.BIN', 0x0, 0x800);
 compareAt('output/segacd/data/graph2.bin', 'cdbin/GRAPH2.BIN', 0x0, 0x2E9000);
 compareAt('output/segacd/main/mainstart_2.bin', 'cdbin/MAIN.BIN', 0x381C, 0x320);
+compareAt('output/segacd/boot/header.bin', 'cdbin/BOOT.BIN', 0x0, 0x200);
+compareAt('output/segacd/boot/security.bin', 'cdbin/BOOT.BIN', 0x200, 0x584);
+compareAt('output/segacd/boot/ip.bin', 'cdbin/BOOT.BIN', 0x784, 0x87C);
+compareAt('output/segacd/boot/sp.bin', 'cdbin/BOOT.BIN', 0x1000, 0x7000);

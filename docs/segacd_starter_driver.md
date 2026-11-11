@@ -112,4 +112,4 @@ RunStarterFilm (`$EAE4`) clears the PCM chip (pcmclear.asm), waits for the CD BI
 
 ## Not worked out
 
-Who fills the packed PCM command queue; the main CPU side of the driver's commands beyond the table in `docs/segacd_main_shell.md`; why the module keeps a `HOCKEY.SEG` record.
+Who fills this driver's packed PCM command queue during the start-up (in the game, the system program's copy of the driver is fed by the main CPU's sound engine: `docs/segacd_boot.md`); the main CPU side of the driver's commands beyond the table in `docs/segacd_main_shell.md`; why the module keeps a `HOCKEY.SEG` record.

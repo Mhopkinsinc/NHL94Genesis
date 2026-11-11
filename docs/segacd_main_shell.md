@@ -42,12 +42,12 @@ MainShellEntry (`$FF45A8`) sets the stack at `$FFFC00`, clears `$A12010`-`$A1201
 | `$22` | WriteZ80ResetCommand | | |
 | `$23` | SoundOperation4Command | sound operation 4, gated by `$FF6CF8` | |
 | `$24` | TickSoundSequenceCommand | sound operation 1 | |
-| `$25` | EnterMainShellCProgram | the shell C program, then the shell again | |
+| `$25` | EnterMainShellCProgram | the shell C program, then the shell again | OSPlayFilm (boot/sp) |
 | `$26` | StartSoundSequenceCommand | sound operation 2 with the id in `$A12022` | sfxcd.asm |
 | `$27` | InstallSoundSequenceHInt | | cards94 |
-| `$28` | RestartMainShellCommandLoop | | |
-| `$29` | InitSoundCommand | the Z80 driver, the sound resources, the H interrupt | |
-| `$2A` | DisableShellHInt | | |
+| `$28` | RestartMainShellCommandLoop | | OSReturnFromPlayer (boot/sp) |
+| `$29` | InitSoundCommand | the Z80 driver, the sound resources, the H interrupt | OSInitMainSound (boot/sp): the sub CPU PCM driver's address |
+| `$2A` | DisableShellHInt | | OSStopMainSoundHInt (boot/sp) |
 | `$2B` | DetectFourWayPlayCommand | the four-way adapter probe | sram94 |
 | `$2C` | RunWordRamVdpDmaListCommand | the DMA records at `$23C000` | PLAYER |
 | `$2D` / `$2E` | InstallMainShellVBlank / InstallAcknowledgeVBlank | which V interrupt handler | sram94, scout94_2, startertail |
@@ -59,7 +59,7 @@ MainShellEntry (`$FF45A8`) sets the stack at `$FFFC00`, clears `$A12010`-`$A1201
 | `$3D` | ShowWordRamScreenCommand | fade out, clear, upload a screen, fade in | middle94_2, PLAYER |
 | `$3E` | RunSubCommandAndRestartShell | the older interface, then the shell again | startertail |
 | `$3F` | InstallMainShellOverlayCommand | shows a word RAM screen, copies `$C5B` longs to `$FF1006` | startertail |
-| `$40` | InitSoundDriverCommand | `$29` without the resource calls | |
+| `$40` | InitSoundDriverCommand | `$29` without the resource calls | OSInitMainSoundDriver (boot/sp) |
 
 ## The older interface
 

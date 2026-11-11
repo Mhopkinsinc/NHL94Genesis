@@ -219,7 +219,12 @@ if (args.includes('--segacd')) {
         if (r.status !== 0 || !fs.existsSync(zout) || /ERROR/.test(r.out)) fail('assemble', `asm80 failed on src/segacd/main/mainz80.z80, see ${rel(zlog)}`, r.out.split(/\r?\n/).slice(-12).join('\n'));
         detail(`main/mainz80.z80: asm80 -> ${rel(zout)}`);
     }
+    // src/segacd/boot/ (the disc's boot area: header, initial program, system program) is compared with
+    // cdbin/BOOT.BIN, which tools/segacd_bootarea.py copies from a disc image. Without it those are skipped.
+    const haveBoot = fs.existsSync(path.join(ROOT, 'cdbin', 'BOOT.BIN'));
+    const skipped = frags.filter((f) => f.name.startsWith('boot/') && !haveBoot);
     for (const f of frags) {
+        if (skipped.includes(f)) continue;
         // A name may carry a folder: hockey/onetimer94 is src/segacd/hockey/onetimer94.asm.
         const out = path.join(CD, `${f.name}.bin`);
         fs.rmSync(out, { force: true });
@@ -239,7 +244,8 @@ if (args.includes('--segacd')) {
         }
         detail(`${f.name}: ${sum[0]} -> ${rel(out)}`);
     }
-    step('assemble', `${frags.length} fragments, 0 errors in ${((Date.now() - t0) / 1000).toFixed(1)}s -> output/segacd/`);
+    step('assemble', `${frags.length - skipped.length} fragments, 0 errors in ${((Date.now() - t0) / 1000).toFixed(1)}s -> output/segacd/`
+        + (skipped.length ? ` (${skipped.length} boot area fragments skipped: no cdbin/BOOT.BIN, see tools/segacd_bootarea.py)` : ''));
     begin('verify');
     const r = await node('verifySegacd.js', []);
     const matches = (r.out.match(/ MATCH /g) || []).length;

@@ -6,7 +6,7 @@ Addresses are PLAYER.BIN file offsets: the file is linked at 0 and runs wherever
 
 ## Entry and exit
 
-HOCKEY.BIN runs it from `RunPlayerOverlay` (cards94.asm, runtime `$25E56`): it saves the display state (`$6044` with d7 = 9, then into `$AFF60` on), then calls `$6044` with d7 = 5 and
+HOCKEY.BIN runs it from `RunPlayerOverlay` (cards94.asm, runtime `$25E56`): it stops the main CPU's sound H interrupt (`$6044` with d7 = 9), saves the display state into `$AFF60` on, then calls `$6044` with d7 = 5 (OSRunPlayer, `docs/segacd_boot.md`) and
 
 | Register | From | Meaning |
 | --- | --- | --- |
@@ -14,7 +14,7 @@ HOCKEY.BIN runs it from `RunPlayerOverlay` (cards94.asm, runtime `$25E56`): it s
 | d1.w | `Opt2team` | second team |
 | d2.w | `FourWayPlay` | zero: two pads; not zero: four pads |
 
-PlayerOverlayEntry (`$0000`) keeps them at `$7C`, `$7E` and `$BC` on a6. On the way out PLAYER puts the display state back, restores the vector at `$6038` and calls `$6044` with d7 = 4 (file `$CA6`; no `rts` follows). Back in HOCKEY, RunPlayerOverlay calls LoadGameGfx to load the game graphics again. The code behind `$6044` is in none of the four code files, so how PLAYER.BIN is read and where it is put are not traced.
+PlayerOverlayEntry (`$0000`) keeps them at `$7C`, `$7E` and `$BC` on a6. On the way out PLAYER puts the display state back, restores the vector at `$6038` and calls `$6044` with d7 = 4 (file `$CA6`; no `rts` follows). Back in HOCKEY, RunPlayerOverlay calls LoadGameGfx to load the game graphics again. The services are in the disc's system program (`docs/segacd_boot.md`): OSRunPlayer reads PLAYER.BIN (22 sectors from LBA 2729) to `$1B000`, over HOCKEY.BIN, keeps the caller's stack and jumps to it; OSReturnFromPlayer (d7 = 4) reads HOCKEY.BIN back to `$1B000` and returns to RunPlayerOverlay.
 
 ## Resources
 
@@ -77,4 +77,4 @@ Commands go to the game shell's table (`docs/segacd_main_shell.md`): foreground 
 
 ## Not worked out
 
-`$0DEC` shows a picture held in the file and waits for a pad or 600 frames; `$14D2` steps through a team's list at `$7CF4` and calls `$6044` with d7 = 7 (a team film?). What `$6044` does for d7 = 4, 5, 7 and 9, and where PLAYER.BIN is loaded, are in the code behind `$6044`, which is not in the six files.
+`$0DEC` shows a picture held in the file and waits for a pad or 600 frames; `$14D2` steps through a team's list at `$7CF4` and calls `$6044` with d7 = 7 (OSPlayFilm, `docs/segacd_boot.md`): the list holds the start sectors of the team's films (`.SEG` files).

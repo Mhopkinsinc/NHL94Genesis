@@ -110,7 +110,7 @@ GTable
 	GRes	$71A8				;93  sector $578  page backgrounds: WPG (PLAYER.BIN)
 	GRes	$72E8				;94  sector $587  page backgrounds: ASE (PLAYER.BIN)
 	GRes	$6EA8				;95  sector $596  page backgrounds: ASW (PLAYER.BIN)
-	GRes	$F2FA				;96  sector $5A4  LoadGameGfx, BIOS d7 = 8
+	GRes	$F2FA				;96  sector $5A4  the game's PCM samples (LoadGameGfx, OSInitMainSound)
 	GRes	$4FCC				;97  sector $5C3  the scoreboard film frame (STARTER.BIN)
 	GRes	$2304				;98  sector $5CD
 	dc.w	0					;the end: a zero entry

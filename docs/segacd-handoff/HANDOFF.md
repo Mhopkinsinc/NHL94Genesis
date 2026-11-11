@@ -2,7 +2,8 @@
 
 ## Now
 - Unit: none in progress. Branch `mcmarkis/segacd-hockey` (fork Mhopkinsinc/NHL94Genesis), PR abdulahmad/NHL94Genesis#239.
-- Last check: 2026-11-10, Windows: `npm run build:segacd` MATCH 123 fragments; `tools/verify_all.sh -q` ALL MATCH.
+- Last check: 2026-11-10, Windows: `npm run build:segacd` MATCH 127 fragments with `cdbin/BOOT.BIN` (123 without:
+  the 4 boot area fragments are skipped); `tools/verify_all.sh -q` ALL MATCH.
   `tools/segacd_check.sh`: all four code files match in full, 410,162 of 410,162 bytes. Of those, 43,120 (HOCKEY.BIN),
   25,806 (PLAYER.BIN) and about 87 KB (STARTER.BIN) are graphics, pictures, licensed names or credits read from the
   disc with incbin; the rest is source. GRAPH2.BIN and GTABLE.BIN (PLAN step 5) match too: all six disc files are
@@ -27,18 +28,23 @@
      byte size); HOCKEY.BIN loads resource n with BIOS `$6044`, d7 = 1, d0 = n (`docs/segacd.md` "GRAPH2.BIN and
      GTABLE.BIN", `tools/segacd_graph2.py`). The two packs (resources 0 and 1) are named piece by piece, and the
      loader of every other resource is noted (HOCKEY, STARTER or PLAYER; 6-33 and 68-95 are per team). Their contents are
-     described too (legal and loading screens, scoreboard frame, font, stats, page backgrounds). Left: the code that reads
-     GTABLE (behind `$6044`).
+     described too (legal and loading screens, scoreboard frame, font, stats, page backgrounds). The code that reads GTABLE is
+     the disc's system program (item 4).
   2. Names: STARTER's driver module is named (`docs/segacd_starter_driver.md`). PLAYER's code is named
      (`docs/segacd_player.md`), and so are MAIN's shell, command table and sound engine
      (`docs/segacd_main_shell.md`; MAIN.BIN runs at `$FF1000`, not `$FF0000`). The older interface's handlers are
-     labelled too (`SubCmd00`-`SubCmd1D`), and hwread.asm's. Left: what the drawing commands draw, and what `$6044` does (its code is not in the six files). HOCKEY's header and TeamList are source now; the graphics
+     labelled too (`SubCmd00`-`SubCmd1D`), and hwread.asm's. Left: what the drawing commands draw. HOCKEY's header and TeamList are source now; the graphics
      pointer table has 37 of 44 entries named (`--cdname` in `tools/segacd_hockey.sh`), the rest have no cartridge
      label (their comments say what they hold).
   3. Formats: STARTER's data is five `.map.jim` pictures (the Credits title, its font, High Score Productions,
      the EA SPORTS logo sprites, sparkles; packed tiles in the cartridge's DecompressBytecode format, which
      MAIN.BIN's copy of the cartridge decompressor unpacks) and a PCM record directory (`startergfx.asm`). MAIN's
      Z80 sound image is asm80 source (`src/segacd/main/mainz80.z80`, MAIN.BIN `$5E0C`-`$765B`, copied to Z80 `$0000`).
+  4. The boot area (from a disc image: `tools/segacd_bootarea.py`, optional `cdbin/BOOT.BIN`): the header, Sega's
+     security block (incbin), the initial program and the system program are in `src/segacd/boot/` and match.
+     The system program (sub CPU `$6000`) loads MAIN.BIN, GTABLE.BIN and STARTER.BIN and provides the `$6044`
+     services, all named (`docs/segacd_boot.md`). Left: its PCM driver's commands and TimerInterrupt, and
+     FilmSwitch's arguments (the SDK film code is named from its tags, as in STARTER).
 - Open questions:
   - The team struct is one word longer from `tmap` on; probably `tmsort` became a long. Confirm when a fragment uses
     `tmsort` (logic94 has `movea.w tmsort(a2),a0` among its CD lines).
@@ -59,6 +65,7 @@
 | GRAPH2.BIN | 3,051,520 | 3,051,520 (100%) | 99 resources; pack tables, end marks and fill in source, graphics incbin |
 | GTABLE.BIN | 2,048 | 2,048 (100%) | the 99 index entries in source (`GRes size`) |
 | Total code | 410,162 | 410,162 (100%) | was 22,690 (5.5%) at the start of the session |
+| BOOT.BIN (boot area) | 32,768 | 32,768 (100%) | optional: `tools/segacd_bootarea.py` from a disc image; header and both programs in source, Sega's security block incbin |
 
 ## Parked units
 (none)

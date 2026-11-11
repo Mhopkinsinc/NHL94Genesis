@@ -111,7 +111,9 @@ def main():
         65: "the Stanley Cup sprite (resource 0 piece 18 without the end mark); no load of this one found",
         66: "Hot.map.jim (HotMap); no load of this one found",
         67: "Cold.map.jim (ColdMap); no load of this one found",
-        96: "hockey94 LoadGameGfx loads it (d0 = $60) into $47DA0 and passes it to the BIOS call with d7 = 8",
+        96: "the game's PCM wave samples: a record directory of 13 type 2 records (as StarterPcmRecords).\n"
+            "LoadGameGfx loads it (d0 = $60) into $47DA0 and passes it to OSInitMainSound (service 8, boot/sp.asm),\n"
+            "which installs it in the sub CPU PCM driver; the list at HOCKEY.BIN $223D6 loads the samples",
         97: "the arena scoreboard frame around the film window ($0808 picture, 40 x 28). STARTER.BIN loads it\n"
             "(d0 = $61) into $C436",
         98: "resource 0 piece 3 without the end mark; no load of this one found",
@@ -219,7 +221,7 @@ def main():
         "GTable",
     ]
     what.update({5: "the legal and loading screens (STARTER.BIN)", 34: "player stats and careers (PLAYER.BIN)", 64: "a font (STARTER.BIN, PLAYER.BIN)",
-                 96: "LoadGameGfx, BIOS d7 = 8", 97: "the scoreboard film frame (STARTER.BIN)"})
+                 96: "the game's PCM samples (LoadGameGfx, OSInitMainSound)", 97: "the scoreboard film frame (STARTER.BIN)"})
     for k, (s, n) in enumerate(ents):
         w = what.get(k, "")
         if 6 <= k <= 33:
