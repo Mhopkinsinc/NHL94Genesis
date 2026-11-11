@@ -16,8 +16,8 @@ SyncMainFlag7	equ	$E3F8
 WaitForSubWordRam	equ	$E416
 GiveWordRamToMain	equ	$E430
 EnterOneMegWordRamMode	equ	$EA00
+FilmSwitchBody	equ	$ED94
 X_ECA2	equ	$ECA2
-X_ED94	equ	$ED94
 
 	org	$EA8A
 
@@ -144,8 +144,26 @@ PrepareMainFilmDisplay
 	ori.b	#$0,d0
 	dc.w	$0000
 StarterFilmEntry
-	bra.w	X_ED94
+	bra.w	FilmSwitchBody
+FilmFrameTicks
 	ori.b	#$0,d0
+FilmBuffer
 	ori.b	#$0,d1
+FilmBufferSize
 	ori.b	#$0,d6
-	dcb.b	208,0
+FilmReadCount
+	ori.b	#$0,d0
+FilmReadDest
+	ori.b	#$0,d0
+FilmReadSector
+	ori.b	#$0,d0
+	ori.b	#$0,d0
+FilmDisplayArgs
+	dcb.b	20,0
+FilmCallback
+	ori.b	#$0,d0
+FilmReadError
+	ori.b	#$0,d0
+	ori.b	#$0,d0
+FilmState
+	dcb.b	160,0

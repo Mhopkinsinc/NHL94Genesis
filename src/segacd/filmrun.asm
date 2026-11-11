@@ -4,28 +4,29 @@
 ; Word is 1: FilmTask. Any other value: FilmClose, then restore the vectors.
 ; See docs/segacd_film.md.
 
-X_ECE8	equ	$ECE8
-X_ECB8	equ	$ECB8
-X_F118	equ	$F118
-X_F73A	equ	$F73A
-X_F58C	equ	$F58C
-X_F336	equ	$F336
-X_F0FE	equ	$F0FE
-X_ECD4	equ	$ECD4
-X_ECBC	equ	$ECBC
-X_ECC0	equ	$ECC0
+FilmCallback	equ	$ECE8
+FilmFrameTicks	equ	$ECB8
+RemoveFilmReadHook	equ	$F118
+FilmClose	equ	$F73A
+FilmTask	equ	$F58C
+FilmOpen	equ	$F336
+InstallFilmReadHook	equ	$F0FE
+FilmDisplayArgs	equ	$ECD4
+FilmBuffer	equ	$ECBC
+FilmBufferSize	equ	$ECC0
 
 	org	$ED94
 
+FilmSwitchBody						;FilmSwitch's body (StarterFilmEntry branches here)
 	tst.w	$4(sp)
 	bne.b	LEDF6
 	link	a6,#$0
 	movem.l	d1-d7/a0-a5,-(sp)
-	lea.l	X_ECC0(pc),a0
+	lea.l	FilmBufferSize(pc),a0
 	move.l	$12(a6),(a0)
-	lea.l	X_ECBC(pc),a0
+	lea.l	FilmBuffer(pc),a0
 	move.l	$E(a6),(a0)
-	lea.l	X_ECD4(pc),a0
+	lea.l	FilmDisplayArgs(pc),a0
 	move.l	$22(a6),(a0)+
 	move.l	$1E(a6),(a0)+
 	move.l	$1A(a6),(a0)+
@@ -34,10 +35,10 @@ X_ECC0	equ	$ECC0
 	move.l	$2A(a6),(a0)+
 	movea.l	#$FF8000,a5
 	ori.w	#$4,$2(a5)
-	jsr	LEE64(pc)
-	jsr	X_F0FE(pc)
+	jsr	InstallFilmHook(pc)
+	jsr	InstallFilmReadHook(pc)
 	move.l	$A(a6),-(sp)
-	jsr	X_F336(pc)
+	jsr	FilmOpen(pc)
 	addq.w	#$4,sp
 	movem.l	(sp)+,d1-d7/a0-a5
 	unlk	a6
@@ -48,11 +49,11 @@ LEDF6	link	a6,#$0
 	move.w	$8(a6),d0
 	subq.w	#$1,d0
 	bne.b	LEE0C
-	jsr	X_F58C(pc)
+	jsr	FilmTask(pc)
 	bra.b	LEE1A
-LEE0C	jsr	X_F73A(pc)
-	jsr	LEE7E(pc)
-	jsr	X_F118(pc)
+LEE0C	jsr	FilmClose(pc)
+	jsr	RemoveFilmHook(pc)
+	jsr	RemoveFilmReadHook(pc)
 	moveq	#$0,d0
 LEE1A	movem.l	(sp)+,d1-d7/a0-a5
 	unlk	a6
@@ -73,25 +74,29 @@ LEE28	addq.w	#$1,$0.w
 	clr.l	$24.w
 	move.l	#$208008,$80.w
 	rts
-LEE60	ori.b	#$0,d0
-LEE64	lea.l	LEE60(pc),a0
+SavedFilmHookJump					;the old target of the BIOS jump at $5F34
+	ori.b	#$0,d0
+InstallFilmHook						;FilmHook into the BIOS jump at $5F34
+	lea.l	SavedFilmHookJump(pc),a0
 	move.l	$5F36.w,(a0)
-	lea.l	LEE90(pc),a0
+	lea.l	FilmHook(pc),a0
 	move.w	sr,-(sp)
 	ori.w	#$2700,sr
 	move.l	a0,$5F36.w
 	move.w	(sp)+,sr
 	rts
-LEE7E	movea.l	LEE60(pc),a0
+RemoveFilmHook
+	movea.l	SavedFilmHookJump(pc),a0
 	move.w	sr,-(sp)
 	ori.w	#$2700,sr
 	move.l	a0,$5F36.w
 	move.w	(sp)+,sr
 	rts
-LEE90	movem.l	d0/a0,-(sp)
-	lea.l	X_ECB8(pc),a0
+FilmHook							;FilmFrameTicks + 1, then FilmCallback
+	movem.l	d0/a0,-(sp)
+	lea.l	FilmFrameTicks(pc),a0
 	addq.l	#$1,(a0)
-	move.l	X_ECE8(pc),d0
+	move.l	FilmCallback(pc),d0
 	beq.b	LEEA4
 	movea.l	d0,a0
 	jsr	(a0)

@@ -3,6 +3,8 @@
 
 	org	$EFD0
 
+InitFilmPcm							;channel 0 for the film audio: muted, then envelope, pan, FD $0400, one
+									;$FF sample
 	movea.l	#$FF0000,a0
 	move.b	#$FF,$11(a0)
 	moveq	#$14,d0
@@ -38,15 +40,18 @@ LF044	dbra	d0,LF044
 	move.b	#$FF,$2001(a0)
 	move.b	#$FF,$2002(a0)
 	rts
+StartFilmPcm						;channel 0 on
 	movea.l	#$FF0000,a0
 	move.b	#$80,$F(a0)
 	moveq	#$14,d0
 LF064	dbra	d0,LF064
 	move.b	#$FE,$11(a0)
 	rts
+StopFilmPcm							;every channel off
 	movea.l	#$FF0000,a0
 	move.b	#$FF,$11(a0)
 	rts
+ReadFilmPcmAddress					;channel 0's play address into d0
 	movea.l	#$FF0000,a0
 	lea.l	$21(a0),a0
 	moveq	#$14,d0
@@ -62,6 +67,7 @@ LF096	dbra	d0,LF096
 	lsl.w	#$8,d0
 	move.b	d1,d0
 	rts
+LoadFilmPcmBank						;$1000 bytes from 4(sp) into wave RAM bank 8(sp)
 	movea.l	#$FF0000,a0
 	move.l	$8(sp),d0
 	ori.w	#$80,d0

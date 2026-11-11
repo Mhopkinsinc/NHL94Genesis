@@ -31,7 +31,7 @@ The names sit in `STARTER.BIN` after each `rts`: `FilmOpen` at file `$4539`, `Fi
 | `1` | `FilmTask` |
 | anything else | `FilmClose`, then put the two old vectors back |
 
-The first vector replaces BIOS `$5F36`. Its handler adds one to the long at `$ECB8` and, if the long at `$ECE8` is set, calls it. The second replaces BIOS `$5F90`. Open installs both. Close restores both. The bytes between the switch and those hooks clear eight longs at address `0` and store `$208008` at `$80`.
+The first vector replaces BIOS `$5F36` (InstallFilmHook): its handler, FilmHook, adds one to FilmFrameTicks (`$ECB8`) and, if FilmCallback (`$ECE8`) is set, calls it. The second replaces BIOS `$5F90` (InstallFilmReadHook, FilmReadInterrupt in `subirq.asm`). Open installs both. Close restores both. The names are the system program's, whose copy of this code is the same (`docs/segacd_boot.md` "Films"). The bytes between the switch and those hooks clear eight longs at address `0` and store `$208008` at `$80`.
 
 `filmcmd.asm` (runtime `$FD9E`) is the post those calls use. It waits until `$FF8010` is `0`, writes the caller's word to `$FF8020`, waits until `$FF8010` is nonzero, and clears `$FF8020`. `GetCommandFromSub` in `maintext.asm` is the main CPU side: it waits for `$A12020`, answers `$1` in `$A12010`, and returns the word. `DoMoviePlayBack` loops on that. Command `2` is the frame: it reads three longs from word RAM at `$200000` and calls `$FF3BA0`. `FilmTask` posts `2` after an `SM` chunk. `FilmClose` posts `3`.
 

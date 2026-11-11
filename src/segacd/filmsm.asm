@@ -11,6 +11,7 @@
 
 	org	$EEAA
 
+CopySmChunk
 	link	a6,#$0
 	movem.l	d0-d7/a0-a5,-(sp)
 	movea.l	$8(a6),a0

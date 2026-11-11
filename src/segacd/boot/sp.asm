@@ -19,26 +19,7 @@ ReadHookFlag	equ	$A368
 FilmStopFlag	equ	$A36A
 KeptWord	equ	$A36C
 SavedTimerVector	equ	$A36E
-X_6096	equ	$6096
-X_633E	equ	$633E
-X_6346	equ	$6346
-X_6BEE	equ	$6BEE
-X_6C74	equ	$6C74
-X_6C8E	equ	$6C8E
-X_6C9C	equ	$6C9C
-X_6CC4	equ	$6CC4
-X_6E54	equ	$6E54
-X_6E64	equ	$6E64
-X_7F64	equ	$7F64
-X_7F8A	equ	$7F8A
-X_7FAE	equ	$7FAE
-X_9B20	equ	$9B20
-X_9B2C	equ	$9B2C
-X_9B40	equ	$9B40
-X_9B56	equ	$9B56
-X_A38A	equ	$A38A
-X_A3DC	equ	$A3DC
-X_B000	equ	$B000
+StarterEntry	equ	$B000
 
 	org	$6000
 
@@ -53,15 +34,15 @@ X_B000	equ	$B000
 	dc.w	$000A
 	ori.b	#$0,(a4)+
 	btst.b	#$5,$FF800F.l
-	beq.w	X_6346
-	jmp	(X_633E).l
+	beq.w	HookReturn
+	jmp	(ReadFrameHook).l
 	rts
 	jmp	(SegaOSMain).l
 SegaOSCall
 	asl.w	#$2,d7
 	addq.w	#$2,d7
 	move.w	d7,$6050.l
-	bra.w	X_6096
+	bra.w	SegaOSStack
 SegaOSCallTable
 	bra.w	OSReadSectors
 	bra.w	OSLoadResource
@@ -80,6 +61,7 @@ SegaOSCallTable
 	bra.w	OSGetPcmDriver
 	bra.w	OSInitMainSoundDriver
 	bra.w	OSCallPcmDriver
+SegaOSStack
 	dcb.b	400,0
 SegaOSStackTop
 	ori.b	#$0,d0
@@ -90,12 +72,12 @@ SegaOSMain
 .L6240
 	bclr.b	#$2,$FF8003.l
 	bne.s	.L6240
-	jsr	(X_9B20).l
+	jsr	(WaitForSubWordRam).l
 	move.b	$FF8004.l,d0
 	andi.b	#$F8,d0
 	ori.b	#$3,d0
 	move.b	d0,$FF8004.l
-	lea	(X_9B56).l,a0
+	lea	(DriveInitParams).l,a0
 	move.w	#$10,d0
 	jsr	$5F22.l
 	move.w	#$0,d1
@@ -119,7 +101,7 @@ SegaOSMain
 	move.w	#$8,d0
 	jsr	$5F22.l
 	jsr	(SyncWithMain).l
-	jsr	(X_9B2C).l
+	jsr	(GiveWordRamToMain).l
 	move.l	$6038.l,(SavedReadHook).l
 	move.l	#$633E,$6038.l
 	move.l	#$B000,-(sp)
@@ -129,8 +111,10 @@ SegaOSMain
 	adda.w	#$C,sp
 	move.l	(SavedReadHook).l,$6038.l
 	jsr	(SyncWithMain).l
-	jmp	(X_B000).l
+	jmp	(StarterEntry).l
+ReadFrameHook
 	move.w	#$FFFF,(ReadHookFlag).l
+HookReturn
 	rts
 	dc.b	'HOCKEY.BIN'
 	dc.w	$0000,$5241
@@ -432,7 +416,7 @@ OSPlayFilm
 .L68AC
 	bclr.b	#$2,$FF8003.l
 	bne.s	.L68AC
-	jsr	(X_9B20).l
+	jsr	(WaitForSubWordRam).l
 	move.b	$FF8004.l,d0
 	andi.b	#$F8,d0
 	ori.b	#$3,d0
@@ -681,6 +665,7 @@ CopySmChunk
 	movea.l	(sp)+,a0
 	addq.w	#$8,sp
 	jmp	(a0)
+InitFilmPcm
 	movea.l	#$FF0000,a0
 	move.b	#$FF,$11(a0)
 	moveq	#$14,d0
@@ -726,6 +711,7 @@ CopySmChunk
 	move.b	#$FF,$2001(a0)
 	move.b	#$FF,$2002(a0)
 	rts
+StartFilmPcm
 	movea.l	#$FF0000,a0
 	move.b	#$80,$F(a0)
 	moveq	#$14,d0
@@ -733,9 +719,11 @@ CopySmChunk
 	dbf	d0,.L6C82
 	move.b	#$FE,$11(a0)
 	rts
+StopFilmPcm
 	movea.l	#$FF0000,a0
 	move.b	#$FF,$11(a0)
 	rts
+ReadFilmPcmAddress
 	movea.l	#$FF0000,a0
 	lea	$21(a0),a0
 	moveq	#$14,d0
@@ -753,6 +741,7 @@ CopySmChunk
 	lsl.w	#$8,d0
 	move.b	d1,d0
 	rts
+LoadFilmPcmBank
 	movea.l	#$FF0000,a0
 	move.l	$8(sp),d0
 	ori.w	#$80,d0
@@ -837,7 +826,7 @@ FilmReadInterrupt
 	jsr	$5F22.w
 	move.l	FilmSectorHeader(pc),d0
 	andi.l	#$FFFFFF00,d0
-	bsr.w	.L6ED8
+	bsr.w	FilmMsfToLba
 	move.l	FilmReadSector(pc),d1
 	cmp.l	d0,d1
 	bne.s	.L6E3A
@@ -893,11 +882,13 @@ FilmReadInterrupt
 	lea	FilmReadError(pc),a1
 	move.l	#$FFFFFFFF,(a1)
 	bra.s	.L6E3A
+StopFilmRead
 	lea	FilmReadCount(pc),a1
 	clr.l	(a1)
 	move.w	#$8,d0
 	jsr	$5F22.w
 	rts
+StartFilmRead
 	link	a6,#$FFFC
 	movem.l	d1-d7/a0-a5,-(sp)
 	movea.l	#$FF8000,a5
@@ -928,7 +919,7 @@ FilmReadInterrupt
 	movem.l	(sp)+,d1-d7/a0-a5
 	unlk	a6
 	rts
-.L6EC0
+FilmBcdToBinary
 	move.l	d1,-(sp)
 	move.b	d0,d1
 	andi.w	#$FF,d1
@@ -938,23 +929,23 @@ FilmReadInterrupt
 	add.w	d1,d0
 	move.l	(sp)+,d1
 	rts
-.L6ED8
+FilmMsfToLba
 	movem.l	d1-d2,-(sp)
 	lsr.l	#$8,d0
 	move.l	d0,d1
-	jsr	.L6EC0(pc)
+	jsr	FilmBcdToBinary(pc)
 	move.b	d0,d2
 	andi.l	#$FF,d2
 	move.l	d1,d0
 	lsr.l	#$8,d0
 	move.l	d0,d1
-	jsr	.L6EC0(pc)
+	jsr	FilmBcdToBinary(pc)
 	andi.l	#$FF,d0
 	mulu.w	#$4B,d0
 	add.l	d0,d2
 	move.l	d1,d0
 	lsr.l	#$8,d0
-	jsr	.L6EC0(pc)
+	jsr	FilmBcdToBinary(pc)
 	andi.l	#$FF,d0
 	mulu.w	#$1194,d0
 	add.l	d0,d2
@@ -1004,7 +995,7 @@ FilmOpen
 	moveq	#$1,d0
 	move.l	d0,-(sp)
 	move.l	d5,-(sp)
-	jsr	X_6E64(pc)
+	jsr	StartFilmRead(pc)
 	jsr	WaitIODone(pc)
 	cmpi.l	#$46494C4D,(a3)
 	lea	$C(sp),sp
@@ -1020,7 +1011,7 @@ FilmOpen
 	move.l	d7,d0
 	dc.w	$D0BC,$0000,$07FF
 	move.l	#$800,d1
-	jsr	X_7F8A(pc)
+	jsr	LongModulo(pc)
 	move.l	d0,d6
 	moveq	#$1,d0
 	cmp.l	d6,d0
@@ -1050,7 +1041,7 @@ FilmOpen
 	move.l	a3,-(sp)
 	move.l	d6,-(sp)
 	move.l	d5,-(sp)
-	jsr	X_6E64(pc)
+	jsr	StartFilmRead(pc)
 	jsr	WaitIODone(pc)
 	lea	$14(sp),sp
 .L7032
@@ -1341,7 +1332,7 @@ FilmClose
 	lea	$40(a0),a4
 	pea	$30(a4)
 	jsr	AudioStop(pc)
-	jsr	X_6E54(pc)
+	jsr	StopFilmRead(pc)
 	pea	$18(a4)
 	jsr	DisposeEngine(pc)
 	moveq	#-1,d0
@@ -1411,7 +1402,7 @@ NumStr
 .L746C
 	move.l	d6,d0
 	moveq	#$A,d1
-	jsr	X_7FAE(pc)
+	jsr	LongDivide(pc)
 	moveq	#$30,d1
 	add.b	d1,d0
 	move.w	d7,d1
@@ -1419,7 +1410,7 @@ NumStr
 	move.b	d0,(a4,d1.w)
 	move.l	d6,d0
 	moveq	#$A,d1
-	jsr	X_7F8A(pc)
+	jsr	LongModulo(pc)
 	move.l	d0,d6
 	bne.s	.L746C
 	bra.s	.L7494
@@ -1929,7 +1920,7 @@ InitEngine
 	move.l	d7,d0
 	dc.w	$90BC,$0000,$4000
 	move.l	#$800,d1
-	jsr	X_7F8A(pc)
+	jsr	LongModulo(pc)
 	move.l	d0,d1
 	mulu.w	#$800,d0
 	swap	d1
@@ -1990,7 +1981,7 @@ GetSectDst
 	bge.s	.L7B86
 	move.l	$8(a4),d0
 	move.l	$4(a4),d1
-	jsr	X_7FAE(pc)
+	jsr	LongDivide(pc)
 	move.l	d0,d7
 	add.l	(a4),d7
 	addq.l	#$1,$10(a4)
@@ -2014,7 +2005,7 @@ PeekSectDst
 	bge.s	.L7BD6
 	move.l	$8(a4),d0
 	move.l	$4(a4),d1
-	jsr	X_7FAE(pc)
+	jsr	LongDivide(pc)
 	move.l	d0,d7
 	add.l	(a4),d7
 .L7BD6
@@ -2040,7 +2031,7 @@ EngineIdle
 	move.l	d0,-(sp)
 	pea	$1000.w
 	move.l	$10(a4),-(sp)
-	jsr	X_6E64(pc)
+	jsr	StartFilmRead(pc)
 	lea	$C(sp),sp
 .L7C2E
 	movea.l	-$4(a6),a4
@@ -2071,7 +2062,7 @@ GetData
 	bgt.s	.L7C5A
 	move.l	d7,d0
 	move.l	$4(a4),d1
-	jsr	X_7FAE(pc)
+	jsr	LongDivide(pc)
 	move.l	d0,d5
 	add.l	d6,d0
 	move.l	d0,d7
@@ -2112,13 +2103,13 @@ AudioPlayPos
 	moveq	#$0,d0
 	bra.s	.L7D18
 .L7CF8
-	jsr	X_6C9C(pc)
+	jsr	ReadFilmPcmAddress(pc)
 	moveq	#$C,d1
 	asr.l	d1,d0
 	move.l	d0,-$4(a6)
 	move.l	(a4),d0
 	moveq	#$8,d1
-	jsr	X_7FAE(pc)
+	jsr	LongDivide(pc)
 	move.l	-$4(a6),d1
 	cmp.l	d1,d0
 	beq.s	.L7D16
@@ -2140,7 +2131,7 @@ AudioInit
 	move.l	d1,$4(a4)
 	move.l	d1,$8(a4)
 	move.l	d1,$C(a4)
-	jsr	X_6BEE(pc)
+	jsr	InitFilmPcm(pc)
 	movea.l	-$4(a6),a4
 	unlk	a6
 	rts
@@ -2162,10 +2153,10 @@ AudioIdle
 	ble.s	.L7DC2
 	move.l	$4(a4),d0
 	moveq	#$8,d1
-	jsr	X_7FAE(pc)
+	jsr	LongDivide(pc)
 	move.l	d0,-(sp)
 	move.l	$8(a4),-(sp)
-	jsr	X_6CC4(pc)
+	jsr	LoadFilmPcmBank(pc)
 	addq.l	#$1,$4(a4)
 	addi.l	#$1000,$8(a4)
 	subi.l	#$1000,$C(a4)
@@ -2205,7 +2196,7 @@ AudioFeed
 	cmp.l	$4(a4),d0
 	bgt.s	.L7E04
 .L7E1A
-	jsr	X_6C74(pc)
+	jsr	StartFilmPcm(pc)
 	moveq	#$0,d0
 	move.l	d0,(a4)
 .L7E22
@@ -2239,7 +2230,7 @@ AudioSilence
 .L7E70
 	move.l	d7,-(sp)
 	move.l	a4,-(sp)
-	jsr	X_6CC4(pc)
+	jsr	LoadFilmPcmBank(pc)
 	addq.w	#$8,sp
 	move.l	d7,d0
 	addq.l	#$1,d7
@@ -2248,7 +2239,7 @@ AudioSilence
 	bgt.s	.L7E70
 	move.l	a4,-(sp)
 	jsr	ffree(pc)
-	jsr	X_6C74(pc)
+	jsr	StartFilmPcm(pc)
 	moveq	#$0,d0
 	move.l	d0,(a3)
 	addq.w	#$4,sp
@@ -2259,7 +2250,7 @@ AudioSilence
 	dc.b	$8C,'AudioSilence',0,0,0
 AudioStop
 	link	a6,#$0
-	jsr	X_6C8E(pc)
+	jsr	StopFilmPcm(pc)
 	unlk	a6
 	rts
 	dc.b	$89,'AudioStop',0,0
@@ -2273,7 +2264,7 @@ AudioTicks
 	move.l	(a4),d1
 	lsl.l	d0,d1
 	move.l	d1,-$4(a6)
-	jsr	X_6C9C(pc)
+	jsr	ReadFilmPcmAddress(pc)
 	move.l	#$FFF,d1
 	and.l	d0,d1
 	move.l	-$4(a6),d0
@@ -2289,10 +2280,10 @@ AudioTime
 	jsr	AudioTicks(pc)
 	move.l	d0,d1
 	move.l	$C(a6),d0
-	jsr	X_7F64(pc)
+	jsr	LongMultiply(pc)
 	dc.w	$D0BC,$0000,$1F40
 	move.l	#$3E80,d1
-	jsr	X_7F8A(pc)
+	jsr	LongModulo(pc)
 	unlk	a6
 	rts
 	dc.b	$89,'AudioTime',0,0
@@ -2305,6 +2296,7 @@ AudioBusy
 	dc.b	$89,'AudioBusy',0,0
 	move.l	$4(sp),d0
 	move.l	$8(sp),d1
+LongMultiply
 	move.l	d0,-(sp)
 	mulu.w	d1,d0
 	movea.l	d0,a0
@@ -2323,6 +2315,7 @@ AudioBusy
 	rts
 	move.l	$4(sp),d1
 	move.l	$8(sp),d0
+LongModulo
 	lea	.L7F96(pc),a0
 	movea.w	#$2,a1
 	dc.w	$4EF0,$92FE
@@ -2332,21 +2325,22 @@ AudioBusy
 	dc.w	$0801
 	rts
 .L7F9E
-	jsr	.L7FC4(pc)
+	jsr	SignedDivide(pc)
 	move.l	d1,d0
 	rts
 	move.l	$4(sp),d1
 	move.l	$8(sp),d0
+LongDivide
 	lea	.L7FBA(pc),a0
 	movea.w	#$2,a1
 	dc.w	$4EF0,$92FE
 .L7FBA
-	bra.s	.L7FC4
+	bra.s	SignedDivide
 	dc.w	$4C41
 	dc.w	$0801
 	dc.w	$C340
 	rts
-.L7FC4
+SignedDivide
 	tst.l	d0
 	bmi.s	.L7FDC
 	tst.l	d1
@@ -4225,15 +4219,17 @@ SyncWithMain
 	bclr.b	#$6,$FF800F.l
 	bclr.b	#$7,$FF800F.l
 	rts
-.L9B20
+WaitForSubWordRam
 	btst.b	#$1,$FF8003.l
-	beq.s	.L9B20
+	beq.s	WaitForSubWordRam
 	rts
+GiveWordRamToMain
 	bset.b	#$0,$FF8003.l
 .L9B34
 	btst.b	#$1,$FF8003.l
 	bne.s	.L9B34
 	rts
+WaitDriveReady
 	movem.l	d0-d1/a0-a1,-(sp)
 .L9B44
 	move.w	#$80,d0
@@ -4241,10 +4237,11 @@ SyncWithMain
 	bcs.s	.L9B44
 	movem.l	(sp)+,d0-d1/a0-a1
 	rts
+DriveInitParams
 	dc.w	$01FF
 	dcb.b	2073,0
 	dc.b	$01
-.LA372
+BcdToBinary
 	move.l	d1,-(sp)
 	move.b	d0,d1
 	andi.w	#$FF,d1
@@ -4254,22 +4251,23 @@ SyncWithMain
 	add.w	d1,d0
 	move.l	(sp)+,d1
 	rts
+MsfToLba
 	movem.l	d1-d2,-(sp)
 	lsr.l	#$8,d0
 	move.l	d0,d1
-	jsr	(.LA372).l
+	jsr	(BcdToBinary).l
 	move.b	d0,d2
 	andi.l	#$FF,d2
 	move.l	d1,d0
 	lsr.l	#$8,d0
 	move.l	d0,d1
-	jsr	(.LA372).l
+	jsr	(BcdToBinary).l
 	andi.l	#$FF,d0
 	mulu.w	#$4B,d0
 	add.l	d0,d2
 	move.l	d1,d0
 	lsr.l	#$8,d0
-	jsr	(.LA372).l
+	jsr	(BcdToBinary).l
 	andi.l	#$FF,d0
 	mulu.w	#$1194,d0
 	add.l	d0,d2
@@ -4277,6 +4275,7 @@ SyncWithMain
 	move.l	d2,d0
 	movem.l	(sp)+,d1-d2
 	rts
+WaitReadFrame
 	bset.b	#$5,$FF800F.l
 	move.w	#$0,(ReadHookFlag).l
 .LA3EC
@@ -4298,7 +4297,7 @@ ReadSectors
 	move.w	#$20,d0
 	jsr	$5F22.l
 .LA42C
-	jsr	(X_A3DC).l
+	jsr	(WaitReadFrame).l
 .LA432
 	move.w	#$8A,d0
 	jsr	$5F22.l
@@ -4317,7 +4316,7 @@ ReadSectors
 	jsr	$5F22.l
 	move.l	-$4(a6),d0
 	andi.l	#$FFFFFF00,d0
-	jsr	(X_A38A).l
+	jsr	(MsfToLba).l
 	cmp.l	d0,d3
 	bne.w	.LA410
 	move.l	a0,$10(a6)
@@ -4331,14 +4330,14 @@ ReadSectors
 	unlk	a6
 	cmpi.l	#$FFFFFFFF,d0
 	bne.s	.LA4DC
-	lea	(X_9B56).l,a0
+	lea	(DriveInitParams).l,a0
 	move.w	#$10,d0
 	jsr	$5F22.l
-	bsr.w	X_9B40
+	bsr.w	WaitDriveReady
 	move.w	#$0,d1
 	move.w	#$96,d0
 	jsr	$5F22.l
-	bsr.w	X_9B40
+	bsr.w	WaitDriveReady
 	bra.w	ReadSectors
 .LA4DC
 	rts

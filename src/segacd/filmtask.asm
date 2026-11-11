@@ -3,26 +3,26 @@
 ; See docs/segacd_film.md.
 
 X_FD9E	equ	$FD9E
-X_F788	equ	$F788
+SwapMeg	equ	$F788
 X_102B2	equ	$102B2
-X_EEAA	equ	$EEAA
-X_10068	equ	$10068
+CopySmChunk	equ	$EEAA
+ReadData	equ	$10068
 X_102E8	equ	$102E8
 X_10180	equ	$10180
 X_FFFC	equ	$FFFC
 X_1010C	equ	$1010C
 X_FFA8	equ	$FFA8
 X_101DE	equ	$101DE
-X_ECB4	equ	$ECB4
+StarterFilmEntry	equ	$ECB4
 
 	org	$F58C
 
 	link	a6,#$FFFC
 	movem.l	d7/a3-a4,-(sp)
 	move.l	#$C0000,-$4(a6)
-	lea.l	X_ECB4(pc),a0
+	lea.l	StarterFilmEntry(pc),a0
 	lea.l	$40(a0),a4
-	lea.l	X_ECB4(pc),a0
+	lea.l	StarterFilmEntry(pc),a0
 	tst.l	$38(a0)
 	beq.b	LF5B4
 	moveq	#-2,d0
@@ -31,7 +31,7 @@ LF5B4	tst.l	$40(a4)
 	bge.b	LF5C0
 	moveq	#-1,d0
 	bra.w	LF724
-LF5C0	lea.l	X_ECB4(pc),a0
+LF5C0	lea.l	StarterFilmEntry(pc),a0
 	moveq	#$1,d0
 	cmp.l	$3C(a0),d0
 	bne.b	LF5D6
@@ -65,7 +65,7 @@ LF606	move.l	$4(a3),-(sp)
 	move.l	d7,-(sp)
 	pea.l	$30(a4)
 	jsr	X_10180(pc)
-	lea.l	X_ECB4(pc),a0
+	lea.l	StarterFilmEntry(pc),a0
 	moveq	#-1,d0
 	cmp.l	$3C(a0),d0
 	lea.l	$C(sp),sp
@@ -84,7 +84,7 @@ LF65A	move.l	$4(a3),-(sp)
 	add.l	$8(a4),d0
 	move.l	d0,-(sp)
 	pea.l	$18(a4)
-	jsr	X_10068(pc)
+	jsr	ReadData(pc)
 	lea.l	$C(sp),sp
 	bra.w	LF70C
 LF676	pea.l	$30(a4)
@@ -106,7 +106,7 @@ LF688	move.l	$4(a3),-(sp)
 	bne.b	LF6F4
 	move.l	d7,-(sp)
 	move.l	-$4(a6),-(sp)
-	jsr	X_EEAA(pc)
+	jsr	CopySmChunk(pc)
 	move.l	#$7FFFFFFF,d7
 	and.l	$8(a3),d7
 	bra.b	LF6D4
@@ -121,7 +121,7 @@ LF6D4	pea.l	$258.w
 	cmp.l	d0,d7
 	addq.w	#$8,sp
 	bgt.b	LF6C2
-	jsr	X_F788(pc)
+	jsr	SwapMeg(pc)
 	moveq	#$2,d0
 	move.l	d0,-(sp)
 	jsr	X_FD9E(pc)
@@ -131,7 +131,7 @@ LF6F4	move.l	$4(a3),-(sp)
 	add.l	$8(a4),d0
 	move.l	d0,-(sp)
 	pea.l	$18(a4)
-	jsr	X_10068(pc)
+	jsr	ReadData(pc)
 	lea.l	$C(sp),sp
 LF70C	movea.l	$10(a4),a0
 	move.l	$40(a4),d0

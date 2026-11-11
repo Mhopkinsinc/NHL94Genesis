@@ -93,11 +93,11 @@ The chip is the RF5C164 on the sub CPU, base `$FF0000`. `MAIN.BIN` runs at `$FF1
 
 | Runtime | What it writes |
 | --- | --- |
-| `$EFD0` | mute `$FF0011 = $FF`, channel `$FF000F = $C0` then `$88`, envelope `$FF0001 = $FF`, pan `$FF0003 = $FF`, frequency high `$FF0007 = $04` (FD `$0400`), frequency low / loop / start cleared, one `$FF` sample at `$FF2001` |
-| `$F056` | `$FF000F = $80`, `$FF0011 = $FE` (channel 0 on) |
-| `$F070` | `$FF0011 = $FF` (mute) |
-| `$F07E` | `$FF0021` twice into the low byte, `$FF0023` twice into the high byte |
-| `$F0A6` | stack argument at `8(sp)` is the bank, ORed with `$80` and written to `$FF000F`. Then `$1000` bytes from `4(sp)` are copied to `$FF2001`, stepping the chip pointer by 2 |
+| `$EFD0` InitFilmPcm | mute `$FF0011 = $FF`, channel `$FF000F = $C0` then `$88`, envelope `$FF0001 = $FF`, pan `$FF0003 = $FF`, frequency high `$FF0007 = $04` (FD `$0400`), frequency low / loop / start cleared, one `$FF` sample at `$FF2001` |
+| `$F056` StartFilmPcm | `$FF000F = $80`, `$FF0011 = $FE` (channel 0 on) |
+| `$F070` StopFilmPcm | `$FF0011 = $FF` (mute) |
+| `$F07E` ReadFilmPcmAddress | `$FF0021` twice into the low byte, `$FF0023` twice into the high byte |
+| `$F0A6` LoadFilmPcmBank | stack argument at `8(sp)` is the bank, ORed with `$80` and written to `$FF000F`. Then `$1000` bytes from `4(sp)` are copied to `$FF2001`, stepping the chip pointer by 2 |
 
 `pcmclear.asm` (`$EA0C`) selects channels `0`–`7` with `$40` added to the index, clears the start registers, fills wave RAM, and mutes with `$FF0011 = $FF`.
 

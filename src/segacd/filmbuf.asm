@@ -3,17 +3,17 @@
 ; that many bytes plus $4000. See docs/segacd_film.md.
 
 X_FFA8	equ	$FFA8
-X_ECB4	equ	$ECB4
-X_FB7E	equ	$FB7E
+StarterFilmEntry	equ	$ECB4
+mmalloc	equ	$FB7E
 X_10332	equ	$10332
-X_FB34	equ	$FB34
+MaxFree	equ	$FB34
 
 	org	$FE26
 
 	link	a6,#$0
 	movem.l	d7/a4,-(sp)
 	movea.l	$8(a6),a4
-	jsr	X_FB34(pc)
+	jsr	MaxFree(pc)
 	move.l	d0,d7
 	cmpi.l	#$14000,d7
 	bge.b	LFE44
@@ -40,7 +40,7 @@ LFE52	move.l	d7,d0
 	dc.w	$D0BC
 	dc.l	$00004000
 	move.l	d0,-(sp)
-	jsr	X_FB7E(pc)
+	jsr	mmalloc(pc)
 	move.l	d0,(a4)
 	addq.w	#$4,sp
 	bne.b	LFE90
@@ -51,7 +51,7 @@ LFE90	moveq	#$0,d0
 	move.l	d0,$C(a4)
 	move.l	$C(a6),$10(a4)
 	move.l	d0,$14(a4)
-	lea.l	X_ECB4(pc),a0
+	lea.l	StarterFilmEntry(pc),a0
 	move.l	a4,$1C(a0)
 	move.l	a4,-(sp)
 	jsr	X_FFA8(pc)

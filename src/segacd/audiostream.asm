@@ -3,15 +3,15 @@
 ; Assemble with /o oz-.
 
 X_10356	equ	$10356
-X_F07E	equ	$F07E
-X_EFD0	equ	$EFD0
-X_F0A6	equ	$F0A6
+ReadFilmPcmAddress	equ	$F07E
+InitFilmPcm	equ	$EFD0
+LoadFilmPcmBank	equ	$F0A6
 X_1008C	equ	$1008C
-X_F056	equ	$F056
+StartFilmPcm	equ	$F056
 X_1010C	equ	$1010C
-X_F9FA	equ	$F9FA
-X_FB7E	equ	$FB7E
-X_F070	equ	$F070
+ffree	equ	$F9FA
+mmalloc	equ	$FB7E
+StopFilmPcm	equ	$F070
 X_10332	equ	$10332
 X_1030C	equ	$1030C
 X_1026E	equ	$1026E
@@ -27,7 +27,7 @@ X_1026E	equ	$1026E
 	bne.b	L100A0
 	moveq	#$0,d0
 	bra.b	L100C0
-L100A0	jsr	X_F07E(pc)
+L100A0	jsr	ReadFilmPcmAddress(pc)
 	moveq	#$C,d1
 	asr.l	d1,d0
 	move.l	d0,-$4(a6)
@@ -54,7 +54,7 @@ L100C0	movea.l	-$8(a6),a4
 	move.l	d1,$4(a4)
 	move.l	d1,$8(a4)
 	move.l	d1,$C(a4)
-	jsr	X_EFD0(pc)
+	jsr	InitFilmPcm(pc)
 	movea.l	-$4(a6),a4
 	unlk	a6
 	rts
@@ -80,7 +80,7 @@ L100C0	movea.l	-$8(a6),a4
 	jsr	X_10356(pc)
 	move.l	d0,-(sp)
 	move.l	$8(a4),-(sp)
-	jsr	X_F0A6(pc)
+	jsr	LoadFilmPcmBank(pc)
 	addq.l	#$1,$4(a4)
 	addi.l	#$1000,$8(a4)
 	subi.l	#$1000,$C(a4)
@@ -117,7 +117,7 @@ L101B4	tst.l	$C(a4)
 	moveq	#$8,d0
 	cmp.l	$4(a4),d0
 	bgt.b	L101AC
-L101C2	jsr	X_F056(pc)
+L101C2	jsr	StartFilmPcm(pc)
 	moveq	#$0,d0
 	move.l	d0,(a4)
 L101CA	movea.l	-$4(a6),a4
@@ -133,7 +133,7 @@ L101CA	movea.l	-$4(a6),a4
 	cmp.l	(a3),d0
 	bne.b	L1023C
 	pea.l	$1000.w
-	jsr	X_FB7E(pc)
+	jsr	mmalloc(pc)
 	movea.l	d0,a4
 	moveq	#$0,d7
 	move.l	#$400,d3
@@ -149,7 +149,7 @@ L10204	move.l	d7,d0
 	moveq	#$0,d7
 L10218	move.l	d7,-(sp)
 	move.l	a4,-(sp)
-	jsr	X_F0A6(pc)
+	jsr	LoadFilmPcmBank(pc)
 	addq.w	#$8,sp
 	move.l	d7,d0
 	addq.l	#$1,d7
@@ -157,8 +157,8 @@ L10218	move.l	d7,-(sp)
 	cmp.l	d7,d0
 	bgt.b	L10218
 	move.l	a4,-(sp)
-	jsr	X_F9FA(pc)
-	jsr	X_F056(pc)
+	jsr	ffree(pc)
+	jsr	StartFilmPcm(pc)
 	moveq	#$0,d0
 	move.l	d0,(a3)
 	addq.w	#$4,sp
@@ -169,7 +169,7 @@ L1023C	movem.l	-$10(a6),d3/d7/a3-a4
 	dc.b	$8C,$41,$75,$64,$69,$6F,$53,$69,$6C,$65,$6E,$63,$65,$00,$00,$00	;.AudioSilence...
 ; AudioStop
 	link	a6,#$0
-	jsr	X_F070(pc)
+	jsr	StopFilmPcm(pc)
 	unlk	a6
 	rts
 ; AudioStop
@@ -184,7 +184,7 @@ L1023C	movem.l	-$10(a6),d3/d7/a3-a4
 	move.l	(a4),d1
 	lsl.l	d0,d1
 	move.l	d1,-$4(a6)
-	jsr	X_F07E(pc)
+	jsr	ReadFilmPcmAddress(pc)
 	move.l	#$FFF,d1
 	and.l	d0,d1
 	move.l	-$4(a6),d0

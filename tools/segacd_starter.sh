@@ -127,11 +127,44 @@ SUBDRV2_LABELS=(
   --label StarterFilmCallbackNoOp=0xEAE2  # rts, passed in the film-open arguments
   --label RunStarterFilm=0xEAE4           # film operations 0 / 1 / 2 through StarterFilmEntry
   --label PrepareMainFilmDisplay=0xEC80   # main command $1A
-  --label StarterFilmEntry=0xECB4         # bra.w to $ED94, where filmrun.asm starts
+  --label StarterFilmEntry=0xECB4         # bra.w to $ED94, where filmrun.asm starts (FilmSwitch in boot/sp.asm)
+# The film's state after it, named as in the system program's copy (docs/segacd_boot.md "Films"):
+  --label FilmFrameTicks=0xECB8           # FilmHook adds one each time
+  --label FilmBuffer=0xECBC               # open's buffer address
+  --label FilmBufferSize=0xECC0           # and its size
+  --label FilmReadCount=0xECC4            # sectors the read engine has left (negative: a read to start)
+  --label FilmReadDest=0xECC8             # where the next sector goes (0: the engine's next buffer)
+  --label FilmReadSector=0xECCC
+  --label FilmDisplayArgs=0xECD4          # open's display arguments (tile address, name table, column, row, priority)
+  --label FilmCallback=0xECE8             # FilmHook calls it when not 0
+  --label FilmReadError=0xECEC            # -1 after a read error
+  --label FilmState=0xECF4                # FilmOpen / FilmTask / FilmClose keep the film here (a4)
+)
+# After pcmchip.asm: the read hook and the read engine (the system program's names; STARTER = SP + $83E2).
+SUBIRQ_LABELS=(
+  --label SavedFilmReadJump=0xF0FA        # the old target of the BIOS jump at $5F8E
+  --label InstallFilmReadHook=0xF0FE      # FilmReadInterrupt into the BIOS jump at $5F8E
+  --label RemoveFilmReadHook=0xF118
+  --label FilmSectorHeader=0xF12A         # the header of the sector just read
+  --label FilmReadInterrupt=0xF12E        # the sectors of a read as they arrive (BIOS $8B-$8D)
+  --label StopFilmRead=0xF236             # FilmReadCount 0, BIOS $08 (ROMPAUSEON)
+  --label StartFilmRead=0xF246            # (sector, count, destination): BIOS $96, $17 (ROMREAD)
+  --label FilmBcdToBinary=0xF2A2
+  --label FilmMsfToLba=0xF2BA             # minute, second, frame (BCD) to a sector number
+)
+# Names in the older hand fragments, for the generated ones that call them.
+HANDNAMES=(
+  --cdname FilmSwitchBody=0xED94          # filmrun.asm
+  --cdname CopySmChunk=0xEEAA             # filmsm.asm
+  --cdname InitFilmPcm=0xEFD0             # pcmchip.asm (docs/segacd_audio.md)
+  --cdname StartFilmPcm=0xF056
+  --cdname StopFilmPcm=0xF070
+  --cdname ReadFilmPcmAddress=0xF07E
+  --cdname LoadFilmPcmBank=0xF0A6
 )
 # Every driver name, for the fragments that call into the driver from outside (an equate where used).
 DRVNAMES=()
-for x in "${SUBHDR_LABELS[@]}" "${SUBDRV_LABELS[@]}" "${SUBDRV2_LABELS[@]}"; do
+for x in "${SUBHDR_LABELS[@]}" "${SUBDRV_LABELS[@]}" "${SUBDRV2_LABELS[@]}" "${SUBIRQ_LABELS[@]}" "${HANDNAMES[@]}"; do
   [ "$x" = --label ] && DRVNAMES+=(--cdname) || DRVNAMES+=("$x")
 done
 port() {  # name start end [options...]
@@ -157,7 +190,7 @@ SUBDRV_INLINE=(
 )
 port subdrv 0x1542 0x3A0C "${SUBDRV_LABELS[@]}" --code 0xC542-0xCF5E --data 0xCF5E-0xCFC0 --code 0xCFC0-0xD362 "${SUBDRV_INLINE[@]}" --note 'The sub CPU driver module: the PCM sound driver (commands 0-8 and packed commands, records, eight\nchannels, envelopes), then the start-up sequence (screens, samples, two stages, film, credits), the commands\nit sends to the main CPU, word RAM handover, frames, pads. Names given here; docs/segacd_starter_driver.md.\nThe parameter blocks of the inline senders and PcmPitchTable are words.\npcmclear.asm follows.'
 port subdrv_2 0x3A8A 0x3D94 "${SUBDRV2_LABELS[@]}" --data 0xEAF2-0xEB04 --note 'The end of the sub CPU driver module, between cdcwait.asm and filmrun.asm: the frame callback,\nRunStarterFilm (film operations 0, 1, 2 through StarterFilmEntry, which branches to filmrun.asm at $ED94),\nthe saved arguments and the DRVINIT block (with HOCKEY.SEG). docs/segacd_starter_driver.md.'
-port subirq 0x40FA 0x4336 --note 'After pcmchip.asm: a long that keeps the BIOS vector at $5F90 (the first line, decoded as an\nori.b #0), code that hooks that vector with its own handler and puts it back, then the C function Wait.'
+port subirq 0x40FA 0x4336 "${SUBIRQ_LABELS[@]}" --note 'After pcmchip.asm: a long that keeps the BIOS vector at $5F90 (the first line, decoded as an\nori.b #0), code that hooks that vector with its own handler and puts it back, then the C function Wait.'
 port subtext 0x4788 0x49FA --note 'SwapMeg, DrawText, NumStr, HexStr, aprint: text to the main CPU (SendCommandToMain, the\nDoDrawTextCommand side is in maintext.asm) and number formatting.'
 port heapalloc 0x49FA 0x4C84 --note 'The heap: ffree, findSmallestBlock, MaxFree, mmalloc, InitHeap.'
 port subinit 0x4C84 0x4D9E --note 'InitWorld (prints SUBCPU is alive), GetTicks, WaitIODone.'
