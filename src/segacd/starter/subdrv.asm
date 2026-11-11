@@ -4,8 +4,8 @@
 ;	channels, envelopes), then the start-up sequence (screens, samples, two stages, film, credits), the
 ;	commands it sends to the main CPU, word RAM handover, frames, pads.
 ;
-;	Names given here; docs/segacd_starter_driver.md. Inline command words after some calls show as
-;	instructions; PcmPitchTable is words. pcmclear.asm follows.
+;	Names given here; docs/segacd_starter_driver.md. The parameter blocks of the inline senders and
+;	PcmPitchTable are words. pcmclear.asm follows.
 
 
 DispatchPcmCommandEntry	equ	$C4BC
@@ -1391,12 +1391,8 @@ AnimateEASportsLogo
 	movem.l	d0-d7/a0-a6,-(sp)
 	andi.b	#$EF,$BC6E8.l
 	bsr.w	SendMainCommand02Inline
-	dc.w	$0000,$FC00
-	asr.b	#$8,d0
-	and.b	d0,d0
-	cmp.b	d0,d0
-	ori.b	#$20,d6
-	dc.w	$0000,$0CCC
+	dc.w	$0000,$FC00,$E000,$C000,$B000,$0006,$0020,$0000
+	dc.w	$0CCC
 	bsr.w	SendMainCommand03
 	moveq	#$1,d4
 	move.w	d4,$10AF0.l
@@ -1422,12 +1418,8 @@ AnimateEASportsLogo
 	tst.w	d1
 	dbne	d6,.LDA96
 	bsr.w	SendMainCommand02Inline
-	dc.w	$0000,$FC00
-	asr.b	#$8,d0
-	and.b	d0,d0
-	cmp.b	d0,d0
-	ori.b	#$20,d6
-	dc.w	$0000,$0CCC
+	dc.w	$0000,$FC00,$E000,$C000,$B000,$0006,$0020,$0000
+	dc.w	$0CCC
 	movem.l	(sp)+,d0-d7/a0-a6
 	rts
 AnimateEASportsLogoStep
@@ -1487,11 +1479,8 @@ ShowHighScoreScreen
 	move.w	#$1,d4
 	move.w	d4,$10AF0.l
 	bsr.w	SendMainCommand0DInline
-	dc.w	$0008
-	dc.w	$F800
-	btst	d0,d0
-	dc.w	$0000,$2479
-	dc.w	$0001,$09D8
+	dc.w	$0008,$F800,$0100,$0000
+	movea.l	$109D8.l,a2
 	lea	(a2),a0
 	lea	(a2),a1
 	adda.l	(a2)+,a0
@@ -1572,12 +1561,8 @@ ShowHighScoreScreenStep
 RunCredits
 	andi.b	#$9C,$BC6E8.l
 	bsr.w	SendMainCommand02Inline
-	dc.w	$0000,$FC00
-	asr.b	#$8,d0
-	and.b	d0,d0
-	cmp.b	d0,d0
-	ori.b	#$20,d6
-	dc.w	$0000,$0CCC
+	dc.w	$0000,$FC00,$E000,$C000,$B000,$0006,$0020,$0000
+	dc.w	$0CCC
 	bsr.w	SendMainCommand03
 	bsr.w	ReadMainHvCounter
 	move.w	$10BCE.l,$10B2A.l
@@ -1586,23 +1571,20 @@ RunCredits
 	bsr.w	SendMainCommand
 	clr.w	$10B22.l
 	bsr.w	SendMainCommand0BInline
-	dc.w	$0006,$FF00
-	dc.w	$0000,$203C
-	ori.b	#$80,d0
+	dc.w	$0006,$FF00,$0000
+	move.l	#$80,d0
 	moveq	#$20,d1
 	move.l	#$7FF,d2
 	jsr	(SendMainCommand07).l
 	bsr.w	SendMainCommand0BInline
-	dc.w	$0006,$FE00
-	dc.w	$0000,$203C
-	ori.b	#$80,d0
+	dc.w	$0006,$FE00,$0000
+	move.l	#$80,d0
 	moveq	#$20,d1
 	move.l	#$7FF,d2
 	jsr	(SendMainCommand07).l
 	moveq	#$1C,d4
 	bsr.w	SendMainCommand0BInline
-	dc.w	$0006,$FE00
-	move.b	d0,-(a1)
+	dc.w	$0006,$FE00,$1300
 	movea.l	$10984.l,a1
 	adda.l	$4(a1),a1
 	lea	$BC6EC.l,a2
@@ -1614,9 +1596,8 @@ RunCredits
 	moveq	#$0,d5
 	jsr	(SendMainCommand08).l
 	bsr.w	SendMainCommand0BInline
-	dc.w	$0006,$FD00
-	dc.w	$0000,$2079
-	dc.w	$0001,$0984
+	dc.w	$0006,$FD00,$0000
+	movea.l	$10984.l,a0
 	movea.l	a0,a1
 	movea.l	a0,a2
 	adda.l	(a2)+,a0
@@ -1633,9 +1614,8 @@ RunCredits
 	jsr	(SendMainLoadTiles).l
 	bsr.w	SendMainCommand0E
 	bsr.w	SendMainCommand0BInline
-	dc.w	$0006,$FF00
-	dc.w	$0000,$43F9
-	dc.w	$0002,$5F0E
+	dc.w	$0006,$FF00,$0000
+	lea	$25F0E.l,a1
 	bsr.w	DrawCreditsLines
 	addi.w	#$40,$10B22.l
 	clr.w	$10B20.l
@@ -1647,9 +1627,8 @@ RunCredits
 	bsr.w	WaitCreditsFrame
 	dbf	d3,.LDE52
 	bsr.w	SendMainCommand0BInline
-	dc.w	$0006,$FF00
-	dc.w	$0000,$43F9
-	dc.w	$0002,$5F36
+	dc.w	$0006,$FF00,$0000
+	lea	$25F36.l,a1
 .LDE6A
 	bsr.w	DrawCreditsLines
 	adda.w	(a1),a1

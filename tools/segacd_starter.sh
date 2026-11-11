@@ -148,8 +148,15 @@ port() {  # name start end [options...]
 # $54EC), startertail's jsr $27A6A is its own code at file $1CA6A. The older subboot.asm, pcmclear.asm,
 # cdcwait.asm ... were first written at $21300 and are at $B000 now (same bytes).
 port subhdr 0x90 0x1542 "${SUBHDR_LABELS[@]}" --note 'Zeros after subboot.asm (the stack top is $C41C), a file record (HOCKEY.BIN, $01FF), the words\nstartertail shares at $C42E-$C452, then the driver'"'"'s two entries: StarterDriverEntry (the start-up) and\nDispatchPcmCommandEntry (PCM commands). Names given here; docs/segacd_starter_driver.md.'
-port subdrv 0x1542 0x3A0C "${SUBDRV_LABELS[@]}" --code 0xC542-0xCF5E --data 0xCF5E-0xCFC0 --code 0xCFC0-0xD362 --note 'The sub CPU driver module: the PCM sound driver (commands 0-8 and packed commands, records, eight\nchannels, envelopes), then the start-up sequence (screens, samples, two stages, film, credits), the commands\nit sends to the main CPU, word RAM handover, frames, pads. Names given here; docs/segacd_starter_driver.md.\nInline command words after some calls show as instructions; PcmPitchTable is words.\npcmclear.asm follows.'
-port subdrv_2 0x3A8A 0x3D94 "${SUBDRV2_LABELS[@]}" --note 'The end of the sub CPU driver module, between cdcwait.asm and filmrun.asm: the frame callback,\nRunStarterFilm (film operations 0, 1, 2 through StarterFilmEntry, which branches to filmrun.asm at $ED94),\nthe saved arguments and the DRVINIT block (with HOCKEY.SEG). docs/segacd_starter_driver.md.'
+# The parameter blocks after calls to the inline senders (SendMainCommand02Inline: 18 bytes; 0BInline /
+# 0DInline: a length word, the block's size): data, not instructions.
+SUBDRV_INLINE=(
+  --data 0xDA3A-0xDA4C --data 0xDAAE-0xDAC0 --data 0xDBA6-0xDBAE --data 0xDD2E-0xDD40
+  --data 0xDD6C-0xDD72 --data 0xDD8A-0xDD90 --data 0xDDAA-0xDDB0 --data 0xDDD8-0xDDDE
+  --data 0xDE1A-0xDE20 --data 0xDE5E-0xDE64
+)
+port subdrv 0x1542 0x3A0C "${SUBDRV_LABELS[@]}" --code 0xC542-0xCF5E --data 0xCF5E-0xCFC0 --code 0xCFC0-0xD362 "${SUBDRV_INLINE[@]}" --note 'The sub CPU driver module: the PCM sound driver (commands 0-8 and packed commands, records, eight\nchannels, envelopes), then the start-up sequence (screens, samples, two stages, film, credits), the commands\nit sends to the main CPU, word RAM handover, frames, pads. Names given here; docs/segacd_starter_driver.md.\nThe parameter blocks of the inline senders and PcmPitchTable are words.\npcmclear.asm follows.'
+port subdrv_2 0x3A8A 0x3D94 "${SUBDRV2_LABELS[@]}" --data 0xEAF2-0xEB04 --note 'The end of the sub CPU driver module, between cdcwait.asm and filmrun.asm: the frame callback,\nRunStarterFilm (film operations 0, 1, 2 through StarterFilmEntry, which branches to filmrun.asm at $ED94),\nthe saved arguments and the DRVINIT block (with HOCKEY.SEG). docs/segacd_starter_driver.md.'
 port subirq 0x40FA 0x4336 --note 'After pcmchip.asm: a long that keeps the BIOS vector at $5F90 (the first line, decoded as an\nori.b #0), code that hooks that vector with its own handler and puts it back, then the C function Wait.'
 port subtext 0x4788 0x49FA --note 'SwapMeg, DrawText, NumStr, HexStr, aprint: text to the main CPU (SendCommandToMain, the\nDoDrawTextCommand side is in maintext.asm) and number formatting.'
 port heapalloc 0x49FA 0x4C84 --note 'The heap: ffree, findSmallestBlock, MaxFree, mmalloc, InitHeap.'

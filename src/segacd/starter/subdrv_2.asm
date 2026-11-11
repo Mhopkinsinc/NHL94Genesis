@@ -7,6 +7,7 @@
 
 WaitDriverFrames	equ	$E118
 ReadStarterPad1	equ	$E298
+SendMainCommand03	equ	$E310
 SendMainCommand02Inline	equ	$E320
 SendMainCommand	equ	$E370
 ClearSubCommWords	equ	$E3BC
@@ -51,15 +52,10 @@ RunStarterFilm
 	movem.l	d0-d7/a0-a6,-(sp)
 	movem.l	a1,-(sp)
 	jsr	(SendMainCommand02Inline).l
-	dc.w	$0000,$FC00
-	asr.b	#$8,d0
-	and.b	d0,d0
-	cmp.b	d0,d0
-	ori.b	#$20,d6
-	dc.w	$0008
-	dc.w	$0000,$4CDF
-	dc.w	$0200,$6100
-	dc.w	$F806
+	dc.w	$0000,$FC00,$E000,$C000,$B000,$0006,$0020,$0008
+	dc.w	$0000
+	movem.l	(sp)+,a1
+	bsr.w	SendMainCommand03
 	move.l	#$4000400,-(sp)
 	jsr	$10540.l
 	move.w	#$1,d0
