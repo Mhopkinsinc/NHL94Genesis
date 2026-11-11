@@ -22,8 +22,6 @@ SavedTimerVector	equ	$A36E
 X_6096	equ	$6096
 X_633E	equ	$633E
 X_6346	equ	$6346
-X_6906	equ	$6906
-X_6AC8	equ	$6AC8
 X_6BEE	equ	$6BEE
 X_6C74	equ	$6C74
 X_6C8E	equ	$6C8E
@@ -441,34 +439,39 @@ OSPlayFilm
 	move.b	d0,$FF8004.l
 	rts
 FilmSwitch
-	bra.w	.L69B2
-.L68D6
+	bra.w	FilmSwitchBody
+FilmFrameTicks
 	ori.b	#$0,d0
-.L68DA
+FilmBuffer
 	ori.b	#$0,d1
-.L68DE
+FilmBufferSize
 	ori.b	#$0,d6
-.L68E2
+FilmReadCount
 	ori.b	#$0,d0
-.L68E6
+FilmReadDest
 	ori.b	#$0,d0
-.L68EA
+FilmReadSector
 	ori.b	#$0,d0
 	ori.b	#$0,d0
-.L68F2
-	dcb.b	24,0
-.L690A
-	dcb.b	168,0
-.L69B2
+FilmDisplayArgs
+	dcb.b	20,0
+FilmCallback
+	ori.b	#$0,d0
+FilmReadError
+	ori.b	#$0,d0
+	ori.b	#$0,d0
+FilmState
+	dcb.b	160,0
+FilmSwitchBody
 	tst.w	$4(sp)
 	bne.s	.L6A14
 	link	a6,#$0
 	movem.l	d1-d7/a0-a5,-(sp)
-	lea	.L68DE(pc),a0
+	lea	FilmBufferSize(pc),a0
 	move.l	$12(a6),(a0)
-	lea	.L68DA(pc),a0
+	lea	FilmBuffer(pc),a0
 	move.l	$E(a6),(a0)
-	lea	.L68F2(pc),a0
+	lea	FilmDisplayArgs(pc),a0
 	move.l	$22(a6),(a0)+
 	move.l	$1E(a6),(a0)+
 	move.l	$1A(a6),(a0)+
@@ -477,8 +480,8 @@ FilmSwitch
 	move.l	$2A(a6),(a0)+
 	movea.l	#$FF8000,a5
 	ori.w	#$4,$2(a5)
-	jsr	.L6A82(pc)
-	jsr	.L6D1C(pc)
+	jsr	InstallFilmHook(pc)
+	jsr	InstallFilmReadHook(pc)
 	move.l	$A(a6),-(sp)
 	jsr	FilmOpen(pc)
 	addq.w	#$4,sp
@@ -496,8 +499,8 @@ FilmSwitch
 	bra.s	.L6A38
 .L6A2A
 	jsr	FilmClose(pc)
-	jsr	.L6A9C(pc)
-	jsr	.L6D36(pc)
+	jsr	RemoveFilmHook(pc)
+	jsr	RemoveFilmReadHook(pc)
 	moveq	#$0,d0
 .L6A38
 	movem.l	(sp)+,d1-d7/a0-a5
@@ -520,35 +523,36 @@ FilmSwitch
 	clr.l	$24.w
 	move.l	#$208008,$80.w
 	rts
-.L6A7E
+SavedFilmHookJump
 	ori.b	#$0,d0
-.L6A82
-	lea	.L6A7E(pc),a0
+InstallFilmHook
+	lea	SavedFilmHookJump(pc),a0
 	move.l	$5F36.w,(a0)
-	lea	.L6AAE(pc),a0
+	lea	FilmHook(pc),a0
 	move.w	sr,-(sp)
 	ori.w	#$2700,sr
 	move.l	a0,$5F36.w
 	move.w	(sp)+,sr
 	rts
-.L6A9C
-	movea.l	.L6A7E(pc),a0
+RemoveFilmHook
+	movea.l	SavedFilmHookJump(pc),a0
 	move.w	sr,-(sp)
 	ori.w	#$2700,sr
 	move.l	a0,$5F36.w
 	move.w	(sp)+,sr
 	rts
-.L6AAE
+FilmHook
 	movem.l	d0/a0,-(sp)
-	lea	.L68D6(pc),a0
+	lea	FilmFrameTicks(pc),a0
 	addq.l	#$1,(a0)
-	move.l	X_6906(pc),d0
+	move.l	FilmCallback(pc),d0
 	beq.s	.L6AC2
 	movea.l	d0,a0
 	jsr	(a0)
 .L6AC2
 	movem.l	(sp)+,d0/a0
 	rts
+CopySmChunk
 	link	a6,#$0
 	movem.l	d0-d7/a0-a5,-(sp)
 	movea.l	$8(a6),a0
@@ -782,35 +786,35 @@ FilmSwitch
 	addq.w	#$2,a0
 	dbf	d3,.L6CF2
 	rts
-.L6D18
+SavedFilmReadJump
 	ori.b	#$0,d0
-.L6D1C
-	lea	.L6D18(pc),a0
+InstallFilmReadHook
+	lea	SavedFilmReadJump(pc),a0
 	move.l	$5F90.w,(a0)
-	lea	.L6D4C(pc),a0
+	lea	FilmReadInterrupt(pc),a0
 	move.w	sr,-(sp)
 	ori.w	#$2700,sr
 	move.l	a0,$5F90.w
 	move.w	(sp)+,sr
 	rts
-.L6D36
-	movea.l	.L6D18(pc),a0
+RemoveFilmReadHook
+	movea.l	SavedFilmReadJump(pc),a0
 	move.w	sr,-(sp)
 	ori.w	#$2700,sr
 	move.l	a0,$5F90.w
 	move.w	(sp)+,sr
 	rts
-.L6D48
+FilmSectorHeader
 	ori.b	#$0,d0
-.L6D4C
+FilmReadInterrupt
 	movem.l	d0-d3/a0-a2/a5,-(sp)
 	pea	.L6D5C(pc)
 	move.w	sr,-(sp)
-	movea.l	.L6D18(pc),a2
+	movea.l	SavedFilmReadJump(pc),a2
 	jmp	(a2)
 .L6D5C
 	movea.l	#$FF8000,a5
-	move.l	.L68E2(pc),d3
+	move.l	FilmReadCount(pc),d3
 	beq.w	.L6E3A
 	bgt.s	.L6DE4
 	andi.w	#$F8FF,$4(a5)
@@ -818,26 +822,26 @@ FilmSwitch
 	move.w	#$8B,d0
 	jsr	$5F22.w
 	bcs.w	.L6E3A
-	move.l	.L68E6(pc),d0
+	move.l	FilmReadDest(pc),d0
 	bne.s	.L6D94
 	bsr.w	PeekSectDst
 	tst.l	d0
 	beq.w	.L6E40
 .L6D94
 	movea.l	d0,a0
-	lea	.L6D48(pc),a1
+	lea	FilmSectorHeader(pc),a1
 	move.w	#$8C,d0
 	jsr	$5F22.w
 	bcs.w	.L6E3A
 	move.w	#$8D,d0
 	jsr	$5F22.w
-	move.l	.L6D48(pc),d0
+	move.l	FilmSectorHeader(pc),d0
 	andi.l	#$FFFFFF00,d0
 	bsr.w	.L6ED8
-	move.l	.L68EA(pc),d1
+	move.l	FilmReadSector(pc),d1
 	cmp.l	d0,d1
 	bne.s	.L6E3A
-	lea	.L68E6(pc),a1
+	lea	FilmReadDest(pc),a1
 	tst.l	(a1)
 	beq.s	.L6DD4
 	addi.l	#$800,(a1)
@@ -847,14 +851,14 @@ FilmSwitch
 .L6DD8
 	neg.l	d3
 	subq.w	#$1,d3
-	lea	.L68E2(pc),a1
+	lea	FilmReadCount(pc),a1
 	move.l	d3,(a1)
 	bra.s	.L6E3A
 .L6DE4
 	movea.l	#$FF8000,a5
 	andi.w	#$F8FF,$4(a5)
 	ori.w	#$500,$4(a5)
-	move.l	.L68E6(pc),d0
+	move.l	FilmReadDest(pc),d0
 	bne.s	.L6E04
 	bsr.w	GetSectDst
 	tst.l	d0
@@ -871,25 +875,25 @@ FilmSwitch
 	bcs.s	.L6E48
 	move.w	#$8D,d0
 	jsr	$5F22.w
-	lea	.L68E6(pc),a1
+	lea	FilmReadDest(pc),a1
 	tst.l	(a1)
 	beq.s	.L6E34
 	addi.l	#$800,(a1)
 .L6E34
-	lea	.L68E2(pc),a1
+	lea	FilmReadCount(pc),a1
 	subq.l	#$1,(a1)
 .L6E3A
 	movem.l	(sp)+,d0-d3/a0-a2/a5
 	rte
 .L6E40
-	lea	.L68E2(pc),a1
+	lea	FilmReadCount(pc),a1
 	clr.l	(a1)
 	bra.s	.L6E3A
 .L6E48
-	lea	.L690A(pc),a1
+	lea	FilmReadError(pc),a1
 	move.l	#$FFFFFFFF,(a1)
 	bra.s	.L6E3A
-	lea	.L68E2(pc),a1
+	lea	FilmReadCount(pc),a1
 	clr.l	(a1)
 	move.w	#$8,d0
 	jsr	$5F22.w
@@ -897,7 +901,7 @@ FilmSwitch
 	link	a6,#$FFFC
 	movem.l	d1-d7/a0-a5,-(sp)
 	movea.l	#$FF8000,a5
-	lea	.L690A(pc),a1
+	lea	FilmReadError(pc),a1
 	clr.l	(a1)
 	moveq	#$5,d4
 	moveq	#-1,d5
@@ -911,12 +915,12 @@ FilmSwitch
 	lea	$8(a6),a0
 	move.w	#$17,d0
 	jsr	$5F22.w
-	lea	.L68E6(pc),a1
+	lea	FilmReadDest(pc),a1
 	move.l	$10(a6),(a1)
-	lea	.L68E2(pc),a1
+	lea	FilmReadCount(pc),a1
 	neg.l	d2
 	move.l	d2,(a1)
-	lea	.L68EA(pc),a1
+	lea	FilmReadSector(pc),a1
 	move.l	d3,(a1)
 	moveq	#$0,d5
 .L6EB6
@@ -1288,7 +1292,7 @@ FilmTask
 	and.l	$8(a3),d6
 	move.l	d7,-(sp)
 	move.l	-$4(a6),-(sp)
-	jsr	X_6AC8(pc)
+	jsr	CopySmChunk(pc)
 	bra.s	.L731C
 .L730A
 	pea	$30(a4)

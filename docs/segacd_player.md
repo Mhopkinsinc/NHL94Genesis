@@ -77,4 +77,4 @@ Commands go to the game shell's table (`docs/segacd_main_shell.md`): foreground 
 
 ## Not worked out
 
-`$0DEC` shows a picture held in the file and waits for a pad or 600 frames; `$14D2` steps through a team's list at `$7CF4` and calls `$6044` with d7 = 7 (OSPlayFilm, `docs/segacd_boot.md`): the list holds the start sectors of the team's films (`.SEG` files).
+`$0DEC` shows a picture held in the file and waits for a pad or 600 frames; `$14D2` steps through a team's list at `$7CF4` and calls `$6044` with d7 = 7 (OSPlayFilm, `docs/segacd_boot.md` "Films") with d0 = 1 (frame tiles at VRAM `$7000`, the window's cells at VRAM 0) and an `rts` as the callback. `$7CF4` holds 28 lists of 13 longs, one per team (`$34` * team): the start sectors of up to 12 of the team's films (`GOAL`, `HIT`, `THNDR`, `STNLY` `.SEG` files), then -1.

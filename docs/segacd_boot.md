@@ -51,7 +51,7 @@ HOCKEY.BIN, STARTER.BIN and PLAYER.BIN call `jsr $6044.w` with the service numbe
 | 4 | OSReturnFromPlayer | HOCKEY.BIN read again to `$1B000`, then back to the caller of OSRunPlayer (its stack was kept); with no caller kept, main command `$28` and `jmp $1B000` |
 | 5 | OSRunPlayer | service 9, the caller's stack and return kept (PlayerCallerSp, PlayerReturn), PLAYER.BIN (22 sectors from LBA 2729) to `$1B000`, over HOCKEY.BIN, LoadPointer `$26000`, `jmp $1B000` with d0-d2 (the teams and FourWayPlay) |
 | 6 | OSGetLoadPointer | LoadPointer into a0 |
-| 7 | OSPlayFilm | main command `$25` (the shell's C program shows the film), FilmSwitch 0 (open the film at sector d1; d0 picks the buffer layout) then 1 until the film ends or FilmStopFlag is set |
+| 7 | OSPlayFilm | main command `$25` (the shell's C program shows the film), FilmSwitch 0 (open the film at sector d1, with the display layout d0 picks, a0 the callback: "Films" below) then 1 until the film ends or FilmStopFlag is set, then 2 |
 | 8 | OSInitMainSound | main command `$29` with PcmDriverEntry in `$FF8022`; then PCM driver commands 0 (init), 5 with a1 (a record directory), 6 with a2 (load a record list), 5 with a3; StartTimerInterrupt; PcmServiceEnabled set. LoadGameGfx passes GRAPH2 resource 96 (the game's 13 wave samples), HOCKEY.BIN `$223D6` (the list) and `$222EA` (13 sound definitions) |
 | 9 | OSStopMainSoundHInt | main command `$2A`; PcmServiceEnabled cleared, so the timer stops running the driver |
 | `$A` | OSStopFilm | FilmStopFlag set |
@@ -62,6 +62,26 @@ HOCKEY.BIN, STARTER.BIN and PLAYER.BIN call `jsr $6044.w` with the service numbe
 | `$10` | OSCallPcmDriver | PcmDriverEntry with d0 |
 
 The callers already in the source match: STARTER's boot code (service 0), LoadGameGfx and period94 (1), startertail (2, `$A`, `$B`), scoutload (3, `$D`), PLAYER's exit (4), RunPlayerOverlay in cards94 (9 then 5), PLAYER's team films (7), LoadGameGfx (8 with `$60`, `$D`), sram94 (`$C`, 3).
+
+## Films
+
+FilmSwitch (`$68D2`) is the SDK's film switch, as `filmrun.asm` in STARTER.BIN (`docs/segacd_film.md`): a word on the stack, 0 open, 1 the next frame (FilmTask), anything else close. Its state follows it (FilmFrameTicks to FilmState). Open takes nine longs after the word:
+
+| Argument | Use | OSPlayFilm, d0 = 0 | OSPlayFilm, d0 not 0 | STARTER (the intro) |
+| --- | --- | --- | --- | --- |
+| 1 | the film's start sector (FilmOpen) | d1 | d1 | `$ADA`, HOCKEY.SEG |
+| 2 / 3 | the read buffer and its size | LoadPointer, up to `$80000` | the same | `$29000`, up to `$80000` |
+| 4 / 5 | the window's row and column in the plane | 0, 0 | 0, 0 | 0, 0 |
+| 6 | the plane's name table | `$E000` | 0 | `$E000` |
+| 7 | VRAM address of the frame tiles | 0 | `$7000` | 0 |
+| 8 | not 0: the priority bit on the window's cells | 1 | 0 | 0 |
+| 9 | a routine FilmHook calls (0: none) | a0 | a0 | `$EAE2` |
+
+Arguments 4 to 8 go to FilmDisplayArgs, and FilmOpen hands them to the main CPU in word RAM (`$C0000`): the tile address, the name table + column * 2 + row * `$80` (the window's first cell in a 64-cell plane), and the priority flag. MAIN.BIN's DoMoviePlayBack reads the three longs and passes them to its frame routine (`$FF3BA0`, `maindisp.asm`): it sends the frame's tiles to that VRAM address by DMA, two banks in turn, and builds the cell words (tile number, the palette from the chunk, the priority bit) that the V interrupt writes row by row from the window's first cell, with the chunk's palette.
+
+Open also hooks two BIOS jumps: FilmHook on `$5F34` (FilmFrameTicks + 1, then the callback) and FilmReadInterrupt on `$5F8E` (the sectors of a read as they arrive, through BIOS `$8B`-`$8D`: the first sector's header must match FilmReadSector, and a BIOS error sets FilmReadError). Close puts both back.
+
+PLAYER.BIN is the only caller of OSPlayFilm, with d0 = 1 and an `rts` as the callback: each team's film list (`docs/segacd_player.md`) holds the sectors of its `GOAL`, `HIT`, `THNDR` and `STNLY` films. 145 of the disc's 199 films (besides the intro) are in those lists; no code found plays the other 54, and nothing calls OSPlayFilm with d0 = 0.
 
 ## Sound
 
@@ -130,4 +150,4 @@ A type 4 record (an envelope): byte 0 the segment count, byte 1 the segment to l
 
 ## Not worked out
 
-What FilmSwitch's other arguments are. Which packed commands the main CPU's sound engine sends and which records resource 96 holds (the sounds, key maps and envelopes of the game).
+Which packed commands the main CPU's sound engine sends and which records resource 96 holds (the sounds, key maps and envelopes of the game).

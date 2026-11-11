@@ -27,7 +27,7 @@ The names sit in `STARTER.BIN` after each `rts`: `FilmOpen` at file `$4539`, `Fi
 
 | Word at `4(sp)` | What runs |
 | --- | --- |
-| `0` | Save six caller longs into the block at `$ECB4`, set bit 2 of `$FF8002`, install two BIOS vectors, call `FilmOpen` with the long at `$A(a6)` |
+| `0` | Save six caller longs into the block at `$ECB4` (the window's row, column, name table, tile address, priority flag and a callback), set bit 2 of `$FF8002`, install two BIOS vectors, call `FilmOpen` with the long at `$A(a6)`, the film's start sector. The system program has the same code, and `docs/segacd_boot.md` "Films" lists all nine arguments |
 | `1` | `FilmTask` |
 | anything else | `FilmClose`, then put the two old vectors back |
 
