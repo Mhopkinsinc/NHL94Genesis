@@ -10,6 +10,9 @@
 ; an entry of CommandJumps. No caller of $10CD was found. There is no JP (HL) /
 ; JP (IX) dispatch. Written by tools/segacd_z80dis.py from cdbin/MAIN.BIN;
 ; tables are db/dw, zero runs ds.
+; The DAC sample request is DacRequest / DacSampleId ($0092 / $0093); the 68000's
+; ServiceZ80DataRequest polls $0072 / $0073 instead (inside the queue here), so no
+; request is answered: docs/segacd_main_shell.md, sound operation 4.
 ; =============================================================================
 
         .binfrom 0
@@ -90,9 +93,9 @@ CommandByte3:
         db $00
 PendingCommands:
         ds 92
-L0092:
+DacRequest:
         db $00
-L0093:
+DacSampleId:
         db $00
 L0094:
         db $00
@@ -120,7 +123,7 @@ L00A0:
         db $00
 L00A1:
         db $00
-L00A2:
+DacNextBuffer:
         ds 17
 L00B3:
         db $00
@@ -164,15 +167,15 @@ L0104:
         db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
 L010F:
         ds 241
-L0200:
+SlotSound:
         ds 128
-L0280:
+SlotModulation:
         ds 128
-L0300:
+SlotVolume:
         ds 128
 L0380:
         ds 128
-L0400:
+SlotPitchBend:
         ds 128
 L0480:
         ds 128
@@ -187,7 +190,7 @@ Z80_Start:
         di
         ld sp,Z80_STACK_TOP
         im 0
-        call L08F8
+        call InitResourceTable
         exx
         ld de,YM2612_DATA1
         ld hl,YM2612_ADDR1
@@ -197,8 +200,8 @@ Z80_Start:
         call L07FE
         call L0858
         call L0853
-        call L07DD
-        call L08BB
+        call KeyOffAllChannels
+        call InitSlotTables
         ld a,$3F
         ld (L00BB),a
 
@@ -221,65 +224,68 @@ WaitCommand:
 ; Eight command vectors, four bytes each.
 
 CommandJumps:
-        jp L0661
+        jp NoteOff
 
 L0644:
         nop
 
 L0645:
-        jp L06D4
+        jp NoteOn
 
 L0648:
         nop
 
 L0649:
-        jp L07D4
+        jp UnsupportedCommand
 
 L064C:
         nop
 
 L064D:
-        jp L0740
+        jp ControlChange
 
 L0650:
         nop
 
 L0651:
-        jp L0796
+        jp ProgramChange
 
 L0654:
         nop
 
 L0655:
-        jp L07D4
+        jp UnsupportedCommand
 
 L0658:
         nop
 
 L0659:
-        jp L07B2
+        jp PitchBend
 
 L065C:
         nop
 
 L065D:
-        jp L07D4
+        jp UnsupportedCommand
 
 L0660:
         nop
 
-L0661:
+; MIDI-style commands from the queue, by status nibble: $8x note off, $9x note on,
+; $Bx controller (1 and 7), $Cx program, $Ex pitch bend; the slot is the low nibble + byte 3.
+
+NoteOff:
         ld a,(CommandByte0)
         and $0F
         ld b,a
         ld a,(CommandByte3)
         add a,b
         ld (L0098),a
-        call L0919
+        call GetSlotSound
         ld (L0095),a
 
 L0674:
-        call L0923
+        call FindZ80Resource
         ld (L0096),ix
         ld a,(ix+0)
         cp $07
@@ -325,24 +331,27 @@ L06BF:
 
 L06CA:
         ld a,c
-        call L0946
+        call KeyOffChannel
 
 L06CE:
         call PopCommand
         jp CommandLoop
 
-L06D4:
+; Note on: the slot's sound record by kind: 0 an FM instrument, 3 a DAC sample on FM
+; channel 6 (StartDacSample), 7 a key map (byte 2 + note is the sound).
+
+NoteOn:
         ld a,(CommandByte0)
         and $0F
         ld b,a
         ld a,(CommandByte3)
         add a,b
         ld (L0098),a
-        call L0919
+        call GetSlotSound
         ld (L0095),a
 
 L06E7:
-        call L0923
+        call FindZ80Resource
         ld (L0096),ix
         call ServiceTimers
         ld a,(ix+0)
@@ -362,12 +371,12 @@ L0702:
 L070D:
         cp $03
         jr nz,L0723
-        call L0E1F
+        call CheckDacChannel
         cp $05
         jr nz,L073A
         ld (L0094),a
         call ServiceTimers
-        call L0E35
+        call StartDacSample
         jr L073A
 
 L0723:
@@ -386,7 +395,7 @@ L073A:
         call PopCommand
         jp CommandLoop
 
-L0740:
+ControlChange:
         ld a,(CommandByte0)
         and $0F
         ld b,a
@@ -397,9 +406,9 @@ L0740:
         cp $01
         jr nz,L0765
         ld a,(L0098)
-        add a,L0280 & $FF
+        add a,SlotModulation & $FF
         ld l,a
-        ld h,floor(L0280/256)
+        ld h,floor(SlotModulation/256)
         ld a,(CommandByte2)
         ld (hl),a
         call L0F32
@@ -409,16 +418,16 @@ L0765:
         cp $07
         jr nz,L0790
         ld a,(L0098)
-        add a,L0300 & $FF
+        add a,SlotVolume & $FF
         ld l,a
-        ld h,floor(L0300/256)
+        ld h,floor(SlotVolume/256)
         ld a,(CommandByte2)
         ld (hl),a
         ld a,(L0098)
-        call L0919
+        call GetSlotSound
         ld (L0095),a
         call ServiceTimers
-        call L0923
+        call FindZ80Resource
         ld (L0096),ix
         call ServiceTimers
         call L0FFD
@@ -428,31 +437,31 @@ L0790:
         call PopCommand
         jp CommandLoop
 
-L0796:
+ProgramChange:
         ld a,(CommandByte0)
         and $0F
         ld b,a
         ld a,(CommandByte3)
         add a,b
-        add a,L0200 & $FF
+        add a,SlotSound & $FF
         ld l,a
-        ld h,floor(L0200/256)
+        ld h,floor(SlotSound/256)
         ld a,(CommandByte1)
         ld (hl),a
         call PopCommand
         call ServiceTimers
         jp CommandLoop
 
-L07B2:
+PitchBend:
         ld a,(CommandByte0)
         and $0F
         ld b,a
         ld a,(CommandByte3)
         add a,b
         ld (L0098),a
-        add a,L0400 & $FF
+        add a,SlotPitchBend & $FF
         ld l,a
-        ld h,floor(L0400/256)
+        ld h,floor(SlotPitchBend/256)
         ld a,(CommandByte1)
         ld (hl),a
         call ServiceTimers
@@ -460,12 +469,14 @@ L07B2:
         call PopCommand
         jp CommandLoop
 
-L07D4:
+; Any other status: drop it and key off every FM channel.
+
+UnsupportedCommand:
         call PopCommand
-        call L07DD
+        call KeyOffAllChannels
         jp CommandLoop
 
-L07DD:
+KeyOffAllChannels:
         ld hl,YM2612_ADDR1
         ld de,YM2612_DATA1
         ld a,$06
@@ -603,8 +614,8 @@ L08AE:
         ld (CommandQueueLock),a
         ret
 
-L08BB:
-        ld hl,L0200
+InitSlotTables:
+        ld hl,SlotSound
         ld a,$00
         ld c,$80
 
@@ -613,7 +624,7 @@ L08C2:
         inc hl
         dec c
         jr nz,L08C2
-        ld hl,L0280
+        ld hl,SlotModulation
         ld a,$00
         ld c,$80
 
@@ -622,7 +633,7 @@ L08CE:
         inc hl
         dec c
         jr nz,L08CE
-        ld hl,L0300
+        ld hl,SlotVolume
         ld a,$7F
         ld c,$80
 
@@ -640,7 +651,7 @@ L08E6:
         inc hl
         dec c
         jr nz,L08E6
-        ld hl,L0400
+        ld hl,SlotPitchBend
         ld a,$40
         ld c,$80
 
@@ -651,9 +662,11 @@ L08F2:
         jr nz,L08F2
         ret
 
-; Initialize the four-byte record table at $0100.
+; Initialize the four-byte record table at $0100 (id, size, address high, low): entry 0 is
+; record $7F, the 4 bytes at $184B (kind 3, priority 0, pan $C0, sample id), the DAC
+; sample sound operation 4 plays; the rest $FF (free).
 
-L08F8:
+InitResourceTable:
         ld a,$7F
         ld (L0100),a
         ld a,$04
@@ -673,15 +686,15 @@ L0913:
         jr nz,L0913
         ret
 
-L0919:
-        add a,L0200 & $FF
+GetSlotSound:
+        add a,SlotSound & $FF
         ld l,a
-        ld h,floor(L0200/256)
+        ld h,floor(SlotSound/256)
         ld a,(hl)
         call ServiceTimers
         ret
 
-L0923:
+FindZ80Resource:
         push hl
         ld hl,L0100
         ld c,$40
@@ -712,7 +725,7 @@ L0944:
         pop hl
         ret
 
-L0946:
+KeyOffChannel:
         ld b,a
         ld hl,YM2612_ADDR1
         cp $03
@@ -751,7 +764,7 @@ L096A:
 L097D:
         ret
 
-L097E:
+SetChannelState:
         ld a,(L0094)
         add a,L00BC & $FF
         ld l,a
@@ -900,7 +913,7 @@ L0A4C:
 L0A8C:
         ld a,c
         ld (L0094),a
-        call L0946
+        call KeyOffChannel
         ld a,(L0094)
         jr L0A9D
 
@@ -912,7 +925,7 @@ L0A9D:
         ret
 
 L0A9E:
-        call L097E
+        call SetChannelState
         ld a,(L0099)
         or a
         jr z,L0AAA
@@ -1044,9 +1057,9 @@ L0B61:
         xor a
         ld (L009A),a
         ld a,(L0098)
-        add a,L0400 & $FF
+        add a,SlotPitchBend & $FF
         ld l,a
-        ld h,floor(L0400/256)
+        ld h,floor(SlotPitchBend/256)
         ld a,(hl)
         cp $40
         jr z,L0BBA
@@ -1085,9 +1098,9 @@ L0BBA:
         jr z,L0C15
         ld b,a
         ld a,(L0098)
-        add a,L0280 & $FF
+        add a,SlotModulation & $FF
         ld l,a
-        ld h,floor(L0280/256)
+        ld h,floor(SlotModulation/256)
         ld a,(hl)
         or a
         jr z,L0C15
@@ -1223,9 +1236,9 @@ L0CA6:
 
 L0CB9:
         ld a,(L0098)
-        add a,L0300 & $FF
+        add a,SlotVolume & $FF
         ld l,a
-        ld h,floor(L0300/256)
+        ld h,floor(SlotVolume/256)
         ld a,(hl)
         sla a
         cp $FE
@@ -1433,7 +1446,7 @@ L0E1D:
 L0E1E:
         ret
 
-L0E1F:
+CheckDacChannel:
         ld a,(L00BB)
         bit 5,a
         jr nz,L0E2E
@@ -1451,10 +1464,14 @@ L0E32:
 L0E34:
         ret
 
-L0E35:
-        call L097E
+; Start a DAC sample: channel 6 to DAC mode, its pan, DacSampleId from the record
+; byte 3, DacRequest 1 for the 68000, timer A from the note (the sample rate), and the
+; stream pointer (BC') at DacStartMark, which waits for the first buffer.
+
+StartDacSample:
+        call SetChannelState
         ld a,$05
-        call L0946
+        call KeyOffChannel
         ld hl,YM2612_ADDR1
         call WaitYmReady
         ld (hl),$2B
@@ -1467,9 +1484,9 @@ L0E35:
         inc hl
         ld (hl),a
         ld a,(ix+3)
-        ld (L0093),a
+        ld (DacSampleId),a
         ld a,$01
-        ld (L0092),a
+        ld (DacRequest),a
         ld hl,YM2612_ADDR1
         ld de,YM2612_DATA1
         call WaitYmReady
@@ -1501,7 +1518,7 @@ L0E35:
         ld (hl),$27
         ld (de),a
         exx
-        ld bc,L184A
+        ld bc,DacStartMark
         exx
         ret
 
@@ -1514,9 +1531,9 @@ TimerAValues:
 
 L0EE3:
         ld a,(L0098)
-        add a,L0300 & $FF
+        add a,SlotVolume & $FF
         ld l,a
-        ld h,floor(L0300/256)
+        ld h,floor(SlotVolume/256)
         ld a,(hl)
         inc a
         ld c,a
@@ -1560,9 +1577,9 @@ L0F25:
 
 L0F32:
         ld a,(L0098)
-        call L0919
+        call GetSlotSound
         ld (L0095),a
-        call L0923
+        call FindZ80Resource
         ld (L0096),ix
         ld a,$00
         ld (L0094),a
@@ -1616,9 +1633,9 @@ L0F87:
 
 L0F93:
         ld a,(L0098)
-        call L0919
+        call GetSlotSound
         ld (L0095),a
-        call L0923
+        call FindZ80Resource
         ld (L0096),ix
         ld a,$00
         ld (L0094),a
@@ -1641,9 +1658,9 @@ L0FA8:
         ld a,(L0098)
         cp (hl)
         jr nz,L0FF1
-        add a,L0280 & $FF
+        add a,SlotModulation & $FF
         ld l,a
-        ld h,floor(L0280/256)
+        ld h,floor(SlotModulation/256)
         ld a,(hl)
         or a
         jr z,L0FF1
@@ -1729,7 +1746,8 @@ L1045:
 InterruptReturn:
         reti
 
-; Poll YM timer A and write DAC sample bytes.
+; Poll YM timer A and write DAC sample bytes: 0 ends the sample, $FF ends a buffer (on
+; to the other once the 68000 has filled it: DacRequest 2 or 3), $FE waits at the start.
 
 ServiceTimers:
         exx
@@ -1776,34 +1794,34 @@ L107B:
         jr L10CA
 
 L1094:
-        ld a,(L0092)
+        ld a,(DacRequest)
         or a
         jr z,L109D
         dec bc
         jr L10CA
 
 L109D:
-        ld a,(L00A2)
+        ld a,(DacNextBuffer)
         or a
         jr nz,L10B1
         inc a
-        ld (L00A2),a
+        ld (DacNextBuffer),a
         ld a,$02
-        ld (L0092),a
-        ld bc,L1649
+        ld (DacRequest),a
+        ld bc,DacBufferB
         jr L1065
 
 L10B1:
         dec a
-        ld (L00A2),a
+        ld (DacNextBuffer),a
         ld a,$03
-        ld (L0092),a
-        ld bc,L1448
+        ld (DacRequest),a
+        ld bc,DacBufferA
         jr L1065
 
 L10BF:
         dec bc
-        ld a,(L0092)
+        ld a,(DacRequest)
         or a
         jr nz,L10CA
         ld a,$01
@@ -1972,11 +1990,11 @@ L12C8:
         ds 128
 L13C8:
         ds 128
-L1448:
+DacBufferA:
         ds 512
         db $FF
-L1649:
+DacBufferB:
         ds 512
         db $FF
-L184A:
+DacStartMark:
         db $FE,$03,$00,$C0,$00,$00

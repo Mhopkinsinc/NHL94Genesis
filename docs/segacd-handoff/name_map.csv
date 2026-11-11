@@ -1377,6 +1377,9 @@ MAIN.BIN,$847C,SequenceTempo,Sierra C name tag
 MAIN.BIN,$848C,SequenceFraction,Sierra C name tag
 MAIN.BIN,$849C,SequenceRunState,Sierra C name tag
 MAIN.BIN,$853E,CurrentSoundStream,Sierra C name tag
+MAIN.BIN,$8540,DacSampleRecord,Sierra C name tag
+MAIN.BIN,$8544,DacSamplePosition,Sierra C name tag
+MAIN.BIN,$8548,DacSampleLoop,Sierra C name tag
 MAIN.BIN,$854A,PcmChannelRouting,Sierra C name tag
 MAIN.BIN,$855A,PcmQueuePointer,Sierra C name tag
 MAIN.BIN,$855E,DeferredSoundEvents,Sierra C name tag

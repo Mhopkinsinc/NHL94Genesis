@@ -62,8 +62,9 @@
      instruments) runs eight streams as MIDI ports; controller 18 sends a channel to the sub CPU PCM driver,
      which plays HOCKEY.BIN's 13 sound records (GamePcmSounds) from resource 96's 13 samples: the whistle,
      passes, shots, checks, hits, the crowd, the glass (`docs/segacd_main_shell.md` "The sound engine").
-     Left: 54 of the disc's films are in no PLAYER list (nothing found plays them); what the Z80 program does
-     with sound operation 4 (program `$7F` on channel 16), which no sender was found for.
+     Sound operation 4 plays a DAC sample through the Z80, but in this build it never sounds: the 68000 polls the
+     Z80's request byte at `$0072`, the Z80 program keeps it at `$0092`, no DAC samples are registered, and
+     nothing sends command `$23` (`docs/segacd_main_shell.md`). Left: 54 of the disc's films are in no PLAYER list.
 - Open questions:
   - Answered: the team struct is one word longer from `tmap` on because `tmsort` is a long on the disc (the sort
     objects are in sub CPU RAM above `$FFFF`): each cartridge `movea.w tmsort(aN)` is `movea.l $22(aN)`.

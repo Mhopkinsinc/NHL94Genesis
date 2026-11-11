@@ -7,8 +7,6 @@
 
 X_FF94BC	equ	$FF94BC
 X_FF953C	equ	$FF953C
-X_FF9544	equ	$FF9544
-X_FF9548	equ	$FF9548
 X_FF95EA	equ	$FF95EA
 
 	org	$FF87B8
@@ -670,7 +668,7 @@ ServiceZ80DataRequest
 .LFF8FCA
 	cmpi.b	#$2,$A00072.l
 	bne.s	.LFF900A
-	movea.l	X_FF9544(pc),a0
+	movea.l	DacSamplePosition(pc),a0
 	cmpa.l	#$0,a0
 	bne.s	.LFF8FF0
 	bsr.w	ReleaseSoundZ80Bus
@@ -688,7 +686,7 @@ ServiceZ80DataRequest
 .LFF900A
 	cmpi.b	#$3,$A00072.l
 	bne.w	.LFF90B8
-	movea.l	X_FF9544(pc),a0
+	movea.l	DacSamplePosition(pc),a0
 	cmpa.l	#$0,a0
 	bne.s	.LFF9032
 	bsr.w	ReleaseSoundZ80Bus
@@ -723,7 +721,7 @@ ServiceZ80DataRequest
 	movea.l	(sp)+,a0
 	bsr.w	ReleaseSoundSubProgramRam
 	clr.l	d0
-	move.w	X_FF9548(pc),d0
+	move.w	DacSampleLoop(pc),d0
 	cmpi.w	#$FFFF,d0
 	beq.s	.LFF90AC
 	move.b	#$FF,(a1)
@@ -1048,9 +1046,13 @@ SequenceRunState
 	dcb.b	32,0
 	dcb.b	130,0
 CurrentSoundStream
+	dc.w	$0000
+DacSampleRecord
 	ori.b	#$0,d0
+DacSamplePosition
 	ori.b	#$0,d0
-	ori.b	#$0,d0
+DacSampleLoop
+	dc.w	$0000
 PcmChannelRouting
 	dcb.b	16,0
 PcmQueuePointer

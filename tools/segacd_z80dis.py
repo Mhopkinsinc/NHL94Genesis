@@ -26,7 +26,17 @@ NAMES = {0x0: 'Z80_Reset', 0x1051: 'InterruptReturn', 0x600: 'Z80_Start', 0x62c:
          0x8000: 'BANK_WINDOW', 0x1178: 'FmPitchTable',
          0x1238: 'ChannelBits', 0x1240: 'ChannelClearBits',
          0x1248: 'L1248', 0x12c8: 'L12C8',
-         0xea3: 'TimerAValues', 0x112e: 'L112E'}
+         0xea3: 'TimerAValues', 0x112e: 'L112E',
+         # the commands (MIDI status nibbles, as the 68000's sound engine sends them)
+         0x661: 'NoteOff', 0x6d4: 'NoteOn', 0x740: 'ControlChange', 0x796: 'ProgramChange',
+         0x7b2: 'PitchBend', 0x7d4: 'UnsupportedCommand', 0x7dd: 'KeyOffAllChannels',
+         0x8bb: 'InitSlotTables', 0x8f8: 'InitResourceTable', 0x919: 'GetSlotSound',
+         0x923: 'FindZ80Resource', 0x946: 'KeyOffChannel', 0x97e: 'SetChannelState',
+         0xe1f: 'CheckDacChannel', 0xe35: 'StartDacSample',
+         0x200: 'SlotSound', 0x280: 'SlotModulation', 0x300: 'SlotVolume', 0x400: 'SlotPitchBend',
+         # the DAC sample stream (sound operation 4, docs/segacd_main_shell.md)
+         0x92: 'DacRequest', 0x93: 'DacSampleId', 0xa2: 'DacNextBuffer',
+         0x1448: 'DacBufferA', 0x1649: 'DacBufferB', 0x184a: 'DacStartMark'}
 REFS = set(NAMES)
 
 
@@ -241,6 +251,9 @@ def generate():
         '; an entry of CommandJumps. No caller of $10CD was found. There is no JP (HL) /',
         '; JP (IX) dispatch. Written by tools/segacd_z80dis.py from cdbin/MAIN.BIN;',
         '; tables are db/dw, zero runs ds.',
+        "; The DAC sample request is DacRequest / DacSampleId ($0092 / $0093); the 68000's",
+        '; ServiceZ80DataRequest polls $0072 / $0073 instead (inside the queue here), so no',
+        '; request is answered: docs/segacd_main_shell.md, sound operation 4.',
         '; =============================================================================', '',
         '        .binfrom 0', f'        .binto ${END - 1:04X}', '']
     # Every address operand gets a symbol, including constants loaded into pairs.
@@ -255,10 +268,21 @@ def generate():
         0x7fe: 'Write the two terminated YM register/value lists.',
         0x87a: 'Clear the shared command queue.',
         0x88d: 'Remove the first command and shift the remaining four-byte records.',
-        0x8f8: 'Initialize the four-byte record table at $0100.',
+        0x661: 'MIDI-style commands from the queue, by status nibble: $8x note off, $9x note on,\n'
+               '; $Bx controller (1 and 7), $Cx program, $Ex pitch bend; the slot is the low nibble + byte 3.',
+        0x6d4: 'Note on: the slot\'s sound record by kind: 0 an FM instrument, 3 a DAC sample on FM\n'
+               '; channel 6 (StartDacSample), 7 a key map (byte 2 + note is the sound).',
+        0x7d4: 'Any other status: drop it and key off every FM channel.',
+        0x8f8: 'Initialize the four-byte record table at $0100 (id, size, address high, low): entry 0 is\n'
+               '; record $7F, the 4 bytes at $184B (kind 3, priority 0, pan $C0, sample id), the DAC\n'
+               '; sample sound operation 4 plays; the rest $FF (free).',
+        0xe35: 'Start a DAC sample: channel 6 to DAC mode, its pan, DacSampleId from the record\n'
+               '; byte 3, DacRequest 1 for the 68000, timer A from the note (the sample rate), and the\n'
+               '; stream pointer (BC\') at DacStartMark, which waits for the first buffer.',
         0xea3: 'YM timer A register pairs ($24, $25).',
         0xf93: 'Called by the isolated timer B routine at $10CD.',
-        0x1053: 'Poll YM timer A and write DAC sample bytes.',
+        0x1053: 'Poll YM timer A and write DAC sample bytes: 0 ends the sample, $FF ends a buffer (on\n'
+                '; to the other once the 68000 has filled it: DacRequest 2 or 3), $FE waits at the start.',
         0x10cd: 'No resolved caller in this image; polls YM timer B.',
         0x113e: 'Wait for the YM2612 busy flag to clear.',
         0x1178: 'FM block/frequency words.',

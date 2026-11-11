@@ -115,7 +115,7 @@ DrawTextInline, DrawCodedTextInline and CopyCellRectanglesInline take the block 
 
 ## The sound engine
 
-DispatchSoundOperation (`$FF865C`) takes d0: 0 LoadZ80SoundProgram (`z80load.asm`), 1 TickSoundSequences, 2 StartSoundSequence, 3 StopSoundSequence (by SequenceId), 4 PlayZ80Channel16Note (d1 into the Z80's slot at its word `$0028` + 3, then program `$7F` and note d2 on MIDI channel 16), 5 ClearZ80SoundBuffers, 6 RegisterSoundResourceBank, 7 LoadZ80SoundResources, 8 RemoveZ80SoundResources, 9 ClearZ80SoundResourceDirectory; any other returns 1 with carry set.
+DispatchSoundOperation (`$FF865C`) takes d0: 0 LoadZ80SoundProgram (`z80load.asm`), 1 TickSoundSequences, 2 StartSoundSequence, 3 StopSoundSequence (by SequenceId), 4 PlayZ80Channel16Note (a DAC sample on the Z80: "The DAC and sound operation 4" below), 5 ClearZ80SoundBuffers, 6 RegisterSoundResourceBank, 7 LoadZ80SoundResources, 8 RemoveZ80SoundResources, 9 ClearZ80SoundResourceDirectory; any other returns 1 with carry set.
 
 TickSoundSequences (`$FF87B8`) needs the word `$1234` as its guard. It serves the timed note-offs and the Z80's data requests, then runs eight streams: MIDI-style status bytes (`$90`, `$B0`, `$C0`, `$E0`, `$FF` the end) with variable-length delays. A `$90` event also queues a timed `$80` (QueueTimedNoteOff, TickPendingNoteOffs). Events go to the Z80 queue at Z80 `$0030` (QueueZ80SoundEvent, 24 at most) or to a deferred queue of 32 (QueueDeferredSoundEvent, FlushDeferredSoundEvents). ServiceZ80DataRequest answers the request byte at Z80 `$0072` with `$200`-byte chunks. FindSoundResource looks up a type and id in the registered directories (a count, then 4-byte entries, as the sub CPU's PCM records). The bus helpers take the Z80 bus or map a sub CPU program RAM pointer into the main CPU window `$020000`-`$03FFFF`.
 
@@ -145,6 +145,20 @@ The sounds are the sub CPU records HOCKEY.BIN installs (GamePcmSounds, `docs/seg
 
 The Z80 side is `src/segacd/main/mainz80.z80`: Z80SoundImage, MAIN.BIN `$5E0C`-`$765B`. InitSoundCommand (`$29`) and InitSoundDriverCommand (`$40`) pass its `$1850` bytes to z80load.asm, which copies them to Z80 RAM `$0000`. That puts `jp $0600` at the reset vector, `jp` to a `reti` at the restart vectors, the program at `$0600`, and zeroed RAM below and after it (the command queue at `$0030`).
 
+The Z80 program takes the events from the queue by status nibble, with the slot = the channel + the top byte, as the sub CPU's PCM driver does: `$8x` NoteOff, `$9x` NoteOn, `$Bx` ControlChange (controller 1 into SlotModulation, 7 into SlotVolume), `$Cx` ProgramChange (SlotSound), `$Ex` PitchBend (SlotPitchBend); any other status is dropped and every FM channel keyed off. NoteOn finds the slot's sound in its resource table at Z80 `$0100` (FindZ80Resource: 64 entries of id, size and address, filled by UploadZ80SoundResource) and goes by the record's kind byte: 0 an FM instrument on a free FM channel, 3 a DAC sample on FM channel 6, 7 a key map (byte 2 + the note is the sound).
+
+### The DAC and sound operation 4
+
+At start-up the Z80 puts one record in its table itself (InitResourceTable): id `$7F`, the 4 bytes at `$184B`, kind 3 (a DAC sample), priority 0, pan `$C0` (both speakers), and a sample id in byte 3. Sound operation 4 (PlayZ80Channel16Note) writes d1 into that byte 3 (Z80 `$0028` holds the record's address), then sends program `$7F` and a note d2 (velocity `$7F`) on MIDI channel 16 straight to the Z80 queue. StartDacSample then switches FM channel 6 to DAC mode, sets DacSampleId (`$0093`) and DacRequest (`$0092`) to 1, takes the sample rate from the note (YM timer A, TimerAValues), and starts the stream at DacStartMark, a `$FE` byte that waits for data.
+
+The data was meant to come from the 68000. ServiceZ80DataRequest (in TickSoundSequences) answers a request by finding the DAC sample (type 1) with the requested id. A type 1 record is a loop word and then 8-bit samples, ended by a 0. ServiceZ80DataRequest copies `$200` bytes at a time into DacBufferA / DacBufferB (Z80 `$1448` / `$1649`, whose addresses the Z80 keeps at `$0024` / `$0026`), each ended by `$FF`. The Z80 plays one buffer while it asks for the other to be refilled (DacRequest 2 or 3).
+
+In this build it never sounds, for three reasons:
+- ServiceZ80DataRequest polls Z80 `$0072` / `$0073`, but this Z80 program keeps its request at `$0092` / `$0093`, so no request is answered and the stream waits at its `$FE` mark. In this program `$0072` is inside the 24-entry command queue, and ServiceZ80DataRequest writes 0 there on every tick, which would wipe the status byte of a 17th queued event.
+- No bank with DAC samples (type 1) is registered: SoundBank has only sequences and FM instruments.
+- Nothing sends shell command `$23`, the only way into sound operation 4. Its table at `$FF4E76` gives d1 = 0-6 the notes 0, `$6B`, `$6A`, `$75`, `$7C`, `$73` and `$74`.
+
+
 ## Not worked out
 
-What the Z80 program does with sound operation 4's slot and program `$7F` on channel 16; which screen command `$3D` shows and what the overlay installed by `$3F` is; whether the game shell commands with no sender seen are used.
+Which screen command `$3D` shows and what the overlay installed by `$3F` is; whether the game shell commands with no sender seen are used.
