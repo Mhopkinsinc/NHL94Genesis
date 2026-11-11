@@ -33,9 +33,13 @@
   2. Names: STARTER's driver module is named (`docs/segacd_starter_driver.md`). PLAYER's code is named
      (`docs/segacd_player.md`), and so are MAIN's shell, command table and sound engine
      (`docs/segacd_main_shell.md`; MAIN.BIN runs at `$FF1000`, not `$FF0000`). The older interface's handlers are
-     labelled too (`SubCmd00`-`SubCmd1D`), and hwread.asm's. Left: what the drawing commands draw. HOCKEY's header and TeamList are source now; the graphics
-     pointer table has 37 of 44 entries named (`--cdname` in `tools/segacd_hockey.sh`), the rest have no cartridge
-     label (their comments say what they hold).
+     labelled too, and hwread.asm's; the drawing commands (`$02`, `$04`-`$12`, `$17`, `$18`) have names for what they
+     draw (pictures, tiles, text through a `.map.jim` font, frame rows, cell copies; "Drawing" in that doc). HOCKEY's
+     header and TeamList are source now; the graphics pointer table has 38 of 44 entries named (`--cdname` in
+     `tools/segacd_hockey.sh`, and ScoutingSpeechClipsPtr by hand in `cdgfxptrs.asm`: the scouting report's speech
+     clips, `docs/segacd_announce.md`), the rest have no cartridge label (their comments say what they hold). When
+     `tools/segacd_hockey.sh` is next run, `--cdname ScoutingSpeechClipsPtr=0x47DA4` can go into CDNAMES so that
+     scout94_2 and scoutopen use the name.
   3. Formats: STARTER's data is five `.map.jim` pictures (the Credits title, its font, High Score Productions,
      the EA SPORTS logo sprites, sparkles; packed tiles in the cartridge's DecompressBytecode format, which
      MAIN.BIN's copy of the cartridge decompressor unpacks) and a PCM record directory (`startergfx.asm`). MAIN's
@@ -43,8 +47,10 @@
   4. The boot area (from a disc image: `tools/segacd_bootarea.py`, optional `cdbin/BOOT.BIN`): the header, Sega's
      security block (incbin), the initial program and the system program are in `src/segacd/boot/` and match.
      The system program (sub CPU `$6000`) loads MAIN.BIN, GTABLE.BIN and STARTER.BIN and provides the `$6044`
-     services, all named (`docs/segacd_boot.md`). Left: its PCM driver's commands and TimerInterrupt, and
-     FilmSwitch's arguments (the SDK film code is named from its tags, as in STARTER).
+     services, all named (`docs/segacd_boot.md`). Its PCM driver is STARTER's with command 9 added (a stream
+     from sub CPU memory, which the scouting report uses to read its script aloud), and TimerInterrupt is what runs
+     the driver. Left: FilmSwitch's arguments (the SDK film code is named from its tags, as in STARTER) and the
+     driver's per-channel tables (`X_` addresses in `sp.asm`).
 - Open questions:
   - The team struct is one word longer from `tmap` on; probably `tmsort` became a long. Confirm when a fragment uses
     `tmsort` (logic94 has `movea.w tmsort(a2),a0` among its CD lines).
