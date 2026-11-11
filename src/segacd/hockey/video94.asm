@@ -99,7 +99,7 @@ DumpSprites2						;Transfer sprite table, then the dma list. Falls into DoDMAlis
 	movea.l	#(Satt-M68K_RAM),a0		;transfer sprite table
 	move.w	(Sattsize).l,d0			;words
 	move.w	(VSPRITES).l,d1
-	bsr.w	X_378D2	;CD: the cartridge has DoDMA
+	bsr.w	X_378D2					;CD: the cartridge has DoDMA
 dodmalist							;(symbols are case-insensitive). Transfer data from dmalist.
 									;Also called from setupice
 	movea.l	(DMAlistend).l,a6
@@ -109,7 +109,7 @@ dodmalist							;(symbols are case-insensitive). Transfer data from dmalist.
 	move.w	-(a6),d1				;vram address
 	move.w	-(a6),d0				;words
 	movea.l	-(a6),a0				;source
-	bsr.w	X_378D2	;CD: the cartridge has DoDMA
+	bsr.w	X_378D2					;CD: the cartridge has DoDMA
 	cmpa.l	#DMAList,a6
 ;CD: no cartridge twin
 	bgt.w	.0
@@ -125,9 +125,9 @@ dodmalist							;(symbols are case-insensitive). Transfer data from dmalist.
 	bgt.w	.L3DC00
 	rts
 SetScroll2							;Write Hscroll / Vscroll to the vdp. Called from DumpSprites
-	move.w	$18D30.l,d0	;CD: the cartridge has (VSCRLPM).w
+	move.w	$18D30.l,d0				;CD: the cartridge has (VSCRLPM).w
 	addi.w	#2,d0
-	bsr.w	X_38780	;CD: the cartridge has Vmaddr
+	bsr.w	X_38780					;CD: the cartridge has Vmaddr
 ;CD: no cartridge twin
 .L3DC24
 	btst.b	#$4,$FF800E.l
@@ -182,7 +182,7 @@ setvideo							;this is not vblank code but sets up ram for vblank transfers. Ca
 .p									;loop
 	btst.b	#dfok,(disflags).l		;dfok: wait for vblank to take the last frame
 	bne.w	.p						;(VBlank clears dfok after DumpSprites)
-	movea.l	#$18D6A,a5	;dma transfer list (CD: the cartridge has #(DMAList-M68K_RAM))
+	movea.l	#$18D6A,a5				;dma transfer list (CD: the cartridge has #(DMAList-M68K_RAM))
 	bsr.w	updatescroll			;after a5 is set
 	movea.l	#(Satt-M68K_RAM),a6		;sprite attribute table area
 	moveq	#1,d6					;link counter
@@ -203,7 +203,7 @@ setvideo							;this is not vblank code but sets up ram for vblank transfers. Ca
 .n									;sprite list ended
 	clr.b	satLink-satLen(a6)		;end sprite list
 	move.l	a6,d0
-	subi.l	#$BBD30,d0	;CD: the cartridge has #Satt
+	subi.l	#$BBD30,d0				;CD: the cartridge has #Satt
 	lsr.w	#1,d0					;words
 	move.w	d0,(Sattsize).l
 	move.l	a5,(DMAlistend).l
@@ -286,7 +286,7 @@ showref								;draw ref graphics. a5 = dma list, a6 = sprite table, d6 = link c
 	bclr.b	#sf2refref,(sflags2).l	;sf2refref
 	beq.w	rtss2
 	movea.l	#(RefRamMap-M68K_RAM),a0
-	movea.l	#$18D34,a1	;CD: the cartridge has #(VmMAP1-M68K_RAM)
+	movea.l	#$18D34,a1				;CD: the cartridge has #(VmMAP1-M68K_RAM)
 	move.w	2(a1),d2
 	moveq	#2,d0					;refy: Xpos on ice screen
 	btst.b	#sfhor,(sflags).l
@@ -318,7 +318,7 @@ checkfo								;check for face off sprites. 3 entries of fofdata2: word frame, w
 	bne.w	rtss2
 	btst.b	#dffaceoff,(disflags).l	;face off flag
 	beq.w	rtss2
-	movea.l	#$17CF8,a3	;CD: the cartridge has #(fofdata2-M68K_RAM)
+	movea.l	#$17CF8,a3				;CD: the cartridge has #(fofdata2-M68K_RAM)
 	moveq	#2,d0
 .loop								;each faceoff object
 	move.w	(a3),d4
@@ -404,7 +404,7 @@ showzam								;zamboni. a5 = dma list, a6 = sprite table, d6 = link counter. Dr
 	blt.w	.get
 	moveq	#$18,d2					;clamp to the last entry
 ;CD: no cartridge twin
-.get						;CD: placed where the disc branches to it
+.get								;CD: placed where the disc branches to it
 	lea	$3E00E.l,a1
 	move.w	(a1,d2.w),d2
 	bra.w	SetSframe
@@ -541,7 +541,7 @@ showcrowd							;draw crowd sprites: up to 3 frames per PBnum nibble, then the t
 	cmpi.w	#$40,d6
 	beq.w	.ex
 ;CD: no cartridge twin
-.next						;CD: placed where the disc branches to it
+.next								;CD: placed where the disc branches to it
 	adda.w	#$8,a0
 	dbf	d4,.loop
 .ex									;pop the d0-d5 saved above
@@ -633,7 +633,7 @@ showclock							;put the game clock on screen. Called from setvideo and PauseMod
 	move.w	$78(a1),d0				;4+(':'*2)
 	add.w	(smallfontchars).l,d0
 	ori.w	#$8000,d0
-	move.w	d0,$17ED4.l			;colon (CD: the cartridge has (clockram).w)
+	move.w	d0,$17ED4.l				;colon (CD: the cartridge has (clockram).w)
 	move.w	(gameclock).l,d0
 	btst.b	#1,(gmode2).l			;penalty shot / shootout clock
 	beq.w	.4
@@ -657,12 +657,12 @@ showclock							;put the game clock on screen. Called from setvideo and PauseMod
 	bsr.w	.char					;minutes tens
 	move.l	a0,(a5)+
 	move.w	#5,(a5)+				;words to transfer
-	movea.l	#$18D34,a1	;CD: the cartridge has #(VmMAP1-M68K_RAM)
+	movea.l	#$18D34,a1				;CD: the cartridge has #(VmMAP1-M68K_RAM)
 	moveq	#$18,d0					;.clocky = 24
 	moveq	#3,d2					;.clockx = 3
 	btst.b	#sfhor,(sflags).l		;sfhor (always clear here: the horizontal rink prints the clock above)
 	beq.w	.cv
-	movea.l	#$18D38,a1	;CD: the cartridge has #(VmMAP2-M68K_RAM)
+	movea.l	#$18D38,a1				;CD: the cartridge has #(VmMAP2-M68K_RAM)
 	moveq	#5,d0					;clock y (93 used 4)
 	moveq	#$D,d2					;.clockx2 = 13
 .cv									;map position set
@@ -776,7 +776,7 @@ checksso							;do graphics for sso structure: arrows for the players when they 
 	move.w	d4,d0
 .4									;arrow X (or the player's)
 	addi.w	#$100,d0				;128+128
-	move.w	d0,0(a3)					;Xcord
+	move.w	d0,0(a3)				;Xcord
 	move.w	$2(a1,d2.w),d4			;y spot, 0 = keep player y
 	beq.w	.5
 	move.w	d4,d1
@@ -805,7 +805,7 @@ setsortcords						;setup sort cord graphics: addframe for the 16 objects in OOli
 	clr.w	d1
 	move.b	(a4)+,d1				;move next sortcord into d1
 	asl.w	#6,d1					;mult by 64
-	movea.l	#$17480,a3	;SortCords into a3 (CD: the cartridge has #(SortCords-M68K_RAM))
+	movea.l	#$17480,a3				;SortCords into a3 (CD: the cartridge has #(SortCords-M68K_RAM))
 	adda.w	d1,a3					;add offset to next struct
 	bsr.w	addframe
 	dbf	d0,.top						;loop until done
@@ -816,7 +816,7 @@ setffo								;draw the 7 objects tied to icerink scrolling (gloves and pads), m
 	move.w	#6,d0					;ffo obj -1
 	movea.l	#(pads-M68K_RAM),a3		;move start of struct into a3
 ;CD: no cartridge twin
-.top						;CD: placed where the disc branches to it
+.top								;CD: placed where the disc branches to it
 	movea.l	a6,a0
 	bsr.w	addframe
 	cmpa.l	a6,a0
@@ -833,13 +833,13 @@ uppads								;update the gloves object and the 6 pad objects, and queue new pad
 									;come from the PadControlBits / PadControlBits34 nibbles ($E = no change,
 									;$F = none)
 	movea.l	#(glovestruct-M68K_RAM),a0	;pads+(4*ffosize): gloves
-	st.b	Zpos(a0)					;set Zpos
+	st.b	Zpos(a0)				;set Zpos
 	move.b	(glovecords).l,d0
 	beq.w	.0						;branch if 0
 	move.b	(glovecords+1).l,d1
 	ext.w	d0
 	asl.w	#2,d0
-	move.w	d0,0(a0)					;move d0 into Xpos
+	move.w	d0,0(a0)				;move d0 into Xpos
 	ext.w	d1
 	asl.w	#2,d1
 	move.w	d1,Ypos(a0)				;move d1 into Ypos
@@ -847,22 +847,22 @@ uppads								;update the gloves object and the 6 pad objects, and queue new pad
 .0									;pads set up
 	move.w	#5,d4
 	movea.l	#(pads-M68K_RAM),a0
-	movea.l	#$17DCA,a1	;last label code per pad (CD: the cartridge has #(padcont-M68K_RAM))
-	movea.l	#$17480,a2	;CD: the cartridge has #(SortCords-M68K_RAM)
+	movea.l	#$17DCA,a1				;last label code per pad (CD: the cartridge has #(padcont-M68K_RAM))
+	movea.l	#$17480,a2				;CD: the cartridge has #(SortCords-M68K_RAM)
 	move.w	(PadControlBits).l,d3
 .top								;each pad
 	cmpi.w	#1,d4
 	bne.w	.nibble
 	move.w	(PadControlBits34).l,d3
 	lsr.w	#4,d3
-	bra.w	.nibble						;to the next instruction
+	bra.w	.nibble					;to the next instruction
 .nibble								;d4 <> 1
 	move.w	d3,d0					;per pad: d3 holds the remaining nibbles
 	andi.w	#$F,d0					;this pad's nibble: player number, $E or $F
 	move.w	#$F,d1					;label code for $E
 	cmpi.w	#$E,d0
 	beq.w	.chg					;$E: leave the pad position alone
-	st.b	Zpos(a0)					;hidden
+	st.b	Zpos(a0)				;hidden
 	cmpi.w	#$F,d0
 	beq.w	.next					;$F: pad hidden, label unchanged
 	asl.w	#7,d0
@@ -923,7 +923,7 @@ QueuePadLabel						;Queue the 3 character label of a pad object. d1 = label code
 	move.b	(a4,d2.w),d2
 	moveq	#2,d0
 ;CD: no cartridge twin
-uppads_pd						;CD: placed where the disc branches to it
+uppads_pd							;CD: placed where the disc branches to it
 	movea.l	(SmallFontMapPtr).l,a3
 	adda.l	jimdata(a3),a3
 	add.w	d2,d2
@@ -945,7 +945,7 @@ uppads_pd						;CD: placed where the disc branches to it
 addframe							;a3 = sort cord object. Project it with find3d, then addframe2. a5 = dma
 									;trans, a6 = sprite attribute table. Called from setsortcords and setffo
 	movem.l	d0-d2,-(sp)
-	move.w	0(a3),d0					;Xpos into d0
+	move.w	0(a3),d0				;Xpos into d0
 	move.w	Ypos(a3),d1				;Ypos into d1
 	move.w	Zpos(a3),d2				;Zpos into d2
 	bmi.w	.exit					;exit if Zpos minus

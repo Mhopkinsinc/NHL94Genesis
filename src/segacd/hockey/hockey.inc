@@ -1,5 +1,6 @@
-;	HOCKEY.BIN names: the sub CPU RAM map (where each cartridge variable lives on the disc) and the
-;	cartridge constants the HOCKEY.BIN fragments use. tools/segacd_port.py adds to this file.
+;	HOCKEY.BIN names: the sub CPU RAM map (where each cartridge variable lives on the disc) and the cartridge
+;	constants the HOCKEY.BIN fragments use. tools/segacd_port.py adds to this file.
+;
 ;	A constant marked "not checked on the disc yet" has the cartridge value and was only used where its own
 ;	value does not show (a difference, a copied line); a disc operand may still change it.
 
@@ -488,13 +489,13 @@ facedir	equ	$54
 FaceOffMapPtr	equ	$47D14
 FaceOffSpritesPtr	equ	$47D30
 FeaturedPicturesPtr	equ	$47D88
-ffonum	equ	$7		;not checked on the disc yet
+ffonum	equ	$7						;not checked on the disc yet
 ffosize	equ	$1C
 fighting	equ	$74
 FLA	equ	$8
 foattr	equ	$2
-foframe	equ	$0		;not checked on the disc yet
-fosize	equ	$4		;not checked on the disc yet
+foframe	equ	$0						;not checked on the disc yet
+fosize	equ	$4						;not checked on the disc yet
 frame	equ	$6
 FramerMapPtr	equ	$47D10
 GameSetUpMap2Ptr	equ	$47D04
@@ -510,7 +511,7 @@ gmpen	equ	$2
 gmpendel	equ	$3
 gmstars	equ	$7
 GoalieOdds	equ	$A
-goalline	equ	$B0		;not checked on the disc yet
+goalline	equ	$B0					;not checked on the disc yet
 gsfhl	equ	$1
 gsflags	equ	$E
 gsfso	equ	$2
@@ -521,7 +522,7 @@ gspotwins	equ	$4
 gss1	equ	$A
 gss2	equ	$C
 gssize	equ	$10
-gst1	equ	$0		;not checked on the disc yet
+gst1	equ	$0						;not checked on the disc yet
 gst2	equ	$2
 handed	equ	$76
 HFD	equ	$9
@@ -544,12 +545,12 @@ lbut	equ	$2
 legspd	equ	$69
 legstr	equ	$68
 limpact	equ	$30
-LineDataBase	equ	$E20		;the cartridge has $1EF6
+LineDataBase	equ	$E20			;the cartridge has $1EF6
 LineSets	equ	$6
 LogoBoxMapPtr	equ	$47D7C
 mapheight	equ	$2
 mapwords	equ	$4
-maxros	equ	$1A		;not checked on the disc yet
+maxros	equ	$1A						;not checked on the disc yet
 MaxSprites	equ	$40
 MTL	equ	$B
 NameLogBase	equ	$DA0
@@ -576,8 +577,8 @@ Palettedata	equ	$2
 passacc	equ	$6E
 pbscnum	equ	$1
 pcframes	equ	$2
-pchecks	equ	$11E		;the cartridge has $11C
-pcsize	equ	$4		;not checked on the disc yet
+pchecks	equ	$11E					;the cartridge has $11C
+pcsize	equ	$4						;not checked on the disc yet
 pf2aip	equ	$1
 pf2fight	equ	$0
 pf2inj	equ	$6
@@ -611,9 +612,9 @@ pldaidef	equ	$3
 pldcheck	equ	$4
 pldendur	equ	$6
 pldlegspd	equ	$2
-pldnum	equ	$0		;not checked on the disc yet
+pldnum	equ	$0						;not checked on the disc yet
 pldpass	equ	$7
-pldsize	equ	$8		;not checked on the disc yet
+pldsize	equ	$8						;not checked on the disc yet
 pldstick	equ	$5
 pldweight	equ	$1
 plpos	equ	$6
@@ -639,8 +640,8 @@ RinktilelistPtr	equ	$47D18
 RonBarrMapPtr	equ	$47D54
 RosterSlots	equ	$1A
 rostnum	equ	$6F
-rosxoff	equ	$1C		;not checked on the disc yet
-satLen	equ	$8		;not checked on the disc yet
+rosxoff	equ	$1C						;not checked on the disc yet
+satLen	equ	$8						;not checked on the disc yet
 satLink	equ	$3
 satSize	equ	$2
 satTile	equ	$4
@@ -725,10 +726,10 @@ srpppk	equ	$1
 ssassist1	equ	$4
 ssassist2	equ	$5
 ssflags	equ	$2
-ssonum	equ	$4		;not checked on the disc yet
+ssonum	equ	$4						;not checked on the disc yet
 ssosize	equ	$14
 ssscorer	equ	$3
-Stack	equ	-2		;not checked on the disc yet
+Stack	equ	-2						;not checked on the disc yet
 StanleyCupSpritePtr	equ	$47D94
 stickhand	equ	$71
 STL	equ	$14
@@ -744,15 +745,15 @@ temp2	equ	$42
 temp3	equ	$44
 temp4	equ	$46
 temp5	equ	$48
-tmap	equ	$26		;the cartridge has $24
-tmassists	equ	$D0		;the cartridge has $CE
+tmap	equ	$26						;the cartridge has $24
+tmassists	equ	$D0					;the cartridge has $CE
 tmATOP	equ	$A
-tmboxlist	equ	$9C		;the cartridge has $9A
+tmboxlist	equ	$9C					;the cartridge has $9A
 tmBreakawayGoals	equ	$35C		;the cartridge has $35A
-tmBreakaways	equ	$35A		;the cartridge has $358
+tmBreakaways	equ	$35A			;the cartridge has $358
 tmchecks	equ	$10
 tmdata	equ	$1E
-tmflags	equ	$32		;the cartridge has $30
+tmflags	equ	$32						;the cartridge has $30
 tmflast	equ	$3
 tmflcc	equ	$0
 tmflcm	equ	$1
@@ -760,36 +761,36 @@ tmfmid	equ	$2
 tmfoside	equ	$4
 tmfowon	equ	$E
 tmftimeout	equ	$2
-tmgoalie	equ	$28		;the cartridge has $26
-tmgoals	equ	$B6		;the cartridge has $B4
-tmHotCold	equ	$1A4		;the cartridge has $1A2
-tmlcchoice	equ	$30		;the cartridge has $2E
+tmgoalie	equ	$28					;the cartridge has $26
+tmgoals	equ	$B6						;the cartridge has $B4
+tmHotCold	equ	$1A4				;the cartridge has $1A2
+tmlcchoice	equ	$30					;the cartridge has $2E
 tmline	equ	$16
-tmlines	equ	$16C		;the cartridge has $16A
-tmnear	equ	$2C		;the cartridge has $2A
-tmOneTimerGoals	equ	$360		;the cartridge has $35E
-tmOneTimers	equ	$35E		;the cartridge has $35C
+tmlines	equ	$16C					;the cartridge has $16A
+tmnear	equ	$2C						;the cartridge has $2A
+tmOneTimerGoals	equ	$360			;the cartridge has $35E
+tmOneTimers	equ	$35E				;the cartridge has $35C
 tmpasscomp	equ	$14
 tmpasses	equ	$12
-tmpde	equ	$34		;the cartridge has $32
-tmpdst	equ	$68		;the cartridge has $66
+tmpde	equ	$34						;the cartridge has $32
+tmpdst	equ	$68						;the cartridge has $66
 tmPenalties	equ	$6
 tmPenmin	equ	$8
-tmPenShotGoals	equ	$364		;the cartridge has $362
-tmPenShots	equ	$362		;the cartridge has $360
-tmPerGoals	equ	$344		;the cartridge has $342
-tmPerShots	equ	$34C		;the cartridge has $34A
-tmpice	equ	$138		;the cartridge has $136
-tmPPShots	equ	$356		;the cartridge has $354
-tmpshots	equ	$EA		;the cartridge has $E8
+tmPenShotGoals	equ	$364			;the cartridge has $362
+tmPenShots	equ	$362				;the cartridge has $360
+tmPerGoals	equ	$344				;the cartridge has $342
+tmPerShots	equ	$34C				;the cartridge has $34A
+tmpice	equ	$138					;the cartridge has $136
+tmPPShots	equ	$356				;the cartridge has $354
+tmpshots	equ	$EA					;the cartridge has $E8
 tmPwrGoals	equ	$2
 tmPwrPlays	equ	$4
-tmPwrPlayTime	equ	$354		;the cartridge has $352
+tmPwrPlayTime	equ	$354			;the cartridge has $352
 tmscore	equ	$C
-tmSHGoals	equ	$358		;the cartridge has $356
+tmSHGoals	equ	$358				;the cartridge has $356
 tmshots	equ	$0
-tmsize	equ	$366		;the cartridge has $364
-tmteam	equ	$2A		;the cartridge has $28
+tmsize	equ	$366					;the cartridge has $364
+tmteam	equ	$2A						;the cartridge has $28
 tmtouch1	equ	$18
 tmtouch2	equ	$1A
 tmtouch3	equ	$1C

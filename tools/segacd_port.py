@@ -36,6 +36,10 @@ import sys
 
 from capstone import Cs, CS_ARCH_M68K, CS_MODE_BIG_ENDIAN, CS_MODE_M68K_000
 
+sys.dont_write_bytecode = True           # no tools/__pycache__ files from the import below
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from segacd_comments import fix_layout   # noqa: E402  (comment columns, widths, paragraphs: CONTRIBUTING.md)
+
 md = Cs(CS_ARCH_M68K, CS_MODE_M68K_000 | CS_MODE_BIG_ENDIAN)
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 BASE = 0x1B000
@@ -1884,7 +1888,7 @@ class Fragment:
         if ext:
             out[ext_at:ext_at] = ext + [""]
         # tail comments of the file
-        return "\n".join(out).rstrip() + "\n"
+        return fix_layout("\n".join(out).rstrip() + "\n")
 
     def write_inc(self):
         merged = dict(self.inc_old)
@@ -2136,7 +2140,7 @@ def write_inc(path, merged, cglob, ckind, assumed=()):
         val = f"{v - 0x100000000}" if v >= 0xFFFFFF00 else f"${v:X}"
         out.append(f"{n}\tequ\t{val}{note}")
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    open(path, "w", newline="\n").write("\n".join(out) + "\n")
+    open(path, "w", newline="\n").write(fix_layout("\n".join(out) + "\n"))
 
 
 def assemble(path):

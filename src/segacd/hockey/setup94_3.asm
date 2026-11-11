@@ -65,8 +65,8 @@ EASportsScreen						;Called from Begin. Show the EA Sports screen until a button
 	move.w	#7,(Map1col).l
 	move.w	#$F000,(VmMAP3).l
 	move.w	#$F800,(VSPRITES).l
-	move.w	#$FC00,$18D30.l	;CD: the cartridge has (VSCRLPM).w
-	movea.l	#$BBCB0,a0	;CD: the cartridge has #(palfadenew-M68K_RAM)
+	move.w	#$FC00,$18D30.l			;CD: the cartridge has (VSCRLPM).w
+	movea.l	#$BBCB0,a0				;CD: the cartridge has #(palfadenew-M68K_RAM)
 	moveq	#$1F,d1					;32 longs: all 64 colours black
 .clr	clr.l	(a0)+
 	dbf	d1,.clr						;loop
@@ -202,7 +202,7 @@ ClearRosterName						;unreferenced. Set the print position, then erase 12 x 2 at
 setoptions_printpos2				;printz position string, then printx = $1A when a2 is the home team
 	bsr.w	printz
 	String	CC_Font1Pri,2,$A,0
-	cmpa.l	#$1834C,a2	;home team struct? (CD: the cartridge has #(tmstruct-M68K_RAM))
+	cmpa.l	#$1834C,a2				;home team struct? (CD: the cartridge has #(tmstruct-M68K_RAM))
 	bne.w	rtss2
 	move.w	#$1A,(printx).l
 	rts
@@ -212,8 +212,8 @@ PickStartingGoalie					;unreferenced. tmgoalie = 0 if a pad has team a2, else (g
 	movem.l	d0/a0,-(sp)
 	clr.w	tmgoalie(a2)
 	bsr.w	FigureJoy				;sets cont1team / cont2team
-	cmpa.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
-	seq.b	d0							;home: d0 = -1
+	cmpa.l	#$1834C,a2				;CD: the cartridge has #(tmstruct-M68K_RAM)
+	seq.b	d0						;home: d0 = -1
 	ext.w	d0
 	addi.w	#2,d0					;1 for the home team, 2 for the away team
 	cmp.w	(cont1team).l,d0		;pad 1 on it?
@@ -234,7 +234,7 @@ PickStartingGoalie					;unreferenced. tmgoalie = 0 if a pad has team a2, else (g
 ;CD: no cartridge twin
 	jsr	(UnpackNibbles).l
 	jsr	(WeightedRandomSelect).l
-.set						;CD: placed where the disc branches to it
+.set								;CD: placed where the disc branches to it
 	move.w	d0,$28(a2)
 .x	movem.l	(sp)+,d0/a0
 	rts
@@ -247,10 +247,10 @@ VBlank_SetOptions					;VBint handler stored by setoptions: cramfade unless dfng)
 	bclr.b	#dfok,(disflags).l
 	beq.w	.fade					;no sprites to send
 	bsr.w	DumpSprites2
-.fade						;CD: placed where the disc branches to it
+.fade								;CD: placed where the disc branches to it
 	jsr	(p_music_vblank).l
 ;CD: no cartridge twin
-.nograph						;CD: placed where the disc branches to it
+.nograph							;CD: placed where the disc branches to it
 	addq.w	#$1,(Vcount).l
 	movem.l	(sp)+,d0-d7/a0-a6
 	rts
@@ -264,7 +264,7 @@ VBlank_SetOptions					;VBint handler stored by setoptions: cramfade unless dfng)
 
 DefaultMenus						;Set the default menu choices for the beginning of the game: the 9 option
 									;words from defmenuoptions (93 had 7). Called once from Begin
-	st.b	(demoflag).l				;no demo has run yet
+	st.b	(demoflag).l			;no demo has run yet
 	movea.l	#OptPlayMode,a0			;Start of Menu Options in RAM
 	movea.l	#defmenuoptions,a1
 	move.w	#8,d0					;9 options
@@ -290,7 +290,7 @@ ContinuePlayoffs					;Continue playoffs:
 									;FourWayPlay, pojoy adjusted to the pad set-ups). Called
 									;(GoContinuePlayoffs, ChangeOption)
 	movem.l	d0-d7/a0-a3,-(sp)
-	movea.l	#$18C38,a3	;CD: the cartridge has #(passbits-M68K_RAM)
+	movea.l	#$18C38,a3				;CD: the cartridge has #(passbits-M68K_RAM)
 	bsr.w	ReadPassBits
 	move.w	(gamelevel).l,d0
 	or.w	(bosgames).l,d0
@@ -379,7 +379,7 @@ MakeTree							;Make the playoff tree (potree) from playoffseats and WinBits, cl
 .0									;each winner
 	move.w	d0,d1					;d1 = lowest WinBits bit: pick the pair member
 	andi.w	#1,d1					;winbit picks the top or bottom team of the pair
-	move.b	(a0,d1.w),(a1)+		;winner
+	move.b	(a0,d1.w),(a1)+			;winner
 ;CD: no cartridge twin
 	adda.w	#$2,a0
 	lsr.w	#1,d0					;next winner bit
@@ -448,7 +448,7 @@ FigureJoy							;Set contteams appropriately: cont1team ... cont4team (3 and 4 f
 	st.b	(gamenum).l
 	clr.w	d0
 .f0									;find the game of the playoff team
-	cmp.w	0(a1),d2					;first team?
+	cmp.w	0(a1),d2				;first team?
 	beq.w	.it1
 	cmp.w	gst2(a1),d2				;second team?
 	beq.w	.it2
@@ -588,7 +588,7 @@ InitializeGameStructures			;Random team pairs for all 8 gstruct games, none of t
 	moveq	#7,d2					;8 games
 .loop								;two random teams for each game
 	bsr.w	GetRandomUnusedTeam		;both teams of game d2
-	move.w	d0,0(a1)					;gst1
+	move.w	d0,0(a1)				;gst1
 	bsr.w	GetRandomUnusedTeam
 	move.w	d0,gst2(a1)
 	adda.w	#gssize,a1
@@ -639,7 +639,7 @@ ReadPassBits						;Translate the saved bits at a3 (5 words) to the playoff varia
 	bsr.w	SuperDiv
 	move.w	d0,(pojoy).l
 	tst.w	(FourWayPlay).l			;4-way play?
-	beq.w	.1	;CD: the cartridge has .0
+	beq.w	.1						;CD: the cartridge has .0
 ;CD: no cartridge twin
 	cmpi.w	#$1,(pojoy).l
 	bne.w	.L4060C
@@ -687,7 +687,7 @@ EncodePW							;After a playoff game compute winners and save the bits if needed
 	beq.w	.0						;finished playoffs
 	tst.w	(gamenum).l
 	bmi.w	.0						;po team out, same as a win
-	movea.l	#$18C38,a3	;CD: the cartridge has #(passbits-M68K_RAM)
+	movea.l	#$18C38,a3				;CD: the cartridge has #(passbits-M68K_RAM)
 	bsr.w	WritePassBits
 	jsr	(WriteLineData).l
 	btst.b	#sf3alttree,(sflags3).l	;alternate tree saved?
@@ -696,7 +696,7 @@ EncodePW							;After a playoff game compute winners and save the bits if needed
 	bsr.w	ReadPassBits
 	bra.w	MakeTree
 .0									;gamelevel = 4 or gamenum negative
-	movea.l	#$18C38,a3	;CD: the cartridge has #(passbits-M68K_RAM)
+	movea.l	#$18C38,a3				;CD: the cartridge has #(passbits-M68K_RAM)
 	bsr.w	ClrPassBits
 	jsr	(WriteLineData).l
 	move.w	#2,(OptPlayMode).l
@@ -748,7 +748,7 @@ PushBits							;bits = bits * d1 + d0. d1 = range 2^1-2^15, d0 = data
 	movem.l	(sp)+,d0-d1
 	rts
 ;CD: no cartridge twin
-ClrPassBits						;CD: placed where the disc branches to it
+ClrPassBits							;CD: placed where the disc branches to it
 	movea.l	a3,a0
 	moveq	#4,d0
 .0									;clear each word
@@ -830,7 +830,7 @@ AddPlayoffTeamStats					;Add the po team's game stats to its packed playoff tota
 	movea.l	#(potree-M68K_RAM),a0
 	move.w	(potreeteam).l,d2		;user tree position
 	move.b	(a0,d2.w),d2
-	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
+	movea.l	#$1834C,a2				;CD: the cartridge has #(tmstruct-M68K_RAM)
 	cmp.w	tmteam(a2),d2			;team number of the home team struct
 	beq.w	.0
 	adda.w	#tmsize,a2				;tmsize: the po team is the visitor
@@ -1121,7 +1121,7 @@ TakeTopStarScore					;Take the highest of the 52 star scores at ThreeStars and c
 	move.l	a1,d0
 	subi.l	#$BC000,d0
 	lsr.w	#2,d0
-	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
+	movea.l	#$1834C,a2				;CD: the cartridge has #(tmstruct-M68K_RAM)
 	cmpi.w	#RosterSlots,d0			;home slot?
 	blt.w	.home
 	subi.w	#RosterSlots,d0
@@ -1138,7 +1138,7 @@ CalcStarScores						;Star score for every roster slot of both teams to ThreeStar
 	jsr	(GetPeriodTime).l			;d0 = period time
 	move.w	d0,d5					;d5 = period time + d2
 	add.w	d2,d5
-	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
+	movea.l	#$1834C,a2				;CD: the cartridge has #(tmstruct-M68K_RAM)
 	lea	tmsize(a2),a3				;a3 = other team
 	bsr.w	CalcTeamStarScores
 ;CD: no cartridge twin
@@ -1149,7 +1149,8 @@ CalcStarScores						;Star score for every roster slot of both teams to ThreeStar
 	bne.w	.x
 	tst.w	d3
 	beq.w	.x
-	movea.l	#$180EC,a0	;+ ScoreSumbytes = last goal entry (CD: the cartridge has #(ChkCnt-M68K_RAM))
+	movea.l	#$180EC,a0				;+ ScoreSumbytes = last goal entry (CD: the cartridge has
+									;#(ChkCnt-M68K_RAM))
 	adda.w	(ScoreSumbytes).l,a0
 	clr.w	d0
 	btst.b	#7,ssflags(a0)
@@ -1163,7 +1164,7 @@ CalcStarScores						;Star score for every roster slot of both teams to ThreeStar
 .x									;exit (also the end of the code above)
 	rts
 ;CD: no cartridge twin
-CalcTeamStarScores						;CD: placed where the disc branches to it
+CalcTeamStarScores					;CD: placed where the disc branches to it
 	movea.l	a2,a1
 	move.w	tmscore(a2),d3			;our goals
 	sub.w	tmscore(a3),d3			;goal difference (HmGoals / AwGoals)
@@ -1213,7 +1214,7 @@ CalcTeamStarScores						;CD: placed where the disc branches to it
 	bne.w	.next
 	addi.l	#$124F8,(a4)			;75000 for a shutout
 ;CD: no cartridge twin
-.next						;CD: placed where the disc branches to it
+.next								;CD: placed where the disc branches to it
 	adda.w	#$2,a1
 	adda.w	#$1,a2
 	adda.w	#$4,a4
@@ -1338,11 +1339,12 @@ ShowGoalBox							;Goal box. Closes both line change boxes, then printbig 'GOAL!
 	beq.w	.0
 	bset.b	#sf2drec,(sflags2).l	;record the replay
 .0									;replay recording set for a penalty shot
-	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
+	movea.l	#$1834C,a2				;CD: the cartridge has #(tmstruct-M68K_RAM)
 	jsr	(lcfound_close).l			;close lc box
 	adda.w	#tmsize,a2
 	jsr	(lcfound_close).l			;close its box
-	movea.l	#$180EC,a4	;+ ScoreSumbytes = last goal entry (CD: the cartridge has #(ChkCnt-M68K_RAM))
+	movea.l	#$180EC,a4				;+ ScoreSumbytes = last goal entry (CD: the cartridge has
+									;#(ChkCnt-M68K_RAM))
 	adda.w	(ScoreSumbytes).l,a4
 ;CD: no cartridge twin
 	jsr	(printz).l
@@ -1356,10 +1358,10 @@ ShowGoalBox							;Goal box. Closes both line change boxes, then printbig 'GOAL!
 	bmi.w	.frame
 	addi.w	#1,d1					;8: two assists
 ;CD: no cartridge twin
-.frame						;CD: placed where the disc branches to it
+.frame								;CD: placed where the disc branches to it
 	jsr	(Framer).l
 	jsr	(CountGoalies).l			;goalies of each team
-	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
+	movea.l	#$1834C,a2				;CD: the cartridge has #(tmstruct-M68K_RAM)
 	move.w	(homegoalies).l,(scorergoalies).l
 	btst.b	#7,ssflags(a4)
 	beq.w	.1
@@ -1392,7 +1394,7 @@ ShowGoalBox							;Goal box. Closes both line change boxes, then printbig 'GOAL!
 .3									;arena animation for a home goal
 	move.w	(sp)+,d0
 ;CD: no cartridge twin
-.print						;CD: placed where the disc branches to it
+.print								;CD: placed where the disc branches to it
 	jsr	(printbig).l
 	clr.w	d0
 	move.b	ssscorer(a4),d0
@@ -1441,13 +1443,13 @@ ShowGoalBox							;Goal box. Closes both line change boxes, then printbig 'GOAL!
 	movem.l	(sp)+,d0-d2/a0-a4
 	rts
 GoalBoxText	String	CC_Font1Pri,$F,3,'GOAL!',CC_Font1Pri,$C,5	;printbig Strings for ShowGoalBox: GOAL!,
-																;then HAT TRICK!
+									;then HAT TRICK!
 	String	CC_Font1Pri,$C,3,'HAT TRICK!',CC_Font1Pri,$C,5
 PPGoalBigTxt	String	CC_Font1Pri,$D,3,'PP GOAL!',CC_Font1Pri,$C,5	;The same after DelayedPen bit 0:
 									;PP GOAL!, then HAT TRICK!
 	String	CC_Font1Pri,$C,3,'HAT TRICK!',CC_Font1Pri,$C,5
 ;CD: no cartridge twin
-box						;CD: entered here; the cartridge box starts at its first twin line, $410F2
+box									;CD: entered here; the cartridge box starts at its first twin line, $410F2
 	jsr	(printz).l
 	String	CC_Font1,$B,2
 	moveq	#$13,d0
@@ -1460,7 +1462,7 @@ GetPlayerName						;but that is the same symbol as getplayername (SNASM symbols 
 									;a1 = mesarea "NN First Last" (getname) for player TempPlOffset (bit 15
 									;set: away team). Called from UpdatePA
 	movem.l	d0/a2,-(sp)
-	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
+	movea.l	#$1834C,a2				;CD: the cartridge has #(tmstruct-M68K_RAM)
 	move.w	(TempPlOffset).l,d0
 	bpl.w	.0
 	andi.w	#$FF,d0
@@ -1475,7 +1477,7 @@ getname								;gets player number and name, appends to string: a1 = mesarea "NN
 	movem.l	d0-d3/a0/a2-a3,-(sp)
 	bsr.w	GetPlayerNamePointer	;get to start of player name
 	move.l	a0,-(sp)				;push a0 (address to start of player name) to stack
-	movea.l	#$17EF2,a3	;move mesarea to a3 address (CD: the cartridge has #(mesarea-M68K_RAM))
+	movea.l	#$17EF2,a3				;move mesarea to a3 address (CD: the cartridge has #(mesarea-M68K_RAM))
 	move.w	#4,(a3)					;move 4 into a3 address location
 	lea	2(a3),a1					;move long address at a3+2 into a1
 	adda.w	(a0),a0					;add data at a0 (player name length) to a0
@@ -1486,13 +1488,13 @@ getname								;gets player number and name, appends to string: a1 = mesarea "NN
 	dc.w	$0004,$2000
 	movea.l	(sp)+,a1
 	jsr	(appstring).l
-	movea.l	#$17EF2,a1	;move mesarea address into a1 (CD: the cartridge has #(mesarea-M68K_RAM))
+	movea.l	#$17EF2,a1				;move mesarea address into a1 (CD: the cartridge has #(mesarea-M68K_RAM))
 	movem.l	(sp)+,d0-d3/a0/a2-a3
 	rts
 GetPlayerNumInitial					;a1 = mesarea "NN F. Last" (FormatPlayerNumInitial) for player
 									;TempPlOffset (bit 15 set: away team). Called from ShowInjuryBox
 	movem.l	d0/a2,-(sp)
-	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
+	movea.l	#$1834C,a2				;CD: the cartridge has #(tmstruct-M68K_RAM)
 	move.w	(TempPlOffset).l,d0
 	bpl.w	.get
 	andi.w	#$FF,d0
@@ -1506,7 +1508,7 @@ FormatPlayerNumInitial				;a1 = mesarea string "NN F. Last" for player d0 of tea
 	movem.l	d0-d3/a0/a2,-(sp)
 	bsr.w	GetPlayerNamePointer	;a0 = player record
 	move.l	a0,-(sp)
-	movea.l	#$17EF4,a1	;CD: the cartridge has #(TextBuffer-M68K_RAM)
+	movea.l	#$17EF4,a1				;CD: the cartridge has #(TextBuffer-M68K_RAM)
 	adda.w	(a0),a0					;byte after the name: number
 	move.b	(a0),d0
 	bsr.w	ConvertByteToDigits
@@ -1531,7 +1533,7 @@ FormatPlayerName					;a1 = mesarea string "NN Last" for player d0 of team a2, bu
 	movem.l	d0-d3/a0/a2,-(sp)
 	bsr.w	GetPlayerNamePointer	;a0 = player record
 	move.l	a0,-(sp)
-	movea.l	#$17EF4,a1	;CD: the cartridge has #(TextBuffer-M68K_RAM)
+	movea.l	#$17EF4,a1				;CD: the cartridge has #(TextBuffer-M68K_RAM)
 	adda.w	(a0),a0					;byte after the name: number
 	move.b	(a0),d0
 	bsr.w	ConvertByteToDigits
@@ -1553,13 +1555,13 @@ FormatPlayerNameLast				;FormatPlayerNameShort without the leading space ("Last"
 									;Branches into FormatLastName
 	movem.l	d0-d3/a0/a2,-(sp)
 	bsr.w	GetPlayerNamePointer	;a0 = player record
-	movea.l	#$17EF4,a1	;CD: the cartridge has #(TextBuffer-M68K_RAM)
+	movea.l	#$17EF4,a1				;CD: the cartridge has #(TextBuffer-M68K_RAM)
 	bra.w	FormatLastName
 FormatPlayerNameShort				;a1 = mesarea string " Last" for player d0 of team a2, space padded to 12
 									;characters; a 0 byte also ends the name
 	movem.l	d0-d3/a0/a2,-(sp)
 	bsr.w	GetPlayerNamePointer	;a0 = player record
-	movea.l	#$17EF4,a1	;CD: the cartridge has #(TextBuffer-M68K_RAM)
+	movea.l	#$17EF4,a1				;CD: the cartridge has #(TextBuffer-M68K_RAM)
 	move.b	#$20,(a1)+				;leading space
 FormatLastName						;Skip the first name, copy the last name, pad; branched to from
 									;FormatPlayerNameLast, so global
@@ -1578,13 +1580,13 @@ FormatLastName						;Skip the first name, copy the last name, pad; branched to f
 .loop3								;loop
 	move.b	#$20,(a1)+
 .pad								;pad with spaces to 12
-	cmpa.l	#$17F00,a1	;CD: the cartridge has #(TextBuffer+12-M68K_RAM)
+	cmpa.l	#$17F00,a1				;CD: the cartridge has #(TextBuffer+12-M68K_RAM)
 	blt.w	.loop3
 	bsr.w	FinalizeTextBuffer
 	movem.l	(sp)+,d0-d3/a0/a2
 	rts
 ;CD: no cartridge twin
-FinalizeTextBuffer						;CD: placed where the disc branches to it
+FinalizeTextBuffer					;CD: placed where the disc branches to it
 	move.l	a1,d0
 	subi.l	#$17EF2,d0
 	btst	#0,d0					;odd?
@@ -1592,14 +1594,14 @@ FinalizeTextBuffer						;CD: placed where the disc branches to it
 	clr.b	(a1)+
 	addi.w	#1,d0
 .even								;length rounded to even
-	movea.l	#$17EF2,a1	;CD: the cartridge has #(mesarea-M68K_RAM)
+	movea.l	#$17EF2,a1				;CD: the cartridge has #(mesarea-M68K_RAM)
 	move.w	d0,(a1)
 	rts
 GetPlayerNamePointer				;loops through team roster to get to d0 player: a0 = name string of player
 									;d0 (roster offset) of team struct a2. Each record is a length word String
 									;and 8 more bytes
 	movea.l	tmdata(a2),a0			;ROM address of the team data
-	adda.w	0(a0),a0					;add offset (player data start) to a0 address
+	adda.w	0(a0),a0				;add offset (player data start) to a0 address
 	bra.w	.loop
 .skip								;skip one player record
 	adda.w	(a0),a0					;add player name length to a0
@@ -1625,7 +1627,7 @@ ConvertByteToDigits					;converts decimal number in d0 to ascii: two ascii digit
 ;CD: no cartridge twin
 	bclr.b	#$5,$FF800F.l
 	jsr	(printbigz).l
-AddError						;CD: its first lines have no twin; the rest of it starts here
+AddError							;CD: its first lines have no twin; the rest of it starts here
 	String	CC_Font3Pri,0,0,'Address Error'
 	move.l	$A(sp),d0				;pc (exception frame)
 	move.l	2(sp),d1				;access address (exception frame)
@@ -1633,7 +1635,7 @@ AddError						;CD: its first lines have no twin; the rest of it starts here
 ;CD: no cartridge twin
 	bclr.b	#$5,$FF800F.l
 	jsr	(printbigz).l
-Illinst						;CD: its first lines have no twin; the rest of it starts here
+Illinst								;CD: its first lines have no twin; the rest of it starts here
 	String	CC_Font3Pri,0,0,'Illegal Instruction'
 	move.l	2(sp),d0				;pc (exception frame)
 	move.l	d0,d1
@@ -1641,14 +1643,14 @@ Illinst						;CD: its first lines have no twin; the rest of it starts here
 ;CD: no cartridge twin
 	bclr.b	#$5,$FF800F.l
 	jsr	(printbigz).l
-ZeroDiv						;CD: its first lines have no twin; the rest of it starts here
+ZeroDiv								;CD: its first lines have no twin; the rest of it starts here
 	String	CC_Font3Pri,0,0,'Division by zero'
 	move.l	2(sp),d0				;pc (exception frame)
 	move.l	d0,d1
 crash								;printbig d1 then d0 as hex, set the vdp up, copy 8 longs from the
 									;Rinktilelist palette + $20 to cram $20
 									;and hang. Branched to from AddError and Illinst, falls in from ZeroDiv
-	movea.l	#$17EF2,a0	;CD: the cartridge has #(mesarea-M68K_RAM)
+	movea.l	#$17EF2,a0				;CD: the cartridge has #(mesarea-M68K_RAM)
 	move.w	#$18,(a0)+
 	move.b	#$BD,(a0)+
 	move.b	#0,(a0)+
@@ -1660,7 +1662,7 @@ crash								;printbig d1 then d0 as hex, set the vdp up, copy 8 longs from the
 	move.b	#4,(a0)+
 	move.l	(sp)+,d0
 	bsr.w	.ri
-	movea.l	#$17EF2,a1	;CD: the cartridge has #(mesarea-M68K_RAM)
+	movea.l	#$17EF2,a1				;CD: the cartridge has #(mesarea-M68K_RAM)
 ;CD: no cartridge twin
 	jsr	(printbig).l
 	movea.l	#$C00000,a0
@@ -1729,7 +1731,7 @@ crash								;printbig d1 then d0 as hex, set the vdp up, copy 8 longs from the
 	adda.w	#$20,a1					;second palette
 	moveq	#7,d0					;8 longs
 ;CD: no cartridge twin
-.pal						;CD: placed where the disc branches to it
+.pal								;CD: placed where the disc branches to it
 .L414D6
 	btst.b	#$7,$FF800E.l
 	bne.s	.L414D6

@@ -21,6 +21,9 @@
   segment's range, the hand-checked names and the header notes, and writes them all again from scratch
   (`npm run build:retail` first, keep a copy of `output/obj/nhl94 .lst`: the Sega CD build empties `output/obj/`).
   `docs/segacd.md` "HOCKEY.BIN from the cartridge source" explains the method.
+- Comment layout: `tools/check_comments.py` is clean for all of `src/segacd/` (CONTRIBUTING.md's checklist). The
+  generators lay out their output with `tools/segacd_comments.py` (columns, widths, 3-line paragraphs); run it
+  on a hand-written file after editing it. The 18 problems it still reports are in cartridge files, as upstream.
 - STARTER.BIN, MAIN.BIN, PLAYER.BIN (PLAN steps 3 and 4) match in full: `src/segacd/starter/`, `main/`, `player/`,
   written by `tools/segacd_starter.sh`, `segacd_main.sh`, `segacd_player.sh` (no ROM or listing needed).
 - Next:

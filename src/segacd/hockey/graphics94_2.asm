@@ -3,9 +3,10 @@
 ;	build reads its graphics from Extracted/.
 ;
 ;	It opens with the arena animation graphics. ArenaAnims (arena94.asm) points at them as
-;	NHLPALogoMap+offset; NHLPALogoMap itself is not a disc address (its offsets land here, the
-;	cartridge's NHLPALogoMap layout does not). Each piece has the sprite list at 4(x) and the tiles
-;	at 8(x). The rest, up to the graphics pointer table (cdgfxptrs.asm), is not yet identified.
+;	NHLPALogoMap+offset; NHLPALogoMap itself is not a disc address (its offsets land here, the cartridge's
+;	NHLPALogoMap layout does not). Each piece has the sprite list at 4(x) and the tiles at 8(x).
+;
+;	The rest, up to the graphics pointer table (cdgfxptrs.asm), is not yet identified.
 
 	org	$43A7E
 

@@ -5,6 +5,7 @@
 ;	Part 1 of hockey94 (parts 2 and 3 are hockey94_2.asm and hockey94_3.asm). StartGame, the period
 ;	start and the clock are the cartridge code. CD: VBjsr and Begin (the cold start) are not here (Begin is
 ;	in sram94.asm, file $7096). LoadGameGfx (CD-only, called from StartGame and cards94) loads the game
+;
 ;	graphics file through the BIOS and fills the graphics pointer table (cdgfxptrs.asm). BIOS calls ($5F22,
 ;	$6044) and the sub CPU flag ($FF800F bit 5) replace the interrupt masking around screen setups.
 
@@ -29,7 +30,7 @@ GamePcmSampleList	equ	$223D6
 
 	org	$2B614
 
-LoadGameGfx						;CD-only routine (a name given here, not a cartridge name)
+LoadGameGfx							;CD-only routine (a name given here, not a cartridge name)
 	jsr	(InitSaveRAM).l
 ;CD: no cartridge twin
 	move.w	#$D,d7
@@ -123,7 +124,8 @@ LoadGameGfx						;CD-only routine (a name given here, not a cartridge name)
 	move.w	#$2,d0
 	jsr	$5F22.w
 	rts
-StartGame						;reset game state for a new game, then start the first period (CD: entered here; the cartridge StartGame starts at its first twin line, $2B808)
+StartGame							;reset game state for a new game, then start the first period (CD: entered
+									;here; the cartridge StartGame starts at its first twin line, $2B808)
 	move.w	#$2,d0
 	jsr	$5F22.w
 	bclr.b	#$5,$FF800F.l
@@ -210,7 +212,7 @@ StartGame						;reset game state for a new game, then start the first period (CD
 	jsr	(InitScores).l
 	jsr	(setupice).l
 	jsr	(LoadCrowdRec).l
-	jmp	(PeriodOver_sp).l				;on to period start
+	jmp	(PeriodOver_sp).l			;on to period start
 ;CD: no cartridge twin
 ClearShotData						;CD: placed where the disc branches to it
 	move.w	#$71,d0
@@ -220,7 +222,7 @@ ClearShotData						;CD: placed where the disc branches to it
 	rts
 
 restoreteams						;Put both teams' rosters on the bench
-	movea.l	#$1834C,a2	;team 1 (CD: the cartridge has #(tmstruct-M68K_RAM))
+	movea.l	#$1834C,a2				;team 1 (CD: the cartridge has #(tmstruct-M68K_RAM))
 	bsr.w	.r
 	adda.w	#tmsize,a2				;team 2
 .r									;reset one team struct (a2), falls in for team 2
@@ -266,14 +268,14 @@ StartPer							;start a period: reset stack, rink and clock, face off, run the g
 	cmpi.w	#3,(gsp).l
 	bne.w	.reg
 	bset.b	#1,(sflags7).l			;overtime
-.reg	st.b	(faceoffanim).l			;start the faceoff
+.reg	st.b	(faceoffanim).l		;start the faceoff
 	jsr	(p_turnoff).l				;sound off
 	jsr	(setupice).l
 	bsr.w	ResetClock
 	ori.w	#$F000,(PadControlBits).l
-	st.b	(c1playernum).l				;no controlled player yet
+	st.b	(c1playernum).l			;no controlled player yet
 	st.b	(c2playernum).l
-	movea.l	#$17B80,a3	;puck (CD: the cartridge has #(puckx-M68K_RAM))
+	movea.l	#$17B80,a3				;puck (CD: the cartridge has #(puckx-M68K_RAM))
 	clr.w	(fox).l					;face off at center ice
 	clr.w	(foy).l
 	btst.b	#0,(gmode2).l

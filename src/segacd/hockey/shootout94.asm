@@ -159,7 +159,7 @@ NextShooter							;Shootout: the next shooter (BA_Team, BA_Goalie_SCnum, StartSh
 									;or the end (ExitToOpening).
 	btst.b	#3,(gmode2).l
 	beq.w	.0						;shootout running?
-	jmp	(ExitToOpening).l				;shootout over: back to the title
+	jmp	(ExitToOpening).l			;shootout over: back to the title
 .0									;bit 3 of gmode2 clear
 	movem.l	d0-d7/a0-a6,-(sp)
 	bsr.w	StartShootoutPath
@@ -271,7 +271,7 @@ ShootersRedraw						;Shootout shooters: redraw (ShootersBackground,
 	bsr.w	PrintShooterNames
 	bsr.w	PrintShooterBox
 ShootersLoop						;Shootout shooters: the input loop
-	jsr	(MenuWaitVblank).l				;wait for the frame
+	jsr	(MenuWaitVblank).l			;wait for the frame
 	jsr	(getpzjoy).l				;read the pads
 	jsr	(ProcessInputWithRepeat).l	;pad presses with repeat
 	btst	#7,d1					;start?
@@ -530,11 +530,11 @@ ShootersBackground					;Shootout shooters background and "Shootout" title
 	jsr	(printbigz).l
 	String	CC_Font2Pri,$A,4,'  Shootout  ',CC_Font2Pri,$F,1	;Shootout title
 	clr.w	d0
-	cmpa.l	#$1834C,a2	;home team? (CD: the cartridge has #(tmstruct-M68K_RAM))
+	cmpa.l	#$1834C,a2				;home team? (CD: the cartridge has #(tmstruct-M68K_RAM))
 	beq.w	.0
 	move.w	#$2C,d0
 .0									;home team at 0, away at $2C
-	jmp	(PutTeamBlock).l				;the team's logo block
+	jmp	(PutTeamBlock).l			;the team's logo block
 ClearShooterScreen					;Shootout shooters: erase the screen
 	jsr	(printz).l
 	String	CC_Font2Pri,0,0

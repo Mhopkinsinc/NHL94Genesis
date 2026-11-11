@@ -2,8 +2,10 @@
 ;
 ;	MainShellCommandLoop (mainstart.asm) calls ShellCommandTable[command - 1] for each command word the sub
 ;	CPU writes to $FF8020 (main CPU $A12020); MainShellVBlank does the same for $FF8026 ($A12026). The
-;	pointers are runtime addresses: MAIN.BIN runs at $FF1000. Each fragment assembles on its own, so the
-;	handlers (labels in their own files, hwread.asm included) are equates here. docs/segacd_main_shell.md.
+;	pointers are runtime addresses: MAIN.BIN runs at $FF1000.
+;
+;	Each fragment assembles on its own, so the handlers (labels in their own files, hwread.asm included) are
+;	equates here. docs/segacd_main_shell.md.
 
 ClearVramByWord	equ	$FF496E
 CopyWordRamToVram	equ	$FF49DA
@@ -71,66 +73,66 @@ InstallMainShellOverlayCommand	equ	$FF6C86
 
 ShellCommandTable
 	dc.l	ClearVramByWord			;$01
-	dc.l	CopyWordRamToVram			;$02
-	dc.l	CopyWordRamToCram			;$03
-	dc.l	TestZ80BusBitCommand			;$04
-	dc.l	ClearByteAtAddressCommand			;$05
-	dc.l	ClearWordAtAddressCommand			;$06
-	dc.l	GiveSubWordRamCommand			;$07
-	dc.l	RunWordRamVdpDmaCommand			;$08
-	dc.l	WriteVdpControlByteCommand			;$09
-	dc.l	WriteVdpControlWordCommand			;$0A
-	dc.l	WriteVdpControlLongCommand			;$0B
-	dc.l	WriteVdpDataByteCommand			;$0C
-	dc.l	WriteVdpDataWordCommand			;$0D
-	dc.l	WriteVdpDataLongCommand			;$0E
-	dc.l	WritePad1DataCommand			;$0F
-	dc.l	WritePad2DataCommand			;$10
-	dc.l	WritePad1CtrlCommand			;$11
-	dc.l	WritePad2CtrlCommand			;$12
-	dc.l	ReadPad1DataCommand			;$13
-	dc.l	ReadPad2DataCommand			;$14
-	dc.l	ReadVdpDataWordCommand			;$15
-	dc.l	ReadVdpDataLongCommand			;$16
-	dc.l	ReadByteAtAddressCommand			;$17
-	dc.l	ReadWordAtAddressCommand			;$18
-	dc.l	ReadLongAtAddressCommand			;$19
-	dc.l	WriteZ80BusReqCommand			;$1A
-	dc.l	ReadHvCounterCommand			;$1B
-	dc.l	ReadHvCounterByteCommand			;$1C
-	dc.l	StepCramFadeCommand			;$1D
-	dc.l	CopyVramByDmaCommand			;$1E
-	dc.l	FillVramFromWordRamCommand			;$1F
-	dc.l	ClearAllVramCommand			;$20
-	dc.l	WriteVdpWordsFromWordRamCommand			;$21
-	dc.l	WriteZ80ResetCommand			;$22
-	dc.l	SoundOperation4Command			;$23
-	dc.l	TickSoundSequenceCommand			;$24
-	dc.l	EnterMainShellCProgram			;$25
-	dc.l	StartSoundSequenceCommand			;$26
-	dc.l	InstallSoundSequenceHInt			;$27
-	dc.l	RestartMainShellCommandLoop			;$28
-	dc.l	InitSoundCommand			;$29
-	dc.l	DisableShellHInt			;$2A
-	dc.l	DetectFourWayPlayCommand			;$2B
-	dc.l	RunWordRamVdpDmaListCommand			;$2C
-	dc.l	InstallMainShellVBlank			;$2D
-	dc.l	InstallAcknowledgeVBlank			;$2E
-	dc.l	EndVBlankCommandService			;$2F
-	dc.l	WriteVBlankVdpControlLong			;$30
-	dc.l	WriteVBlankVdpDataWord			;$31
-	dc.l	RunWordRamVdpDmaCommand			;$32
-	dc.l	WriteVBlankVdpDataLong			;$33
-	dc.l	StartVBlankSoundSequence			;$34
-	dc.l	WriteVBlankPad2Port			;$35
-	dc.l	WriteVBlankPad1Port			;$36
-	dc.l	ReadVBlankPad1Port			;$37
-	dc.l	ReadVBlankPad2Port			;$38
-	dc.l	WriteVBlankVdpControlWord			;$39
-	dc.l	CopyVramByDmaCommand			;$3A
-	dc.l	FillVramFromWordRamCommand			;$3B
-	dc.l	SaveCramPaletteCommand			;$3C
-	dc.l	ShowWordRamScreenCommand			;$3D
-	dc.l	RunSubCommandAndRestartShell			;$3E
-	dc.l	InstallMainShellOverlayCommand			;$3F
-	dc.l	InitSoundDriverCommand			;$40
+	dc.l	CopyWordRamToVram		;$02
+	dc.l	CopyWordRamToCram		;$03
+	dc.l	TestZ80BusBitCommand	;$04
+	dc.l	ClearByteAtAddressCommand	;$05
+	dc.l	ClearWordAtAddressCommand	;$06
+	dc.l	GiveSubWordRamCommand	;$07
+	dc.l	RunWordRamVdpDmaCommand	;$08
+	dc.l	WriteVdpControlByteCommand	;$09
+	dc.l	WriteVdpControlWordCommand	;$0A
+	dc.l	WriteVdpControlLongCommand	;$0B
+	dc.l	WriteVdpDataByteCommand	;$0C
+	dc.l	WriteVdpDataWordCommand	;$0D
+	dc.l	WriteVdpDataLongCommand	;$0E
+	dc.l	WritePad1DataCommand	;$0F
+	dc.l	WritePad2DataCommand	;$10
+	dc.l	WritePad1CtrlCommand	;$11
+	dc.l	WritePad2CtrlCommand	;$12
+	dc.l	ReadPad1DataCommand		;$13
+	dc.l	ReadPad2DataCommand		;$14
+	dc.l	ReadVdpDataWordCommand	;$15
+	dc.l	ReadVdpDataLongCommand	;$16
+	dc.l	ReadByteAtAddressCommand	;$17
+	dc.l	ReadWordAtAddressCommand	;$18
+	dc.l	ReadLongAtAddressCommand	;$19
+	dc.l	WriteZ80BusReqCommand	;$1A
+	dc.l	ReadHvCounterCommand	;$1B
+	dc.l	ReadHvCounterByteCommand	;$1C
+	dc.l	StepCramFadeCommand		;$1D
+	dc.l	CopyVramByDmaCommand	;$1E
+	dc.l	FillVramFromWordRamCommand	;$1F
+	dc.l	ClearAllVramCommand		;$20
+	dc.l	WriteVdpWordsFromWordRamCommand	;$21
+	dc.l	WriteZ80ResetCommand	;$22
+	dc.l	SoundOperation4Command	;$23
+	dc.l	TickSoundSequenceCommand	;$24
+	dc.l	EnterMainShellCProgram	;$25
+	dc.l	StartSoundSequenceCommand	;$26
+	dc.l	InstallSoundSequenceHInt	;$27
+	dc.l	RestartMainShellCommandLoop	;$28
+	dc.l	InitSoundCommand		;$29
+	dc.l	DisableShellHInt		;$2A
+	dc.l	DetectFourWayPlayCommand	;$2B
+	dc.l	RunWordRamVdpDmaListCommand	;$2C
+	dc.l	InstallMainShellVBlank	;$2D
+	dc.l	InstallAcknowledgeVBlank	;$2E
+	dc.l	EndVBlankCommandService	;$2F
+	dc.l	WriteVBlankVdpControlLong	;$30
+	dc.l	WriteVBlankVdpDataWord	;$31
+	dc.l	RunWordRamVdpDmaCommand	;$32
+	dc.l	WriteVBlankVdpDataLong	;$33
+	dc.l	StartVBlankSoundSequence	;$34
+	dc.l	WriteVBlankPad2Port		;$35
+	dc.l	WriteVBlankPad1Port		;$36
+	dc.l	ReadVBlankPad1Port		;$37
+	dc.l	ReadVBlankPad2Port		;$38
+	dc.l	WriteVBlankVdpControlWord	;$39
+	dc.l	CopyVramByDmaCommand	;$3A
+	dc.l	FillVramFromWordRamCommand	;$3B
+	dc.l	SaveCramPaletteCommand	;$3C
+	dc.l	ShowWordRamScreenCommand	;$3D
+	dc.l	RunSubCommandAndRestartShell	;$3E
+	dc.l	InstallMainShellOverlayCommand	;$3F
+	dc.l	InitSoundDriverCommand	;$40

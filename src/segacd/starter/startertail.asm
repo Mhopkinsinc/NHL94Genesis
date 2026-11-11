@@ -1,9 +1,11 @@
 ;	STARTER.BIN $1AF0E-$1D5B7 (runtime $25F0E-$285B7).
 ;
-;	After startergfx.asm to the end of the file: the credits text (read from the disc file: it names
-;	real people), then code and data, decoded as found. SubMain (a name given here) is where the boot's
-;	jmp $262A8 lands: stack at $C41C, the gate array command words cleared, then the start-up. The code
-;	ends with jmp $B00E, back to the boot, which loads HOCKEY.BIN at $1B000 over this part of the file.
+;	After startergfx.asm to the end of the file: the credits text (read from the disc file: it names real
+;	people), then code and data, decoded as found. SubMain (a name given here) is where the boot's jmp $262A8
+;	lands: stack at $C41C, the gate array command words cleared, then the start-up.
+;
+;	The code ends with jmp $B00E, back to the boot, which loads HOCKEY.BIN at $1B000 over this part of the
+;	file.
 
 
 StarterDriverEntry	equ	$C4B6

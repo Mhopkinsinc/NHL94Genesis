@@ -118,9 +118,9 @@ ReplayMode							;Instant replay play-back control and display code.
 .dir								;not tracking, or a new d-pad press: manual camera
 	btst	#3,d0					;no direction?
 	bne.w	.nomans
-	cmpi.w	#$FF60,0(a5)				;X past the left?
+	cmpi.w	#$FF60,0(a5)			;X past the left?
 	bgt.w	.3
-	move.w	#0,0(a5)					;centre
+	move.w	#0,0(a5)				;centre
 	bra.w	.3
 .3									;X inside the rink
 	cmpi.w	#$FED0,Ypos(a5)			;Y past the bottom?
@@ -135,13 +135,13 @@ ReplayMode							;Instant replay play-back control and display code.
 	move.w	d0,d5					;d5 = d-pad direction
 	andi.w	#7,d5					;direction
 	eori.w	#4,d5					;opposite
-	movea.l	#$17480,a1	;CD: the cartridge has #(SortCords-M68K_RAM)
-	st.b	d3							;no object to skip
+	movea.l	#$17480,a1				;CD: the cartridge has #(SortCords-M68K_RAM)
+	st.b	d3						;no object to skip
 	bclr.b	#sf3track,(sflags3).l
 	beq.w	.find					;was not tracking
 	move.w	camtrack(a5),d3			;skip the object tracked now
 .find								;search start, skipping the tracked object
-	move.w	0(a5),d0					;camera position d0/d1: search 12 players
+	move.w	0(a5),d0				;camera position d0/d1: search 12 players
 	move.w	Ypos(a5),d1
 	moveq	#$B,d2
 	move.l	#$100,d4				;nearest distance squared so far
@@ -174,7 +174,7 @@ ReplayMode							;Instant replay play-back control and display code.
 	move.w	SCnum(a1),camtrack(a5)
 	bset.b	#sf3track,(sflags3).l
 ;CD: no cartridge twin
-.skip						;CD: placed where the disc branches to it
+.skip								;CD: placed where the disc branches to it
 	adda.l	#$80,a1
 	dbf	d2,.loop
 	adda.w	#$4,sp
@@ -182,7 +182,7 @@ ReplayMode							;Instant replay play-back control and display code.
 	beq.w	.scrl					;nothing found: scroll by hand
 	move.w	camtrack(a5),d0
 	asl.w	#7,d0					;* SCstruct
-	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
+	movea.l	#$17480,a3				;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d0,a3
 	moveq	#4,d4					;4 pads
 	bsr.w	setpads					;set the pads
@@ -195,7 +195,7 @@ ReplayMode							;Instant replay play-back control and display code.
 	asl.w	#2,d5
 	lea	.dirtab(pc),a0
 	move.w	(a0,d5.w),d0
-	add.w	0(a5),d0					;plus the camera X
+	add.w	0(a5),d0				;plus the camera X
 	cmpi.w	#$88,d0					;past the right?
 	bgt.w	.nox
 	cmpi.w	#$FF78,d0				;past the left?
@@ -210,7 +210,7 @@ ReplayMode							;Instant replay play-back control and display code.
 	blt.w	.noy
 	move.w	d1,Ypos(a5)
 ;CD: no cartridge twin
-.noy						;CD: placed where the disc branches to it
+.noy								;CD: placed where the disc branches to it
 	movea.l	a5,a3
 	clr.w	camidle(a5)				;camera moving
 	andi.w	#$FFF,(PadControlBits).l	;keep the low bits
@@ -268,7 +268,7 @@ ReplayMode							;Instant replay play-back control and display code.
 .1									;B: forward at half speed, unless slow mode
 	btst.b	#sf3rmplay,(sflags3).l	;play mode on?
 	beq.w	.noplay
-	st.b	(lastsfx).l					;play mode is on = advance one frame at original speed
+	st.b	(lastsfx).l				;play mode is on = advance one frame at original speed
 	bsr.w	adda4					;forward a frame
 	move.w	(lastsfx).l,-(sp)		;play sound effects
 	bsr.w	sfx
@@ -400,7 +400,7 @@ EraseReplayBanner					;Erase the 16 x 11 area ShowReplayBanner drew
 suba4								;a4 = current replay frame. Back up 1 frame and set video parameters for
 									;display.
 									;d7 = delay between frames, or zero at the end of the replay
-	cmpa.l	#$C45C,a4			;at the start of the buffer? (CD: the cartridge has #M68K_RAM)
+	cmpa.l	#$C45C,a4				;at the start of the buffer? (CD: the cartridge has #M68K_RAM)
 	bne.w	.1
 	btst.b	#sfwrap,(sflags).l		;wrapped?
 	beq.w	.end
@@ -423,8 +423,8 @@ adda4								;Step forward 1 frame. First handles a reverse
 	move.w	(Hpos).l,-(sp)
 	move.w	(Vpos).l,-(sp)
 	bsr.w	forceblack2
-	jsr	(MenuWaitVblank).l				;frame
-	jsr	(MenuWaitVblank).l				;frame
+	jsr	(MenuWaitVblank).l			;frame
+	jsr	(MenuWaitVblank).l			;frame
 	jsr	(ReloadRinkGraphics).l
 	clr.w	(Hpos).l
 	clr.w	(Vpos).l
@@ -432,14 +432,14 @@ adda4								;Step forward 1 frame. First handles a reverse
 	move.w	#1,d0
 .loop								;2 frames to redraw
 	jsr	(setvideo).l
-	jsr	(MenuWaitVblank).l				;frame
+	jsr	(MenuWaitVblank).l			;frame
 	dbf	d0,.loop					;loop
 	move.w	(sp)+,(Vpos).l
 	move.w	(sp)+,(Hpos).l
 	move.w	#1,d0
 	jsr	(setvideo).l
 .loop2								;wait 2 more frames
-	jsr	(MenuWaitVblank).l				;frame
+	jsr	(MenuWaitVblank).l			;frame
 	dbf	d0,.loop2					;loop
 	movem.l	a0,-(sp)
 	movea.l	#SortCords+(12*SCstruct),a0
@@ -473,7 +473,7 @@ adda43								;a4 += replay frame size ($62), wrapping from replayend to M68K_RA
 	adda.w	#replaysize,a4			;next frame
 	cmpa.l	#replayend,a4			;past the end?
 	bne.w	rtss8
-	movea.l	#$C45C,a4			;wrap to the start (CD: the cartridge has #M68K_RAM)
+	movea.l	#$C45C,a4				;wrap to the start (CD: the cartridge has #M68K_RAM)
 	rts
 UpdateCameraPos						;Camera struct a5 = object a3 x/y (negated for the reverse angle),
 									;Hpos/Vpos clamped
@@ -523,7 +523,7 @@ RestoreReplayFrame					;a4 = current replay frame address to convert into normal
 	movea.l	#revframetbl,a6			;reverse frame table
 	movea.l	a4,a0					;frame data
 	moveq	#$F,d1					;16 objects to convert (12 players/2 nets/puck/puck shadow)
-	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
+	movea.l	#$17480,a3				;CD: the cartridge has #(SortCords-M68K_RAM)
 .top								;each of the 16 objects
 	move.w	2(a0),d2				;loop over the 16 objects: x from word 1
 	andi.w	#$3FF,d2
@@ -535,7 +535,7 @@ RestoreReplayFrame					;a4 = current replay frame address to convert into normal
 	beq.w	.p
 	neg.w	d2
 .p									;X mirrored for reverse angle
-	move.w	d2,0(a3)					;update Xpos
+	move.w	d2,0(a3)				;update Xpos
 	move.l	(a0),d2					;frame long
 	asr.l	#4,d2
 	asr.w	#6,d2
@@ -597,12 +597,12 @@ RestoreReplayFrame					;a4 = current replay frame address to convert into normal
 	bge.w	.4
 	bchg.b	#3,attribute(a3)		;change X flip attribute for object
 ;CD: no cartridge twin
-.4						;CD: placed where the disc branches to it
+.4									;CD: placed where the disc branches to it
 	adda.w	#$4,a0
 	adda.l	#$80,a3
 	dbf	d1,.top						;loop to next object
 	moveq	#5,d2					;6 pairs of players
-	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
+	movea.l	#$17480,a3				;CD: the cartridge has #(SortCords-M68K_RAM)
 .loop								;each pair of players
 	move.b	(a0)+,rostnum(a3)		;loop over the 6 pairs of players
 	move.b	(a0),d0					;position byte
@@ -663,7 +663,7 @@ RestoreReplayFrame					;a4 = current replay frame address to convert into normal
 	clr.w	camidle(a5)				;camera moving
 	move.w	camtrack(a5),d0
 	asl.w	#7,d0					;* SCstruct
-	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
+	movea.l	#$17480,a3				;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d0,a3
 .cam								;camera follows a3
 	bsr.w	UpdateCameraPos			;camera position
@@ -720,14 +720,14 @@ updatereplay						;called every frame to save replay events, d7 = elapsed frames
 	cmpi.l	#replayend,(recbpr).l
 	bne.w	.rec					;not at the end
 	bset.b	#sfwrap,(sflags).l
-	move.l	#$C45C,(recbpr).l	;back to the start (CD: the cartridge has #M68K_RAM)
+	move.l	#$C45C,(recbpr).l		;back to the start (CD: the cartridge has #M68K_RAM)
 .rec								;record into the next slot
 	movea.l	(recbpr).l,a0			;a0 = the record slot
 	moveq	#$F,d2					;16 objects
-	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
+	movea.l	#$17480,a3				;CD: the cartridge has #(SortCords-M68K_RAM)
 .top								;pack each of the 16 objects
 	clr.l	(a0)					;loop over the 16 objects: pack x, y, frame, flip bits
-	move.w	0(a3),d1					;Xpos
+	move.w	0(a3),d1				;Xpos
 	andi.w	#$3FF,d1
 	move.w	d1,2(a0)
 	clr.l	d1
@@ -747,7 +747,7 @@ updatereplay						;called every frame to save replay events, d7 = elapsed frames
 	adda.l	#$80,a3
 	dbf	d2,.top						;loop
 	moveq	#5,d2					;6 pairs of players
-	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
+	movea.l	#$17480,a3				;CD: the cartridge has #(SortCords-M68K_RAM)
 .loop								;each pair of players
 	move.b	rostnum(a3),(a0)+		;loop over the 6 pairs of players
 	move.w	position(a3),d0

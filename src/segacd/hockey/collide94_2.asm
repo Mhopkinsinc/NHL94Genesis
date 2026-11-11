@@ -28,7 +28,7 @@ setpersonel							;set personnel on team a2 from its registers (SetPlList), keep
 	moveq	#5,d4					;# of players on team for loop
 .10									;clear each sort object
 	st.b	newpos(a3)
-	st.b	newpnum(a3)					;loop over PlList slots 5..0: find the wanted player already on the ice
+	st.b	newpnum(a3)				;loop over PlList slots 5..0: find the wanted player already on the ice
 	adda.w	#SCstruct,a3			;add size of player struct to a3
 	dbf	d4,.10						;loop through each player on team
 	bsr.w	SetPlList
@@ -248,8 +248,8 @@ forcepldata							;no skating on/off: force players to correct data (for faceoff
 	lsr.w	#1,d3					;divide d3 by 2
 	bsr.w	setplayer
 .next								;next sort object
-	st.b	newpnum(a3)					;set newpnum to FF
-	st.b	newpos(a3)					;set newpos to FF
+	st.b	newpnum(a3)				;set newpnum to FF
+	st.b	newpos(a3)				;set newpos to FF
 ;CD: no cartridge twin
 	adda.l	#$80,a3
 	dbf	d4,.top
@@ -263,7 +263,7 @@ ResetBench							;remove all players from penalty box / put all players on their
 									;H = home players in PB
 									;V = away players in PB
 	moveq	#$10,d1
-	movea.l	#$1834C,a0	;CD: the cartridge has #(tmstruct-M68K_RAM)
+	movea.l	#$1834C,a0				;CD: the cartridge has #(tmstruct-M68K_RAM)
 	bsr.w	.rb
 	moveq	#1,d1
 	adda.w	#tmsize,a0				;change to Away Team
@@ -317,7 +317,7 @@ setplayer							;bring player onto the ice and set his attributes. d3 = offset o
 									;and clamps them with ClampNibble
 	bclr.b	#pf2inj,pflags2(a3)		;clear line change mode? (I believe pflags2 are 1 off because of fighting
 									;missing)
-	movea.l	#$1834C,a0	;Start of Team Struct (CD: the cartridge has #(tmstruct-M68K_RAM))
+	movea.l	#$1834C,a0				;Start of Team Struct (CD: the cartridge has #(tmstruct-M68K_RAM))
 	btst.b	#pfteam,pflags(a3)		;checks if home or away (if 0, home)
 	beq.w	.0
 .AwayTeam							;(entry point inside setplayer)
@@ -391,7 +391,7 @@ setplayer							;bring player onto the ice and set his attributes. d3 = offset o
 	move.b	#2,(ThirdPBonus).l		;move 2 into 3rd Per Bonus
 .playdatamove						;find the player's data
 	movea.l	(sp)+,a0				;moves Team Data start to a0
-	adda.w	0(a0),a0					;moves to player data offset (byte 0 and 1 of Team Data)
+	adda.w	0(a0),a0				;moves to player data offset (byte 0 and 1 of Team Data)
 .skiploop							;skip each player before d3
 	adda.w	(a0),a0					;skips the player's name length (current byte is name length)
 ;CD: no cartridge twin

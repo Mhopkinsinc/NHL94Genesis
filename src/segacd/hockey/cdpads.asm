@@ -13,7 +13,7 @@
 
 ;CD: no cartridge twin
 	dc.b	'NuNuNu'
-ReadPads						;CD-only routine (a name given here, not a cartridge name)
+ReadPads							;CD-only routine (a name given here, not a cartridge name)
 	movem.l	d1/a0,-(sp)
 	tst.w	(FourWayPlay).l
 	beq.w	.L47DEA

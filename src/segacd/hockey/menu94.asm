@@ -75,7 +75,7 @@ HandleMenuInput						;Act on the pad bits d1 for the current menu: down / up mov
 	adda.w	(a0),a0
 	bra.w	.3
 ;CD: no cartridge twin
-.next						;CD: placed where the disc branches to it
+.next								;CD: placed where the disc branches to it
 	adda.w	#$4,a0
 .3									;loop the walk
 	adda.w	(a0),a0					;add the entry's word offset to reach the following one
@@ -218,7 +218,7 @@ PutTeamBlock						;Copy 2 rows of 11 map words from TeamBlockMap+d0 to printx / 
 	jsr	(xyVmMap).l
 ;CD: no cartridge twin
 	moveq	#$A,d1
-.1						;CD: placed where the disc branches to it
+.1									;CD: placed where the disc branches to it
 .L2C5C2
 	btst.b	#$7,$FF800E.l
 	bne.s	.L2C5C2

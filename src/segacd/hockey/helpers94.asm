@@ -40,7 +40,7 @@ PuckComingToward					;nothing calls it. Z clear when the puck is within $1E of p
 									;moving toward him (x, then y); d0-d1 kept
 	movem.w	d0-d1,-(sp)
 	move.w	(puckx).l,d0
-	sub.w	0(a3),d0					;minus the player X
+	sub.w	0(a3),d0				;minus the player X
 	cmpi.w	#$1E,d0					;puck more than $1E ahead in X: no
 	bgt.w	.x
 	move.w	(puckvx).l,d1

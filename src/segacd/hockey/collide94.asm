@@ -97,7 +97,7 @@ checkcoll							;d2 = new x coord, d3 = new y coord, a3 = struct of object. Chec
 	btst.b	#pfnc,pflags(a3)		;check if in no collision mode
 	bne.w	.ex						;branch if no collision
 	movem.l	d0-d7,-(sp)
-	move.w	0(a3),d2					;Xpos
+	move.w	0(a3),d2				;Xpos
 	move.w	Ypos(a3),d3				;Ypos - check coll around hot spot with wall
 	move.w	radiusx(a3),(wcradiusx).l	;wall coll radius X
 	move.w	radiusy(a3),(wcradiusy).l	;wall coll radius Y
@@ -110,7 +110,7 @@ checkcoll							;d2 = new x coord, d3 = new y coord, a3 = struct of object. Chec
 	movem.l	(sp),d0-d7
 	move.l	a3,-(sp)
 	bsr.w	GetHot
-	move.w	0(a3),d2					;Xpos
+	move.w	0(a3),d2				;Xpos
 	move.w	Ypos(a3),d3
 	add.w	d0,d2
 	add.w	d1,d3					;check coll around end of stick with wall
@@ -217,7 +217,7 @@ checkcx								;d4 = obj. # * 2 for possible collision so check x range and dist
 	bne.w	.exit					;exit if no collision mode on
 	cmpi.w	#$B,SCnum(a2)			;comparing 11 with SCnum for player. Player SCnum are 0-11.
 	bgt.w	.exit
-	move.w	0(a2),d0					;Xpos
+	move.w	0(a2),d0				;Xpos
 	btst.b	#sfhor,(sflags).l		;sfhor(sflags) = screen in horizontal mode
 	beq.w	.nhor					;branch if not in horiz mode
 	move.w	Ypos(a2),d0
@@ -240,8 +240,8 @@ checkcx								;d4 = obj. # * 2 for possible collision so check x range and dist
 	sub.w	Xvel(a2),d0				;subtract Xvel a2 from Xvel a3 (Vx)
 	move.w	Yvel(a3),d1
 	sub.w	Yvel(a2),d1				;subtract Yvel a2 from Yvel a3 (Vy)
-	move.w	0(a3),d2					;Xpos
-	sub.w	0(a2),d2					;subtract Xpos of a2 from Xpos of a3
+	move.w	0(a3),d2				;Xpos
+	sub.w	0(a2),d2				;subtract Xpos of a2 from Xpos of a3
 	neg.w	d2
 	move.w	Ypos(a3),d3
 	sub.w	Ypos(a2),d3				;subtract Ypos of a2 from Ypos of a3
@@ -412,7 +412,7 @@ checkint							;check for interference penalty. player a2 interferes with a3 or
 	blt.w	rtss2
 	cmpi.w	#$10A,d0
 	bgt.w	rtss2
-	move.w	0(a2),d0					;Xpos
+	move.w	0(a2),d0				;Xpos
 	cmpi.w	#$14,d0					;compare Xpos to goalpost
 	bgt.w	rtss2
 	cmpi.w	#$FFEC,d0				;compare Xpos to goalpost
@@ -453,8 +453,8 @@ CCStart								;Player a3 is checking player a2. Holds (SPAHold, SPAhook) go to
 	move.w	#$100,impact(a3)
 	move.w	#$100,impact(a2)
 .nofight							;pick the check animation
-	move.w	0(a2),d0					;sprite to use during checking. Xpos a2
-	sub.w	0(a3),d0					;Xpos a3
+	move.w	0(a2),d0				;sprite to use during checking. Xpos a2
+	sub.w	0(a3),d0				;Xpos a3
 	move.w	Ypos(a2),d1
 	sub.w	Ypos(a3),d1
 	bsr.w	vtoa
@@ -638,8 +638,8 @@ holdcheck							;player a2 is in hold animation looking to hold opponent a3. Ent
 	beq.w	rtss2
 	btst.b	#pf2fight,pflags2(a3)	;#pf2fight - no hold on fighters
 	bne.w	rtss2
-	move.w	0(a3),d0					;Xpos a3
-	sub.w	0(a2),d0					;Xpos a2
+	move.w	0(a3),d0				;Xpos a3
+	sub.w	0(a2),d0				;Xpos a2
 	move.w	Ypos(a3),d1
 	sub.w	Ypos(a2),d1
 	bsr.w	vtoa					;direction from a2 to a3
@@ -722,8 +722,8 @@ Bcheck								;a2 = player that is B checking, a3 = player being checked. Entere
 	cmpi.w	#$18,d0
 	blt.w	rtss2					;if less than, unsuccessful B check
 .checkdir							;check the direction
-	move.w	0(a3),d0					;Xpos a3
-	sub.w	0(a2),d0					;sub Xpos a2 from Xpos a3
+	move.w	0(a3),d0				;Xpos a3
+	sub.w	0(a2),d0				;sub Xpos a2 from Xpos a3
 	move.w	Ypos(a3),d1
 	sub.w	Ypos(a2),d1				;sub Ypos a2 from Ypos a3
 	bsr.w	vtoa					;direction from a2 to a3
@@ -814,7 +814,8 @@ FallDown							;player a2 falls down, player a3 is the hitting player. Skips a2 
 .cont2								;not toppled: count the check for the hitter's team stats
 	tst.w	position(a3)
 	beq.w	.chkpos
-	movea.l	#$1834C,a0	;Start of Home Team Stats Struct (CD: the cartridge has #(tmstruct-M68K_RAM))
+	movea.l	#$1834C,a0				;Start of Home Team Stats Struct (CD: the cartridge has
+									;#(tmstruct-M68K_RAM))
 	btst.b	#pfteam,pflags(a3)
 	beq.w	.AddChktoPlayerStats
 	adda.w	#tmsize,a0				;Change to Away Team Stats
@@ -830,8 +831,8 @@ FallDown							;player a2 falls down, player a3 is the hitting player. Skips a2 
 	addi.w	#2,(ChkCnt).l			;add 2 to ChkCnt
 .chkpos								;goalie hitters skip the stats: pick the fall by direction
 	move.b	#$78,nopuck(a2)
-	move.w	0(a3),d0					;Xpos
-	sub.w	0(a2),d0					;sub Xpos
+	move.w	0(a3),d0				;Xpos
+	sub.w	0(a2),d0				;sub Xpos
 	move.w	Ypos(a3),d1
 	sub.w	Ypos(a2),d1
 	bsr.w	vtoa
@@ -849,8 +850,8 @@ FallDown							;player a2 falls down, player a3 is the hitting player. Skips a2 
 	bpl.w	.chkpos2
 	neg.w	d2
 .chkpos2							;check the position
-	move.w	0(a2),d3					;Xpos of player into d3
-	sub.w	0(a3),d3					;sub Xpos of checker
+	move.w	0(a2),d3				;Xpos of player into d3
+	sub.w	0(a3),d3				;sub Xpos of checker
 	move.w	Ypos(a2),d4				;Ypos of player into d4
 	sub.w	Ypos(a3),d4				;sub Ypos of checker
 	cmpi.w	#$108,Ypos(a3)			;compare Ypos of a3 to top goal line
@@ -886,7 +887,7 @@ FallDown							;player a2 falls down, player a3 is the hitting player. Skips a2 
 	bra.w	.7
 .chkawayfromcenterice				;pop the d1-d4 saved above
 	movem.l	(sp)+,d1-d4
-	bra.w	.playerpos						;to the next instruction (.playerpos)
+	bra.w	.playerpos				;to the next instruction (.playerpos)
 .playerpos							;past the goal lines or wide of the crease: board check, else a normal
 									;fall (.7)
 	cmpi.w	#$10C,Ypos(a2)
@@ -897,7 +898,7 @@ FallDown							;player a2 falls down, player a3 is the hitting player. Skips a2 
 	cmpi.w	#$68,0(a2)				;Xpos player
 									;check if right of crease?
 	bgt.w	.chkawayfrommiddle		;branch if to the right
-	cmpi.w	#$FF98,0(a2)				;check if left of crease?
+	cmpi.w	#$FF98,0(a2)			;check if left of crease?
 	blt.w	.chkawayfrommiddle		;branch if to the left
 	bra.w	.7
 .chkawayfrommiddle					;board check: excite the crowd and start a crosscheck (players only)
@@ -1028,7 +1029,7 @@ FallDown							;player a2 falls down, player a3 is the hitting player. Skips a2 
 	bmi.w	newcheck
 	cmp.w	SCnum(a2),d0			;check if puck carrier is a2
 	bne.w	newcheck
-	st.b	(puckc).l					;clear out puck carrier
+	st.b	(puckc).l				;clear out puck carrier
 	btst.b	#gmhl,(gmode).l
 	bne.w	.22
 	cmpi.w	#SPAfallback,SPA(a2)	;injury: only from a fall back
@@ -1089,7 +1090,7 @@ setInjuryType						;determines if injury will be for period or game. a2 = player
 	move.w	Ypos(a2),(yc1).l		;move Ypos to scroll center
 	bset.b	#sfslock,(sflags).l		;set sfslock (scroll lock)
 	clr.w	d1
-	movea.l	#$1834C,a0	;move Home team Struct to a0 (CD: the cartridge has #(tmstruct-M68K_RAM))
+	movea.l	#$1834C,a0				;move Home team Struct to a0 (CD: the cartridge has #(tmstruct-M68K_RAM))
 	btst.b	#pfteam,pflags(a2)		;check if player home or away
 	beq.w	.0
 	move.w	#$8000,d1				;move $8000 into d1
@@ -1154,7 +1155,7 @@ checkwallcoll						;d2/d3 = x/y to test, a3 = object, wcradiusx/wcradiusy = radi
 	neg.w	d4
 	cmp.w	d4,d2
 	bgt.w	.1
-	movea.l	#$17B00,a2	;CD: the cartridge has #(SortCords+(13*SCstruct)-M68K_RAM)
+	movea.l	#$17B00,a2				;CD: the cartridge has #(SortCords+(13*SCstruct)-M68K_RAM)
 	bsr.w	checkgoal
 	bra.w	.2
 .0									;d3 > d5
@@ -1166,7 +1167,7 @@ checkwallcoll						;d2/d3 = x/y to test, a3 = object, wcradiusx/wcradiusy = radi
 	neg.w	d4
 	cmp.w	d4,d2
 	bgt.w	.1
-	movea.l	#$17A80,a2	;CD: the cartridge has #(SortCords+(12*SCstruct)-M68K_RAM)
+	movea.l	#$17A80,a2				;CD: the cartridge has #(SortCords+(12*SCstruct)-M68K_RAM)
 	bsr.w	checkgoal
 	bra.w	.2
 .1									;d2 < d4 or d2 > d4
@@ -1219,7 +1220,7 @@ checkgoal							;look for coll with goal/net. a2 = goal struct, a3 = object, d2/
 	bgt.w	rtss2					;over goal
 	cmpi.w	#puckscnum,SCnum(a3)
 	bne.w	checkgoalp				;coll with player not puck
-	sub.w	0(a2),d2					;Xpos
+	sub.w	0(a2),d2				;Xpos
 	moveq	#$10,d4					;xside = 16  width of goal/2
 	add.w	(wcradiusx).l,d4
 	cmp.w	d4,d2
@@ -1235,7 +1236,7 @@ checkgoal							;look for coll with goal/net. a2 = goal struct, a3 = object, d2/
 	neg.w	d5
 	cmp.w	d5,d3
 	blt.w	rtss2
-	st.b	(collflag).l				;inside goal area now
+	st.b	(collflag).l			;inside goal area now
 	cmpi.w	#$D,OldZpos(a3)			;compare OldZpos to zside
 	blt.w	.nod					;branch if less than (in net)
 	move.w	OldZpos(a3),Zpos(a3)
@@ -1246,7 +1247,7 @@ checkgoal							;look for coll with goal/net. a2 = goal struct, a3 = object, d2/
 	bmi.w	.nocon					;no puck carrier
 	st.b	(puckc).l
 	asl.w	#7,d0
-	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
+	movea.l	#$17480,a0				;CD: the cartridge has #(SortCords-M68K_RAM)
 	move.b	#8,nopuck(a0,d0.w)		;92 wrote a word
 	move.w	(pucky).l,d1
 	btst.b	#pfgoal,pflags(a0,d0.w)
@@ -1267,7 +1268,7 @@ checkgoal							;look for coll with goal/net. a2 = goal struct, a3 = object, d2/
 	neg.w	d5
 .0									;d0/d5 = where the puck crossed the goal line
 	add.w	d3,d5
-	move.l	0(a3),d3					;Xpos
+	move.l	0(a3),d3				;Xpos
 	sub.l	OldXpos(a3),d3
 	asr.l	#8,d3
 	muls.w	d3,d5
@@ -1326,7 +1327,7 @@ checkgoal							;look for coll with goal/net. a2 = goal struct, a3 = object, d2/
 .sideentry							;through the side or back: treat the net as a wall along x
 	clr.w	d0						;through the side or back: wall normal along x, sign from x motion
 	move.w	#$100,d1
-	move.w	0(a3),d2					;Xpos
+	move.w	0(a3),d2				;Xpos
 	sub.w	OldXpos(a3),d2
 	bmi.w	wallcoll
 	neg.w	d1
@@ -1389,13 +1390,13 @@ Goal								;puck in goal. First: in a penalty shot or shootout (BA_PS_flags bit
 	bsr.w	sfx
 	jsr	(freezewindow).l
 	addi.w	#$1F4,(Crowdlevel).l	;add 500 (92 800)
-	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
+	movea.l	#$1834C,a2				;CD: the cartridge has #(tmstruct-M68K_RAM)
 	lea	tmsize(a2),a1
 	tst.w	Ypos(a3)
 	bpl.w	.9
 ;CD: no cartridge twin
 	exg	a1,a2
-.9						;CD: placed where the disc branches to it
+.9									;CD: placed where the disc branches to it
 	btst.b	#$1,(gmode).l
 	beq.w	.addg
 	exg	a1,a2
@@ -1434,7 +1435,7 @@ Goal								;puck in goal. First: in a penalty shot or shootout (BA_PS_flags bit
 	beq.w	.15
 	addi.w	#1,tmOneTimerGoals(a2)	;one-timer goal (sflags8 bit 7)
 .15									;home goal song
-	cmpa.l	#$1834C,a2	;home goal: ChooseSong (CD: the cartridge has #(tmstruct-M68K_RAM))
+	cmpa.l	#$1834C,a2				;home goal: ChooseSong (CD: the cartridge has #(tmstruct-M68K_RAM))
 	bne.w	.16
 	move.w	(HomeTeam).l,(HmTeam).l
 	move.w	#SngGoal,(SongIndex).l
@@ -1457,7 +1458,7 @@ Goal								;puck in goal. First: in a penalty shot or shootout (BA_PS_flags bit
 	sub.w	tmap(a1),d0
 	move.b	d0,(a0)+				;byte 2 = 2 + tmap(a2) - tmap(a1)
 	addi.w	#$1E,(CwdExciteLvl).l
-	cmpa.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
+	cmpa.l	#$1834C,a2				;CD: the cartridge has #(tmstruct-M68K_RAM)
 	beq.w	.18
 	subi.w	#$14,(CwdExciteLvl).l	;less for an away goal
 	bset.b	#7,-1(a0)				;byte 2 bit 7 = away team scored
@@ -1507,7 +1508,7 @@ Goal								;puck in goal. First: in a penalty shot or shootout (BA_PS_flags bit
 	bpl.w	.23
 	neg.w	d0
 .23									;set Xpos
-	move.w	d0,0(a3)					;Xpos
+	move.w	d0,0(a3)				;Xpos
 	move.w	#$110,d0				;+goalline+8
 	tst.w	Ypos(a3)
 	bpl.w	.24
@@ -1577,7 +1578,7 @@ checkgoalp							;check for player a3 collision with goal/net a2. Entered from c
 	movem.w	d2-d3,-(sp)
 	sub.w	Ypos(a2),d3
 	move.w	d3,d0
-	sub.w	0(a2),d2					;Xpos
+	sub.w	0(a2),d2				;Xpos
 	move.w	d2,d1
 	neg.w	d0
 	asl.w	#4,d2
@@ -1714,7 +1715,7 @@ wallcollb							;Check for puck over wall. a3 = object, d0/d1 = cos/sin of the w
 	move.l	a3,-(sp)
 	move.w	(ltplayer).l,d0
 	asl.w	#scsize,d0
-	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
+	movea.l	#$17480,a3				;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d0,a3
 	moveq	#PenOOP,d0
 	bsr.w	AddPenalty2
@@ -1809,7 +1810,7 @@ wallcoll							;d0 = cosine, d1 = sine of angle of incidence with wall, a3 = obj
 	bmi.w	.nocoll
 	clr.w	Zvel(a3)
 ;CD: no cartridge twin
-.nocoll						;CD: placed where the disc branches to it
+.nocoll								;CD: placed where the disc branches to it
 	adda.w	#$4,sp
 	movem.l	(sp)+,d2-d3
 	rts
@@ -1875,7 +1876,7 @@ checkpuckcoll						;look for puck coll with players. a3 = puck. Clears Yvel past
 	cmpi.w	#$B,d4					;compare 11 to d4
 	bgt.w	.exit
 	asl.w	#scsize,d4
-	movea.l	#$17480,a2	;CD: the cartridge has #(SortCords-M68K_RAM)
+	movea.l	#$17480,a2				;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d4,a2					;a2 now has address of player struct
 	btst.b	#2,(BA_PS_flags).l
 	beq.w	.ccx2					;branch if not set
@@ -1897,8 +1898,8 @@ checkpuckcoll						;look for puck coll with players. a3 = puck. Clears Yvel past
 	bgt.w	.chkbody
 	move.l	a2,-(sp)
 	bsr.w	GetHot					;Get Hot Spot d0/d1 = x/y
-	add.w	0(a2),d0					;add Xpos a2
-	sub.w	0(a3),d0					;sub Xpos a3
+	add.w	0(a2),d0				;add Xpos a2
+	sub.w	0(a3),d0				;sub Xpos a3
 	cmpi.w	#$E,d0					;compare to cstick (E hex)
 	bgt.w	.chkbody
 	cmpi.w	#$FFF2,d0
@@ -1926,8 +1927,8 @@ checkpuckcoll						;look for puck coll with players. a3 = puck. Clears Yvel past
 	beq.w	.chkgoalie
 	btst.b	#pf3onetimer,pflags3(a2)	;check if doing one timer
 	bne.w	.exit
-	move.w	0(a2),d0					;Xpos into d0
-	sub.w	0(a3),d0					;sub Xpos a3
+	move.w	0(a2),d0				;Xpos into d0
+	sub.w	0(a3),d0				;sub Xpos a3
 	cmpi.w	#8,d0
 	bgt.w	.exit
 	cmpi.w	#$FFF8,d0
@@ -2042,7 +2043,7 @@ checkpuckcoll						;look for puck coll with players. a3 = puck. Clears Yvel past
 	movea.l	(sp)+,a0				;pop stack into a0
 	cmpi.w	#$F,(puckz).l			;compare F to puckz
 	bgt.w	.exit2
-	move.w	0(a2),d0					;Xpos into d0
+	move.w	0(a2),d0				;Xpos into d0
 	cmpi.w	#SPAgstackr,SPA(a2)		;pad stack right: offset -6 (mirrored for the net and the glove hand)
 	beq.w	.neg
 	cmpi.w	#SPAgstackl,SPA(a2)		;d1 = the pad offset for the facing and the net end
@@ -2062,7 +2063,7 @@ checkpuckcoll						;look for puck coll with players. a3 = puck. Clears Yvel past
 .7									;add the pad offset
 	add.w	d1,d0					;add d1 to d0
 .8									;goalie x minus puck x
-	sub.w	0(a3),d0					;sub Xpos a3 from d0
+	sub.w	0(a3),d0				;sub Xpos a3 from d0
 	cmp.w	(ChkBodyG).l,d0
 	bgt.w	.exit2					;exit if greater than
 	cmp.w	(NegChkBodyG).l,d0
@@ -2117,7 +2118,7 @@ puckstick							;puck collides with stick. a2 = player who collided, a3 = puck, 
 	move.w	(puckc).l,d1			;move puckc into d1
 	bmi.w	.nosteal				;branch if no puck carrier
 	asl.w	#7,d1
-	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
+	movea.l	#$17480,a0				;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d1,a0					;a0 = Struct of puck carrier
 	move.b	pflags(a0),d1
 	move.b	pflags(a2),d2
@@ -2236,21 +2237,22 @@ puckglue							;part of puckstick that puckgoalie also branches to. Player a2 ta
 	move.w	#SFXpuckget,-(sp)
 	move.w	SCnum(a2),d0			;move SCnum into d0
 	move.w	d0,(puckc).l			;move d0 into puckc
-	movea.l	#$1834C,a0	;Move Home Stats struct into a0 (CD: the cartridge has #(tmstruct-M68K_RAM))
+	movea.l	#$1834C,a0				;Move Home Stats struct into a0 (CD: the cartridge has
+									;#(tmstruct-M68K_RAM))
 	lea	tmsize(a0),a1
 	btst.b	#pfteam,pflags(a2)		;check if player is home or away
 	bne.w	.tm
 	exg	a0,a1
 .tm									;team structs chosen
-	st.b	tmtouch2(a0)				;FF into assist 1
-	st.b	tmtouch3(a0)				;FF into assist 2
+	st.b	tmtouch2(a0)			;FF into assist 1
+	st.b	tmtouch3(a0)			;FF into assist 2
 	bset.b	#tmflast,tmflags(a0)	;set a flag (not sure what)
 	bclr.b	#sf3fo,(sflags3).l		;clear flag (not sure what, might have to do with faceoff)
 	beq.w	.snd					;branch if it was cleared already
 	addi.w	#1,tmfowon(a1)			;add 1 to faceoff won
 	addi.w	#$C8,(Crowdlevel).l
 	move.w	#$C,(sp)				;move C to stack
-	cmpa.l	#$1834C,a1	;compare if a1 is home (CD: the cartridge has #(tmstruct-M68K_RAM))
+	cmpa.l	#$1834C,a1				;compare if a1 is home (CD: the cartridge has #(tmstruct-M68K_RAM))
 	bne.w	.snd
 	addi.w	#$A,(CwdExciteLvl).l
 	move.w	#$B,(sp)				;Move B into stack
@@ -2338,7 +2340,7 @@ puckbody							;puck hits player a2. a3 = puck, d0 = distance^2 (from checkpuckc
 	bsr.w	sfx
 	clr.w	Zvel(a3)
 	move.b	#8,nopuck(a2)
-	move.w	0(a3),d0					;Xpos
+	move.w	0(a3),d0				;Xpos
 	sub.w	0(a2),d0
 	move.w	Ypos(a3),d1
 	sub.w	Ypos(a2),d1
@@ -2421,7 +2423,7 @@ puckgoalie							;puck hits goalie a2. a3 = puck, d0/d1 = goalie - puck x/y. The
 	moveq	#$F,d1					;mirrored for flipped goalies; pick the save table by frame (old or new
 									;goalie frames)
 	add.b	(a2,d0.w),d1			;save odds = save attribute + F (15 dec)
-	lea	deflect(pc),a0	;CD: the cartridge has .list2(pc)
+	lea	deflect(pc),a0				;CD: the cartridge has .list2(pc)
 	btst.b	#3,attribute(a2)		;attribute a2 - x flip?
 	beq.w	.3
 	eori.w	#2,d2					;XOR d2 with 2
@@ -2431,7 +2433,7 @@ puckgoalie							;puck hits goalie a2. a3 = puck, d0/d1 = goalie - puck x/y. The
 	cmpi.w	#SPFSiren,d0			;goal light frame, all frames before are goalie frames
 	blt.w	.32						;branch if less than (old goalie frame)
 	move.w	#SPFghighr,(sp)			;the newer goalie frames
-	lea	deflect(pc),a0	;CD: the cartridge has .list3(pc)
+	lea	deflect(pc),a0				;CD: the cartridge has .list3(pc)
 .32									;frame offset
 	sub.w	(sp)+,d0				;sub stack value (SPFGoalie) from d0
 	move.b	(a0,d0.w),d0			;move value from list2 or list3 at offset to d0
@@ -2458,7 +2460,7 @@ puckgoalie							;puck hits goalie a2. a3 = puck, d0/d1 = goalie - puck x/y. The
 	bmi.w	.chkanim				;branch if no puckc
 	st.b	(puckc).l
 	asl.w	#7,d2
-	movea.l	#$17480,a0	;CD: the cartridge has #(SortCords-M68K_RAM)
+	movea.l	#$17480,a0				;CD: the cartridge has #(SortCords-M68K_RAM)
 	adda.w	d2,a0
 	move.b	#$14,nopuck(a0)			;carrier nopuck = 20
 	move.w	SCnum(a0),(lastplayer).l
@@ -2468,8 +2470,8 @@ puckgoalie							;puck hits goalie a2. a3 = puck, d0/d1 = goalie - puck x/y. The
 	clr.w	Zvel(a3)
 	move.b	#$A,nopuck(a2)			;move A into nopuck collision
 	move.w	#4,temp4(a2)			;move 4 into temp4
-	move.w	0(a3),d0					;move puck Xpos into d0
-	sub.w	0(a2),d0					;sub Xpos of goalie from d0
+	move.w	0(a3),d0				;move puck Xpos into d0
+	sub.w	0(a2),d0				;sub Xpos of goalie from d0
 	move.w	Ypos(a3),d1				;move puck Ypos into d1
 	sub.w	Ypos(a2),d1				;sub Ypos of goalie from d1
 	bne.w	.0						;branch if not equal
@@ -2557,7 +2559,7 @@ makepde								;pass d0 as value to be scaled by player a0's energy level (full 
 	rts
 getpde								;get player a3's energy level into d0. Return a2 = his team struct, d1 =
 									;pnum*2
-	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
+	movea.l	#$1834C,a2				;CD: the cartridge has #(tmstruct-M68K_RAM)
 	btst.b	#pfteam,pflags(a3)		;#pfteam - home or away
 	beq.w	.0
 	adda.w	#tmsize,a2

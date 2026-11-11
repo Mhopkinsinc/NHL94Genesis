@@ -83,12 +83,13 @@ TeamLogoPalettes					;Team logo palettes, 16 colors per team. Used by PeriodStat
 	andi.b	#$8,$400(a4)
 	dc.w	$0800
 	dc.w	$0C00
-LeadSong						;CD: entered here; the cartridge LeadSong starts at its first twin line, $2B2DA
+LeadSong							;CD: entered here; the cartridge LeadSong starts at its first twin line,
+									;$2B2DA
 	movem.l	d0/a0-a3,-(sp)
 	move.w	(sflags2).l,-(sp)
 	btst.b	#1,(gmode2).l			;shootout?
 	bne.w	LeadSongExit			;shootout: no lead songs
-	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
+	movea.l	#$1834C,a2				;CD: the cartridge has #(tmstruct-M68K_RAM)
 	lea	tmsize(a2),a3
 	move.w	tmap(a2),d0				;home players on ice
 	sub.w	tmap(a3),d0
@@ -108,7 +109,7 @@ LeadSong						;CD: entered here; the cartridge LeadSong starts at its first twin
 .1									;lead noted
 	bset.b	#sf2pwrplay,(sflags2).l	;one song per lead
 	bne.w	LeadSongExit			;already played?
-	cmpa.l	#$1834C,a3	;a3 the away struct? (CD: the cartridge has #(tmstruct-M68K_RAM))
+	cmpa.l	#$1834C,a3				;a3 the away struct? (CD: the cartridge has #(tmstruct-M68K_RAM))
 	bne.w	.2						;home ahead?
 	move.w	(HomeTeam).l,(HmTeam).l	;away ahead: song slot 1
 	move.w	#SngPPAway,(SongIndex).l	;away ahead: song slot 1
@@ -196,7 +197,7 @@ HotColdIcon							;The icon by the name of player iconplayer of team a2 at x ico
 ;CD: no cartridge twin
 	movea.l	(HotMapPtr).l,a0
 	bra.w	.draw
-.cold						;CD: placed where the disc branches to it
+.cold								;CD: placed where the disc branches to it
 	move.w	(coldiconchars).l,d4
 	movea.l	(ColdMapPtr).l,a0
 .draw								;draw the icon

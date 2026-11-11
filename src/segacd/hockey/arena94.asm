@@ -199,7 +199,7 @@ StartArenaAnim						;Start arena animation d0 (ArenaAnims): arenaanim = d0, RunA
 	move.l	#0,(arenaspritelist).l
 	move.w	#1,(arenaframe).l		;first frame
 	clr.w	(arenaframeidx).l
-	st.b	(faceoffanim).l				;no faceoff animation queued
+	st.b	(faceoffanim).l			;no faceoff animation queued
 	movem.l	(sp)+,d0-d7/a0-a6
 	rts
 SetFaceoffAnim						;Set the faceoff animation: sflags7 bit 0, faceoffanim = d0. Called from

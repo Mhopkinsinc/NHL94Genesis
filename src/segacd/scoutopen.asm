@@ -11,7 +11,7 @@ ScoutingSpeechClipsPtr	equ	$47DA4
 
 	org	$D2B6
 
-	move.l	sp,(GameSetUpMapPtr).l		;the old stack, in that slot until scout94_2 leaves
+	move.l	sp,(GameSetUpMapPtr).l	;the old stack, in that slot until scout94_2 leaves
 	movea.l	#$1745C,sp
 	movea.l	(ScoutingSpeechClipsPtr).l,a0	;the speech clips and the three pieces after them
 	movea.l	#$C458,a1

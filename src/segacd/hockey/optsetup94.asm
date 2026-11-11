@@ -2,10 +2,13 @@
 ;	The cartridge source with long addresses and no short or quick forms. Lines under ;CD: have
 ;	no cartridge twin. Names are the cartridge's; segacd\hockey\hockey.inc has the disc RAM map.
 ;
-;	The option logic and strings are the cartridge's. CD: the graphics are not ROM labels any more:
-;	each movea.l #map / lea of a tile set became a load from a pointer table at $47D00-$47D8C
-;	(file $2CD00, zeros on the disc, filled at run time), and the beam-counter seed is command $1B
-;	to the main CPU (the word comes back in $FF8010). The New York full names are read from the disc file.
+;	The option logic and strings are the cartridge's.
+;
+;	CD: the graphics are not ROM labels any more: each movea.l #map / lea of a tile set became a load from a
+;	pointer table at $47D00-$47D8C (file $2CD00, zeros on the disc, filled at run time), and the beam-counter
+;	seed is command $1B to the main CPU (the word comes back in $FF8010).
+;
+;	The New York full names are read from the disc file.
 
 	include	macros\genesis.mac
 	include	segacd\hockey\hockey.inc
@@ -386,7 +389,7 @@ MoveMenuFrame						;Move the menu frame by d0 (+2 / -2 lines). Shows 6 of the 9 
 	move.w	d7,d3
 	bsr.w	SetFrameRect			;the new frame
 	move.w	#$6000,(printa).l
-	jmp	(Framer).l						;draw the frame
+	jmp	(Framer).l					;draw the frame
 SetMenuArea							;Set the menu area for MoveMenuFrame: printx $10, printy $E, d0 = 23 x d1
 									;= 13
 	jsr	(printz).l					;map at the menu
@@ -507,7 +510,7 @@ ChangeOption						;add d2 to option d7 (d2 = 0: only limit it) and wrap it in it
 	move.w	(TmpOptPen).l,(OptPen).l
 	move.w	(TmpOptLine).l,(OptLine).l
 .2									;shootout options put back
-	movea.l	#$18BFA,a2	;CD: the cartridge has #(OptPlayMode-M68K_RAM)
+	movea.l	#$18BFA,a2				;CD: the cartridge has #(OptPlayMode-M68K_RAM)
 	movea.l	#OptionLimits,a3
 	tst.w	(FourWayPlay).l			;four way?
 	beq.w	.3
@@ -853,7 +856,7 @@ setoptions							;options screen display: build the game setup screen only: vbla
 	bclr.b	#dfok,(disflags).l		;#dfok - graphics are ready for transfer (clr = not ready)
 	bset.b	#dfng,(disflags).l		;#dfng - dont int graphics
 	bclr.b	#df32c,(disflags).l		;#df32c - 32 bit column mode (clr = off)
-	move.w	#0,$18D30.l	;CD: the cartridge has (VSCRLPM).w
+	move.w	#0,$18D30.l				;CD: the cartridge has (VSCRLPM).w
 	move.w	#$B400,(VSPRITES).l
 	move.w	#$B800,(VmMAP3).l
 	move.w	#5,(Map3col).l
@@ -865,7 +868,7 @@ setoptions							;options screen display: build the game setup screen only: vbla
 	move.l	#$0,d0
 	jsr	(setVram).l
 	jsr	(orjoy).l					;read the pads
-	jsr	(LoadSetupTiles).l			;TeamBitmaps+8 tiles 
+	jsr	(LoadSetupTiles).l			;TeamBitmaps+8 tiles
 	move.w	d4,(framercset).l		;frame chars
 ;CD: no cartridge twin
 	movea.l	(SetupFramerMapPtr).l,a2
@@ -950,8 +953,8 @@ setoptions							;options screen display: build the game setup screen only: vbla
 	jsr	(defaultsprites_0).l
 	move.w	#$28,(SortCords+rosxoff).l
 	move.w	#$28,(SortCords+(6*SCstruct)+rosxoff).l
-	st.b	(tmstruct).l				;no home team block yet
-	st.b	(awtmstruct).l				;no visitors block yet
+	st.b	(tmstruct).l			;no home team block yet
+	st.b	(awtmstruct).l			;no visitors block yet
 	rts
 ReadSetupPads						;wait up to $5460 frames (6 minutes) for a press on any pad (4 with
 									;FourWayPlay); return d1 = the presses, 0 on timeout. C does not return:
@@ -1018,7 +1021,7 @@ ReadSetupPads						;wait up to $5460 frames (6 minutes) for a press on any pad (
 	move.w	(setuphome).l,(logoteam).l
 	bsr.w	DrawHomeBlock
 ;CD: no cartridge twin
-.6						;CD: placed where the disc branches to it
+.6									;CD: placed where the disc branches to it
 	cmpi.l	#$4650,d6
 	bgt.w	.timer
 	btst.b	#0,(setupcardflags).l	;card up?
@@ -1123,7 +1126,7 @@ SetupStart							;Start pressed: Copy Goalies to both teams, set pojoy, seed the
 	bset.b	#0,(gmode2).l			;shootout flag
 	jsr	(ClearShootout).l
 .1									;shootout set up
-	jmp	(MakeTree).l					;build the playoff tree
+	jmp	(MakeTree).l				;build the playoff tree
 CheckNOPUnused						;unreferenced. Tests OptNOP for 0, 5, 6, 9 and $A and returns: no effect
 	tst.w	(OptNOP).l				;0?
 	beq.w	.x

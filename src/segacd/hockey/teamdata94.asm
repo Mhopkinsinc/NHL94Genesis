@@ -3,8 +3,9 @@
 ;	no cartridge twin. Names are the cartridge's; segacd\hockey\hockey.inc has the disc RAM map.
 ;
 ;	The file header (jmp to Begin, a word, null, TeamList) and the team data. The player names and team
-;	nicknames are licensed: those lines are incbin from the disc file, with the line (text masked, ratings
-;	and the P id kept) as the comment; every block with no cartridge twin is read from the disc file too.
+;	nicknames are licensed: those lines are incbin from the disc file, with the line (text masked, ratings and
+;	the P id kept) as the comment; every block with no cartridge twin is read from the disc file too.
+;
 ;	The record structure, palettes, lines and ratings are the cartridge source. TeamList keeps the cartridge
 ;	order (team number = index); the records are laid out in another order, Florida and Anaheim last.
 
@@ -15,11 +16,11 @@ Begin	equ	$22096
 
 	org	$1B000
 
-	jmp	Begin					;the file header: the loader enters the game here
+	jmp	Begin						;the file header: the loader enters the game here
 	dc.w	$01FF					;not known
-null						;a zero long, the tile pointer when there is nothing to draw
+null								;a zero long, the tile pointer when there is nothing to draw
 	dc.l	0
-TeamList						;the team record pointers; team number = index
+TeamList							;the team record pointers; team number = index
 	dc.l	Anaheim					;0
 	dc.l	Boston					;1
 	dc.l	Buffalo					;2
@@ -27,47 +28,54 @@ TeamList						;the team record pointers; team number = index
 	dc.l	Chicago					;4
 	dc.l	Dallas					;5
 	dc.l	Detroit					;6
-	dc.l	Edmonton					;7
+	dc.l	Edmonton				;7
 	dc.l	Florida					;8
-	dc.l	Hartford					;9
-	dc.l	LosAngeles					;10
-	dc.l	Montreal					;11
-	dc.l	NewJersey					;12
-	dc.l	NewYorkI					;13
-	dc.l	NewYorkR					;14
+	dc.l	Hartford				;9
+	dc.l	LosAngeles				;10
+	dc.l	Montreal				;11
+	dc.l	NewJersey				;12
+	dc.l	NewYorkI				;13
+	dc.l	NewYorkR				;14
 	dc.l	Ottawa					;15
-	dc.l	Philadelphia					;16
-	dc.l	Pittsburgh					;17
+	dc.l	Philadelphia			;16
+	dc.l	Pittsburgh				;17
 	dc.l	Quebec					;18
 	dc.l	SanJose					;19
 	dc.l	StLouis					;20
-	dc.l	TampaBay					;21
+	dc.l	TampaBay				;21
 	dc.l	Toronto					;22
-	dc.l	Vancouver					;23
-	dc.l	Washington					;24
-	dc.l	Winnipeg					;25
-	dc.l	AllStarsEast					;26
-	dc.l	AllStarsWest					;27
+	dc.l	Vancouver				;23
+	dc.l	Washington				;24
+	dc.l	Winnipeg				;25
+	dc.l	AllStarsEast			;26
+	dc.l	AllStarsWest			;27
 
 ;NumofTeams	=	(*-TeamList)/4		;number of teams in TeamList	(defined in hockey.inc)
-;NumTeams	=	NumofTeams			;same count; the rest of the code uses this name. ram94.asm	(defined in hockey.inc)
+;NumTeams	=	NumofTeams			;same count; the rest of the code uses this name. ram94.asm	(defined in
+;hockey.inc)
 									;checks it against ASW+1 once the team numbers are defined.
-;Playerdata	=	0					;record offset of the word offset to the player data (.pld)	(defined in hockey.inc)
-;Palettedata	=	2					;record offset of the word offset to the palettes (.pad)	(defined in hockey.inc)
-;Teamname	=	4					;record offset of the word offset to the team name (.tn)	(defined in hockey.inc)
-;LineSets	=	6					;record offset of the word offset to the line sets (.ls)	(defined in hockey.inc)
-;ScoutReport	=	8					;record offset of the word offset to the scouting report ratings (.sr)	(defined in hockey.inc)
-;GoalieOdds	=	10					;record offset of the word offset to the starting goalie weights (.godds)	(defined in hockey.inc)
+;Playerdata	=	0					;record offset of the word offset to the player data (.pld)	(defined in
+;hockey.inc)
+;Palettedata	=	2					;record offset of the word offset to the palettes (.pad)	(defined
+;in hockey.inc)
+;Teamname	=	4					;record offset of the word offset to the team name (.tn)	(defined in
+;hockey.inc)
+;LineSets	=	6					;record offset of the word offset to the line sets (.ls)	(defined in
+;hockey.inc)
+;ScoutReport	=	8					;record offset of the word offset to the scouting report ratings
+;(.sr)	(defined in hockey.inc)
+;GoalieOdds	=	10					;record offset of the word offset to the starting goalie weights
+;(.godds)	(defined in hockey.inc)
 
 AllStarsEast						;team record: All Stars East (ASE), team 26
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	.pad-.0					; Palettedata
-	dc.w	.tn-.0					; Teamname
-	dc.w	.ls-.0					; LineSets
-	dc.w	.sr-.0					; ScoutReport
-	dc.w	.godds-.0				; GoalieOdds
-.pad								; team palettes (home and visitor)
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	.pad-.0					;Palettedata
+	dc.w	.tn-.0					;Teamname
+	dc.w	.ls-.0					;LineSets
+	dc.w	.sr-.0					;ScoutReport
+	dc.w	.godds-.0				;GoalieOdds
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$88,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$A8,32	;visitor colors (from the disc file)
 ;------------------------
@@ -81,12 +89,12 @@ AllStarsEast						;team record: All Stars East (ASE), team 26
 ;f - forward count (GetForwardCount)
 ;x - not read
 ;------------------------
-.sr									; scouting report ratings
+.sr									;scouting report ratings
 ;			qreb,hvfx
 	dc.w	$7720,$00E8
-.godds								; starting goalie weights, 4 nibbles (PickStartingGoalie)
+.godds								;starting goalie weights, 4 nibbles (PickStartingGoalie)
 	dc.b	203,192
-.ls									; line sets: 8 lines of 8 roster numbers, by position
+.ls									;line sets: 8 lines of 8 roster numbers, by position
 ;			-G,LD,RD,LW,-C,RW,XA,00
 	dc.b	01,19,18,07,04,16,09,00	;line 1 NLC (no line changes)
 	dc.b	01,19,18,07,04,16,10,00	;line 2 Sc1
@@ -144,32 +152,32 @@ AllStarsEast						;team record: All Stars East (ASE), team 26
 	incbin	..\cdbin\HOCKEY.BIN,$310,26	;Player	<text>,	03A5,4454,4442,5133 ;P024 Card041
 	incbin	..\cdbin\HOCKEY.BIN,$32A,22	;Player	<text>,		2685,4344,3641,4442 ;P025
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'All Stars East'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'ASE'
 ;CD: no cartridge twin
 	incbin	..\cdbin\HOCKEY.BIN,$358,18	;read from the disc file
-.ar									; arena string
+.ar									;arena string
 	String	'Madison Square Garden'
 
 AllStarsWest						;team record: All Stars West (ASW), team 27
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	.pad-.0					; Palettedata
-	dc.w	.tn-.0					; Teamname
-	dc.w	.ls-.0					; LineSets
-	dc.w	.sr-.0					; ScoutReport
-	dc.w	.godds-.0				; GoalieOdds
-.pad								; team palettes (home and visitor)
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	.pad-.0					;Palettedata
+	dc.w	.tn-.0					;Teamname
+	dc.w	.ls-.0					;LineSets
+	dc.w	.sr-.0					;ScoutReport
+	dc.w	.godds-.0				;GoalieOdds
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$38E,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$3AE,32	;visitor colors (from the disc file)
-.sr									; scouting report ratings
+.sr									;scouting report ratings
 ;			qreb,hvfx
 	dc.w	$7720,$00E8
-.godds								; starting goalie weights, 4 nibbles (PickStartingGoalie)
+.godds								;starting goalie weights, 4 nibbles (PickStartingGoalie)
 	dc.b	237,144
-.ls									; line sets: 8 lines of 8 roster numbers, by position
+.ls									;line sets: 8 lines of 8 roster numbers, by position
 ;			-G,LD,RD,LW,-C,RW,XA,00
 	dc.b	01,20,22,11,04,15,14,00	;line 1 NLC (no line changes)
 	dc.b	01,24,22,11,04,15,13,00	;line 2 Sc1
@@ -207,32 +215,32 @@ AllStarsWest						;team record: All Stars West (ASW), team 27
 	incbin	..\cdbin\HOCKEY.BIN,$614,22	;Player	<text>,		05B4,4344,4641,5244 ;P049 Card023
 	incbin	..\cdbin\HOCKEY.BIN,$62A,24	;Player	<text>,	0394,3444,3641,4234 ;P050 Card029
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'All Stars West'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'ASW'
 ;CD: no cartridge twin
 	incbin	..\cdbin\HOCKEY.BIN,$65A,18	;read from the disc file
-.ar									; arena string
+.ar									;arena string
 	String	'Madison Square Garden'
 
 Boston								;team record: Boston (BOS), team 1
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	.pad-.0					; Palettedata
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	.pad-.0					;Palettedata
 	dc.w	.tn-.0
-	dc.w	.ls-.0					; LineSets
-	dc.w	.sr-.0					; ScoutReport
-	dc.w	.godds-.0				; GoalieOdds
-.pad								; team palettes (home and visitor)
+	dc.w	.ls-.0					;LineSets
+	dc.w	.sr-.0					;ScoutReport
+	dc.w	.godds-.0				;GoalieOdds
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$690,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$6B0,32	;visitor colors (from the disc file)
-.sr									; scouting report ratings
+.sr									;scouting report ratings
 ;			qreb,hvfx
 	dc.w	$4121,$21F7
-.godds								; starting goalie weights, 4 nibbles (PickStartingGoalie)
+.godds								;starting goalie weights, 4 nibbles (PickStartingGoalie)
 	dc.b	180,0
-.ls									; line sets: 8 lines of 8 roster numbers, by position
+.ls									;line sets: 8 lines of 8 roster numbers, by position
 ;			-G,LD,RD,LW,-C,RW,XA,00
 	dc.b	01,19,18,07,03,12,08,00	;line 1 NLC (no line changes)
 	dc.b	01,19,18,08,03,12,05,00	;line 2 Sc1
@@ -270,24 +278,24 @@ Boston								;team record: Boston (BOS), team 1
 	incbin	..\cdbin\HOCKEY.BIN,$8FE,26	;Player	<text>,	06B3,3222,4823,2324 ;P074
 	incbin	..\cdbin\HOCKEY.BIN,$918,20	;Player	<text>,		36A2,1221,2820,2324 ;P075
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Boston'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'BOS'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$93C,8	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Boston Garden'
 
 Buffalo								;team record: Buffalo (BUF), team 2
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	$0092	;dc.w	.pld-.0
-	dc.w	.pad-.0					; Palettedata
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	$0092					;dc.w	.pld-.0
+	dc.w	.pad-.0					;Palettedata
 	dc.w	.tn-.0
-	dc.w	$0052	;dc.w	.ls-.0
-	dc.w	$004C	;dc.w	.sr-.0
-	dc.w	$0050	;dc.w	.godds-.0
-.pad								; team palettes (home and visitor)
+	dc.w	$0052					;dc.w	.ls-.0
+	dc.w	$004C					;dc.w	.sr-.0
+	dc.w	$0050					;dc.w	.godds-.0
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$960,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$980,32	;visitor colors (from the disc file)
 ;CD: no cartridge twin
@@ -316,24 +324,24 @@ Buffalo								;team record: Buffalo (BUF), team 2
 	incbin	..\cdbin\HOCKEY.BIN,$BD2,22	;Player	<text>,		24A3,2212,3921,1124 ;P099
 	incbin	..\cdbin\HOCKEY.BIN,$BE8,22	;Player	<text>,		0692,3212,3622,1424 ;P100
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Buffalo'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'BUF'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$C10,8	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Memorial Auditorium'
 
 Calgary								;team record: Calgary (CGY), team 3
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	.pad-.0					; Palettedata
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	.pad-.0					;Palettedata
 	dc.w	.tn-.0
-	dc.w	$0052	;dc.w	.ls-.0
-	dc.w	$004C	;dc.w	.sr-.0
-	dc.w	$0050	;dc.w	.godds-.0
-.pad								; team palettes (home and visitor)
+	dc.w	$0052					;dc.w	.ls-.0
+	dc.w	$004C					;dc.w	.sr-.0
+	dc.w	$0050					;dc.w	.godds-.0
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$C3A,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$C5A,32	;visitor colors (from the disc file)
 ;CD: no cartridge twin
@@ -364,24 +372,24 @@ Calgary								;team record: Calgary (CGY), team 3
 	incbin	..\cdbin\HOCKEY.BIN,$E96,26	;Player	<text>,	0583,3143,3431,3523 ;P123
 	incbin	..\cdbin\HOCKEY.BIN,$EB0,20	;Player	<text>,		06A0,0100,1901,1404 ;P125
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Calgary'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'CGY'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$ED6,8	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Olympic Saddledome'
 
 Chicago								;team record: Chicago (CHI), team 4
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	.pad-.0					; Palettedata
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	.pad-.0					;Palettedata
 	dc.w	.tn-.0
-	dc.w	$0052	;dc.w	.ls-.0
-	dc.w	$004C	;dc.w	.sr-.0
-	dc.w	$0050	;dc.w	.godds-.0
-.pad								; team palettes (home and visitor)
+	dc.w	$0052					;dc.w	.ls-.0
+	dc.w	$004C					;dc.w	.sr-.0
+	dc.w	$0050					;dc.w	.godds-.0
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$EFE,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$F1E,32	;visitor colors (from the disc file)
 ;CD: no cartridge twin
@@ -413,32 +421,32 @@ Chicago								;team record: Chicago (CHI), team 4
 	incbin	..\cdbin\HOCKEY.BIN,$117A,22	;Player	<text>,		0853,3132,3431,3524 ;P149
 	incbin	..\cdbin\HOCKEY.BIN,$1190,22	;Player	<text>,		4792,2111,2520,1412 ;P150
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Chicago'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'CHI'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$11B8,12	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Chicago Stadium'
 
 Detroit								;team record: Detroit (DET), team 6
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	.pad-.0					; Palettedata
-	dc.w	.tn-.0					; Teamname
-	dc.w	.ls-.0					; LineSets
-	dc.w	.sr-.0					; ScoutReport
-	dc.w	.godds-.0				; GoalieOdds
-.pad								; team palettes (home and visitor)
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	.pad-.0					;Palettedata
+	dc.w	.tn-.0					;Teamname
+	dc.w	.ls-.0					;LineSets
+	dc.w	.sr-.0					;ScoutReport
+	dc.w	.godds-.0				;GoalieOdds
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$11E2,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$1202,32	;visitor colors (from the disc file)
-.sr									; scouting report ratings
+.sr									;scouting report ratings
 ;			qreb,hvfx
 	dc.w	$7321,$00F8
-.godds								; starting goalie weights, 4 nibbles (PickStartingGoalie)
+.godds								;starting goalie weights, 4 nibbles (PickStartingGoalie)
 	dc.b	212,0
-.ls									; line sets: 8 lines of 8 roster numbers, by position
+.ls									;line sets: 8 lines of 8 roster numbers, by position
 ;			-G,LD,RD,LW,-C,RW,XA,00
 	dc.b	01,19,18,04,03,13,08,00	;line 1 NLC (no line changes)
 	dc.b	01,21,25,11,03,13,04,00	;line 2 Sc1
@@ -476,24 +484,24 @@ Detroit								;team record: Detroit (DET), team 6
 	incbin	..\cdbin\HOCKEY.BIN,$148A,24	;Player	<text>,	0883,3232,4421,3233 ;P174
 	incbin	..\cdbin\HOCKEY.BIN,$14A2,24	;Player	<text>,	0283,2242,4610,3133 ;P175
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Detroit'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'DET'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$14CC,12	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Joe Louis Sports Arena'
 
 Edmonton							;team record: Edmonton (EDM), team 7
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	$0092	;dc.w	.pld-.0
-	dc.w	.pad-.0					; Palettedata
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	$0092					;dc.w	.pld-.0
+	dc.w	.pad-.0					;Palettedata
 	dc.w	.tn-.0
-	dc.w	$0052	;dc.w	.ls-.0
-	dc.w	$004C	;dc.w	.sr-.0
-	dc.w	$0050	;dc.w	.godds-.0
-.pad								; team palettes (home and visitor)
+	dc.w	$0052					;dc.w	.ls-.0
+	dc.w	$004C					;dc.w	.sr-.0
+	dc.w	$0050					;dc.w	.godds-.0
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$14FC,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$151C,32	;visitor colors (from the disc file)
 ;CD: no cartridge twin
@@ -521,23 +529,23 @@ Edmonton							;team record: Edmonton (EDM), team 7
 	incbin	..\cdbin\HOCKEY.BIN,$1762,22	;Player	<text>,		02A3,3313,3531,1233 ;P199
 	incbin	..\cdbin\HOCKEY.BIN,$1778,22	;Player	<text>,		3693,3223,2633,2523 ;P200
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Edmonton'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'EDM'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$17A0,8	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Northlands Coliseum'
 
 Hartford							;team record: Hartford (HFD), team 9
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	$000C	;dc.w	.pad-.0
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	$000C					;dc.w	.pad-.0
 	dc.w	.tn-.0
-	dc.w	$0052	;dc.w	.ls-.0
-	dc.w	$004C	;dc.w	.sr-.0
-	dc.w	$0050	;dc.w	.godds-.0
+	dc.w	$0052					;dc.w	.ls-.0
+	dc.w	$004C					;dc.w	.sr-.0
+	dc.w	$0050					;dc.w	.godds-.0
 ;CD: no cartridge twin
 	incbin	..\cdbin\HOCKEY.BIN,$17CA,134	;read from the disc file
 .pld								;player data: one player per row, ended by an empty String
@@ -566,24 +574,24 @@ Hartford							;team record: Hartford (HFD), team 9
 	incbin	..\cdbin\HOCKEY.BIN,$1A3E,20	;Player	<text>,		2772,2122,2921,2414 ;P223
 	incbin	..\cdbin\HOCKEY.BIN,$1A52,24	;Player	<text>,	41A2,3132,3621,2123 ;P225
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Hartford'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'HFD'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$1A7C,10	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Hartford Civic Center'
 
 LosAngeles							;team record: Los Angeles (LA), team 10
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	.pad-.0					; Palettedata
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	.pad-.0					;Palettedata
 	dc.w	.tn-.0
-	dc.w	$0052	;dc.w	.ls-.0
-	dc.w	$004C	;dc.w	.sr-.0
-	dc.w	$0050	;dc.w	.godds-.0
-.pad								; team palettes (home and visitor)
+	dc.w	$0052					;dc.w	.ls-.0
+	dc.w	$004C					;dc.w	.sr-.0
+	dc.w	$0050					;dc.w	.godds-.0
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$1AAA,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$1ACA,32	;visitor colors (from the disc file)
 ;CD: no cartridge twin
@@ -615,24 +623,24 @@ LosAngeles							;team record: Los Angeles (LA), team 10
 	incbin	..\cdbin\HOCKEY.BIN,$1D22,22	;Player	<text>,		0562,2121,2620,2122 ;P249
 	incbin	..\cdbin\HOCKEY.BIN,$1D38,26	;Player	<text>,	0881,1010,1510,1313 ;P250
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Los Angeles'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'LA'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$1D66,8	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Great Western Forum'
 
 Dallas								;team record: Dallas (DAL), team 5
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	$0092	;dc.w	.pld-.0
-	dc.w	.pad-.0					; Palettedata
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	$0092					;dc.w	.pld-.0
+	dc.w	.pad-.0					;Palettedata
 	dc.w	.tn-.0
-	dc.w	$0052	;dc.w	.ls-.0
-	dc.w	$004C	;dc.w	.sr-.0
-	dc.w	$0050	;dc.w	.godds-.0
-.pad								; team palettes (home and visitor)
+	dc.w	$0052					;dc.w	.ls-.0
+	dc.w	$004C					;dc.w	.sr-.0
+	dc.w	$0050					;dc.w	.godds-.0
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$1D90,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$1DB0,32	;visitor colors (from the disc file)
 ;CD: no cartridge twin
@@ -661,32 +669,32 @@ Dallas								;team record: Dallas (DAL), team 5
 	incbin	..\cdbin\HOCKEY.BIN,$200A,20	;Player	<text>,		0572,2032,3420,3514 ;P274
 	incbin	..\cdbin\HOCKEY.BIN,$201E,24	;Player	<text>,	3991,1022,2820,3525 ;P275
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Dallas'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'DAL'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$2046,8	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Reunion Arena'
 
 Montreal							;team record: Montreal (MTL), team 11
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	.pad-.0					; Palettedata
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	.pad-.0					;Palettedata
 	dc.w	.tn-.0
-	dc.w	.ls-.0					; LineSets
-	dc.w	.sr-.0					; ScoutReport
-	dc.w	.godds-.0				; GoalieOdds
-.pad								; team palettes (home and visitor)
+	dc.w	.ls-.0					;LineSets
+	dc.w	.sr-.0					;ScoutReport
+	dc.w	.godds-.0				;GoalieOdds
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$206A,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$208A,32	;visitor colors (from the disc file)
-.sr									; scouting report ratings
+.sr									;scouting report ratings
 ;			qreb,hvfx
 	dc.w	$5211,$21E8
-.godds								; starting goalie weights, 4 nibbles (PickStartingGoalie)
+.godds								;starting goalie weights, 4 nibbles (PickStartingGoalie)
 	dc.b	197,0
-.ls									; line sets: 8 lines of 8 roster numbers, by position
+.ls									;line sets: 8 lines of 8 roster numbers, by position
 ;			-G,LD,RD,LW,-C,RW,XA,00
 	dc.b	01,18,17,07,03,12,04,00	;line 1 NLC (no line changes)
 	dc.b	01,23,18,07,03,12,04,00	;line 2 Sc1
@@ -723,32 +731,32 @@ Montreal							;team record: Montreal (MTL), team 11
 	incbin	..\cdbin\HOCKEY.BIN,$22EE,22	;Player	<text>,		2493,2242,3620,3324 ;P298
 	incbin	..\cdbin\HOCKEY.BIN,$2304,26	;Player	<text>,	3492,2122,3921,2313 ;P300
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Montreal'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'MTL'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$2330,12	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Montreal Forum'
 
 NewJersey							;team record: New Jersey (NJ), team 12
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	.pad-.0					; Palettedata
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	.pad-.0					;Palettedata
 	dc.w	.tn-.0
-	dc.w	.ls-.0					; LineSets
-	dc.w	.sr-.0					; ScoutReport
-	dc.w	.godds-.0				; GoalieOdds
-.pad								; team palettes (home and visitor)
+	dc.w	.ls-.0					;LineSets
+	dc.w	.sr-.0					;ScoutReport
+	dc.w	.godds-.0				;GoalieOdds
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$2358,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$2378,32	;visitor colors (from the disc file)
-.sr									; scouting report ratings
+.sr									;scouting report ratings
 ;			qreb,hvfx
 	dc.w	$3411,$12F7
-.godds								; starting goalie weights, 4 nibbles (PickStartingGoalie)
+.godds								;starting goalie weights, 4 nibbles (PickStartingGoalie)
 	dc.b	152,0
-.ls									; line sets: 8 lines of 8 roster numbers, by position
+.ls									;line sets: 8 lines of 8 roster numbers, by position
 ;			-G,LD,RD,LW,-C,RW,XA,00
 	dc.b	01,19,18,12,03,13,08,00	;line 1 NLC (no line changes)
 	dc.b	01,18,21,08,04,12,03,00	;line 2 Sc1
@@ -782,24 +790,24 @@ NewJersey							;team record: New Jersey (NJ), team 12
 	incbin	..\cdbin\HOCKEY.BIN,$25E6,24	;Player	<text>,	0673,2232,2230,3322 ;P324
 	incbin	..\cdbin\HOCKEY.BIN,$25FE,24	;Player	<text>,	0571,1011,1210,1303 ;P325
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'New Jersey'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'NJ'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$2628,8	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Byrne Meadowlands Arena'
 
 NewYorkI							;team record: New York (NYI), team 13
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	$0092	;dc.w	.pld-.0
-	dc.w	.pad-.0					; Palettedata
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	$0092					;dc.w	.pld-.0
+	dc.w	.pad-.0					;Palettedata
 	dc.w	.tn-.0
-	dc.w	$0052	;dc.w	.ls-.0
-	dc.w	$004C	;dc.w	.sr-.0
-	dc.w	$0050	;dc.w	.godds-.0
-.pad								; team palettes (home and visitor)
+	dc.w	$0052					;dc.w	.ls-.0
+	dc.w	$004C					;dc.w	.sr-.0
+	dc.w	$0050					;dc.w	.godds-.0
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$2656,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$2676,32	;visitor colors (from the disc file)
 ;CD: no cartridge twin
@@ -826,24 +834,24 @@ NewYorkI							;team record: New York (NYI), team 13
 	incbin	..\cdbin\HOCKEY.BIN,$28AA,22	;Player	<text>,		37A1,1212,2611,1113 ;P349
 	incbin	..\cdbin\HOCKEY.BIN,$28C0,24	;Player	<text>,	4793,3123,3821,2515 ;P350
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'New York'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'NYI'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$28EA,12	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Nassau Coliseum'
 
 NewYorkR							;team record: New York (NYR), team 14
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	$0092	;dc.w	.pld-.0
-	dc.w	.pad-.0					; Palettedata
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	$0092					;dc.w	.pld-.0
+	dc.w	.pad-.0					;Palettedata
 	dc.w	.tn-.0
-	dc.w	$0052	;dc.w	.ls-.0
-	dc.w	$004C	;dc.w	.sr-.0
-	dc.w	$0050	;dc.w	.godds-.0
-.pad								; team palettes (home and visitor)
+	dc.w	$0052					;dc.w	.ls-.0
+	dc.w	$004C					;dc.w	.sr-.0
+	dc.w	$0050					;dc.w	.godds-.0
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$2914,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$2934,32	;visitor colors (from the disc file)
 ;CD: no cartridge twin
@@ -870,30 +878,30 @@ NewYorkR							;team record: New York (NYR), team 14
 	incbin	..\cdbin\HOCKEY.BIN,$2B58,26	;Player	<text>,	0592,3322,2231,2432 ;P373
 	incbin	..\cdbin\HOCKEY.BIN,$2B72,20	;Player	<text>,		24A2,2222,3620,2124 ;P374
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'New York'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'NYR'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$2B98,10	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Madison Square Garden'
 
 Ottawa								;team record: Ottawa (OTW), team 15
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	.pad-.0					; Palettedata
-	dc.w	.tn-.0					; Teamname
-	dc.w	.ls-.0					; LineSets
-	dc.w	$004C	;dc.w	.sr-.0
-	dc.w	.godds-.0				; GoalieOdds
-.pad								; team palettes (home and visitor)
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	.pad-.0					;Palettedata
+	dc.w	.tn-.0					;Teamname
+	dc.w	.ls-.0					;LineSets
+	dc.w	$004C					;dc.w	.sr-.0
+	dc.w	.godds-.0				;GoalieOdds
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$2BC6,32	;home colors (from the disc file)
 ;CD: no cartridge twin
 	incbin	..\cdbin\HOCKEY.BIN,$2BE6,36	;read from the disc file
-.godds								; starting goalie weights, 4 nibbles (PickStartingGoalie)
+.godds								;starting goalie weights, 4 nibbles (PickStartingGoalie)
 	dc.b	197,0
-.ls									; line sets: 8 lines of 8 roster numbers, by position
+.ls									;line sets: 8 lines of 8 roster numbers, by position
 ;			-G,LD,RD,LW,-C,RW,XA,00
 	dc.b	01,20,19,10,03,15,11,00	;line 1 NLC (no line changes)
 	dc.b	01,20,19,10,03,15,07,00	;line 2 Sc1
@@ -931,24 +939,24 @@ Ottawa								;team record: Ottawa (OTW), team 15
 	incbin	..\cdbin\HOCKEY.BIN,$2E54,22	;Player	<text>,		0681,1221,2311,2513 ;P399
 	incbin	..\cdbin\HOCKEY.BIN,$2E6A,20	;Player	<text>,		14B2,2031,3610,2522 ;P400
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Ottawa'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'OTW'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$2E8E,10	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Ottawa Civic Center'
 
 Philadelphia						;team record: Philadelphia (PHI), team 16
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	.pad-.0					; Palettedata
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	.pad-.0					;Palettedata
 	dc.w	.tn-.0
-	dc.w	$0052	;dc.w	.ls-.0
-	dc.w	$004C	;dc.w	.sr-.0
-	dc.w	$0050	;dc.w	.godds-.0
-.pad								; team palettes (home and visitor)
+	dc.w	$0052					;dc.w	.ls-.0
+	dc.w	$004C					;dc.w	.sr-.0
+	dc.w	$0050					;dc.w	.godds-.0
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$2EBA,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$2EDA,32	;visitor colors (from the disc file)
 ;CD: no cartridge twin
@@ -979,24 +987,24 @@ Philadelphia						;team record: Philadelphia (PHI), team 16
 	incbin	..\cdbin\HOCKEY.BIN,$312C,22	;Player	<text>,		2782,2232,2721,3414 ;P423
 	incbin	..\cdbin\HOCKEY.BIN,$3142,22	;Player	<text>,		44A1,1111,2C13,1513 ;P425
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Philadelphia'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'PHI'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$316E,8	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Spectrum'
 
 Pittsburgh							;team record: Pittsburgh (PIT), team 17
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	.pad-.0					; Palettedata
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	.pad-.0					;Palettedata
 	dc.w	.tn-.0
-	dc.w	$0052	;dc.w	.ls-.0
-	dc.w	$004C	;dc.w	.sr-.0
-	dc.w	$0050	;dc.w	.godds-.0
-.pad								; team palettes (home and visitor)
+	dc.w	$0052					;dc.w	.ls-.0
+	dc.w	$004C					;dc.w	.sr-.0
+	dc.w	$0050					;dc.w	.godds-.0
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$318C,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$31AC,32	;visitor colors (from the disc file)
 ;CD: no cartridge twin
@@ -1028,24 +1036,24 @@ Pittsburgh							;team record: Pittsburgh (PIT), team 17
 	incbin	..\cdbin\HOCKEY.BIN,$3406,24	;Player	<text>,	0392,2132,3820,2313 ;P449
 	incbin	..\cdbin\HOCKEY.BIN,$341E,24	;Player	<text>,	3381,1211,2220,1011 ;P450
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Pittsburgh'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'PIT'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$344A,10	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Civic Arena'
 
 Quebec								;team record: Quebec (QUE), team 18
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	.pad-.0					; Palettedata
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	.pad-.0					;Palettedata
 	dc.w	.tn-.0
-	dc.w	$0052	;dc.w	.ls-.0
-	dc.w	$004C	;dc.w	.sr-.0
-	dc.w	$0050	;dc.w	.godds-.0
-.pad								; team palettes (home and visitor)
+	dc.w	$0052					;dc.w	.ls-.0
+	dc.w	$004C					;dc.w	.sr-.0
+	dc.w	$0050					;dc.w	.godds-.0
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$346E,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$348E,32	;visitor colors (from the disc file)
 ;CD: no cartridge twin
@@ -1076,24 +1084,24 @@ Quebec								;team record: Quebec (QUE), team 18
 	incbin	..\cdbin\HOCKEY.BIN,$36DA,28	;Player	<text>,	0483,3225,4641,2443 ;P474
 	incbin	..\cdbin\HOCKEY.BIN,$36F6,24	;Player	<text>,	0692,2221,2811,2114 ;P475
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Quebec'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'QUE'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$371E,12	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Colisee de Quebec'
 
 SanJose								;team record: San Jose (SJ), team 19
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	.pad-.0					; Palettedata
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	.pad-.0					;Palettedata
 	dc.w	.tn-.0
-	dc.w	$0052	;dc.w	.ls-.0
-	dc.w	$004C	;dc.w	.sr-.0
-	dc.w	$0050	;dc.w	.godds-.0
-.pad								; team palettes (home and visitor)
+	dc.w	$0052					;dc.w	.ls-.0
+	dc.w	$004C					;dc.w	.sr-.0
+	dc.w	$0050					;dc.w	.godds-.0
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$374A,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$376A,32	;visitor colors (from the disc file)
 ;CD: no cartridge twin
@@ -1124,24 +1132,24 @@ SanJose								;team record: San Jose (SJ), team 19
 	incbin	..\cdbin\HOCKEY.BIN,$39AC,22	;Player	<text>,		2192,2132,3621,3422 ;P499
 	incbin	..\cdbin\HOCKEY.BIN,$39C2,22	;Player	<text>,		0272,2132,2430,3434 ;P500
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'San Jose'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'SJ'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$39E8,8	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'San Jose Arena'
 
 StLouis								;team record: St. Louis (STL), team 20
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	$0092	;dc.w	.pld-.0
-	dc.w	.pad-.0					; Palettedata
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	$0092					;dc.w	.pld-.0
+	dc.w	.pad-.0					;Palettedata
 	dc.w	.tn-.0
-	dc.w	$0052	;dc.w	.ls-.0
-	dc.w	$004C	;dc.w	.sr-.0
-	dc.w	$0050	;dc.w	.godds-.0
-.pad								; team palettes (home and visitor)
+	dc.w	$0052					;dc.w	.ls-.0
+	dc.w	$004C					;dc.w	.sr-.0
+	dc.w	$0050					;dc.w	.godds-.0
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$3A0C,32	;visitor colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$3A2C,32	;visitor colors (from the disc file)
 ;CD: no cartridge twin
@@ -1169,24 +1177,24 @@ StLouis								;team record: St. Louis (STL), team 20
 	incbin	..\cdbin\HOCKEY.BIN,$3C66,20	;Player	<text>,		0253,2131,2220,3312 ;P524
 	incbin	..\cdbin\HOCKEY.BIN,$3C7A,22	;Player	<text>,		34A3,3122,2621,2513 ;P525
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'St. Louis'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'STL'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$3CA4,8	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'St. Louis Arena'
 
 TampaBay							;team record: Tampa Bay (TB), team 21
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	.pad-.0					; Palettedata
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	.pad-.0					;Palettedata
 	dc.w	.tn-.0
-	dc.w	$0052	;dc.w	.ls-.0
-	dc.w	$004C	;dc.w	.sr-.0
-	dc.w	$0050	;dc.w	.godds-.0
-.pad								; team palettes (home and visitor)
+	dc.w	$0052					;dc.w	.ls-.0
+	dc.w	$004C					;dc.w	.sr-.0
+	dc.w	$0050					;dc.w	.godds-.0
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$3CCA,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$3CEA,32	;visitor colors (from the disc file)
 ;CD: no cartridge twin
@@ -1218,21 +1226,21 @@ TampaBay							;team record: Tampa Bay (TB), team 21
 	incbin	..\cdbin\HOCKEY.BIN,$3F48,22	;Player	<text>,		4061,1211,0210,1114 ;P549
 	incbin	..\cdbin\HOCKEY.BIN,$3F5E,22	;Player	<text>,		2691,1211,2910,1304 ;P550
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Tampa Bay'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'TB'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$3F86,12	;String	<text>
 ;CD: no cartridge twin
 	incbin	..\cdbin\HOCKEY.BIN,$3F92,18	;read from the disc file
-Toronto						;team record 22: TeamList points here; its first lines have no twin
-.0						;record base
+Toronto								;team record 22: TeamList points here; its first lines have no twin
+.0									;record base
 	incbin	..\cdbin\HOCKEY.BIN,$3FA4,6	;read from the disc file
-	dc.w	$0052	;dc.w	.ls-.0
-	dc.w	$004C	;dc.w	.sr-.0
-	dc.w	$0050	;dc.w	.godds-.0
-.pad								; team palettes (home and visitor)
+	dc.w	$0052					;dc.w	.ls-.0
+	dc.w	$004C					;dc.w	.sr-.0
+	dc.w	$0050					;dc.w	.godds-.0
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$3FB0,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$3FD0,32	;visitor colors (from the disc file)
 ;CD: no cartridge twin
@@ -1259,24 +1267,24 @@ Toronto						;team record 22: TeamList points here; its first lines have no twin
 	incbin	..\cdbin\HOCKEY.BIN,$4230,26	;Player	<text>,	0292,2131,3420,4433 ;P574
 	incbin	..\cdbin\HOCKEY.BIN,$424A,20	;Player	<text>,		0882,2023,3523,2324 ;P575
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Toronto'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'TOR'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$4270,14	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Maple Leaf Gardens'
 
 Vancouver							;team record: Vancouver (VAN), team 23
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	$0092	;dc.w	.pld-.0
-	dc.w	.pad-.0					; Palettedata
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	$0092					;dc.w	.pld-.0
+	dc.w	.pad-.0					;Palettedata
 	dc.w	.tn-.0
-	dc.w	$0052	;dc.w	.ls-.0
-	dc.w	$004C	;dc.w	.sr-.0
-	dc.w	$0050	;dc.w	.godds-.0
-.pad								; team palettes (home and visitor)
+	dc.w	$0052					;dc.w	.ls-.0
+	dc.w	$004C					;dc.w	.sr-.0
+	dc.w	$0050					;dc.w	.godds-.0
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$429E,32	;visitor colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$42BE,32	;visitor colors (from the disc file)
 ;CD: no cartridge twin
@@ -1305,32 +1313,32 @@ Vancouver							;team record: Vancouver (VAN), team 23
 	incbin	..\cdbin\HOCKEY.BIN,$450A,22	;Player	<text>,		0592,3234,4621,4424 ;P599
 	incbin	..\cdbin\HOCKEY.BIN,$4520,22	;Player	<text>,		22B2,2132,3632,3324 ;P600
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Vancouver'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'VAN'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$454A,10	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Pacific Coliseum'
 
 Winnipeg							;team record: Winnipeg (WPG), team 25
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	.pad-.0					; Palettedata
-	dc.w	.tn-.0					; Teamname
-	dc.w	.ls-.0					; LineSets
-	dc.w	.sr-.0					; ScoutReport
-	dc.w	.godds-.0				; GoalieOdds
-.pad								; team palettes (home and visitor)
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	.pad-.0					;Palettedata
+	dc.w	.tn-.0					;Teamname
+	dc.w	.ls-.0					;LineSets
+	dc.w	.sr-.0					;ScoutReport
+	dc.w	.godds-.0				;GoalieOdds
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$4572,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$4592,32	;visitor colors (from the disc file)
-.sr									; scouting report ratings
+.sr									;scouting report ratings
 ;			qreb,hvfx
 	dc.w	$4511,$11F8
-.godds								; starting goalie weights, 4 nibbles (PickStartingGoalie)
+.godds								;starting goalie weights, 4 nibbles (PickStartingGoalie)
 	dc.b	214,0
-.ls									; line sets: 8 lines of 8 roster numbers, by position
+.ls									;line sets: 8 lines of 8 roster numbers, by position
 ;			-G,LD,RD,LW,-C,RW,XA,00
 	dc.b	01,19,18,04,03,13,09,00	;line 1 NLC (no line changes)
 	dc.b	01,22,18,08,03,13,04,00	;line 2 Sc1
@@ -1368,32 +1376,32 @@ Winnipeg							;team record: Winnipeg (WPG), team 25
 	incbin	..\cdbin\HOCKEY.BIN,$4802,22	;Player	<text>,		2692,2132,3320,4423 ;P624
 	incbin	..\cdbin\HOCKEY.BIN,$4818,24	;Player	<text>,	0892,2122,3621,2522 ;P625
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Winnipeg'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'WPG'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$4842,6	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Winnipeg Arena'
 
 Washington							;team record: Washington (WSH), team 24
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	.pad-.0					; Palettedata
-	dc.w	.tn-.0					; Teamname
-	dc.w	.ls-.0					; LineSets
-	dc.w	.sr-.0					; ScoutReport
-	dc.w	.godds-.0				; GoalieOdds
-.pad								; team palettes (home and visitor)
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	.pad-.0					;Palettedata
+	dc.w	.tn-.0					;Teamname
+	dc.w	.ls-.0					;LineSets
+	dc.w	.sr-.0					;ScoutReport
+	dc.w	.godds-.0				;GoalieOdds
+.pad								;team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$4864,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$4884,32	;visitor colors (from the disc file)
-.sr									; scouting report ratings
+.sr									;scouting report ratings
 ;			qreb,hvfx
 	dc.w	$5220,$11E8
-.godds								; starting goalie weights, 4 nibbles (PickStartingGoalie)
+.godds								;starting goalie weights, 4 nibbles (PickStartingGoalie)
 	dc.b	181,0
-.ls									; line sets: 8 lines of 8 roster numbers, by position
+.ls									;line sets: 8 lines of 8 roster numbers, by position
 ;			-G,LD,RD,LW,-C,RW,XA,00
 	dc.b	01,18,17,04,03,12,13,00	;line 1 NLC (no line changes)
 	dc.b	01,18,17,10,04,14,03,00	;line 2 Sc1
@@ -1430,32 +1438,32 @@ Washington							;team record: Washington (WSH), team 24
 	incbin	..\cdbin\HOCKEY.BIN,$4AE6,24	;Player	<text>,	2562,2111,2220,1212 ;P648
 	incbin	..\cdbin\HOCKEY.BIN,$4AFE,22	;Player	<text>,		05B3,2022,3230,2323 ;P649
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Washington'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'WSH'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$4B28,10	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Capital Centre'
 
 Florida								;team record: Florida (FLA), team 8
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	.pad-.0					; Palettedata
-	dc.w	.tn-.0					; Teamname
-	dc.w	.ls-.0					; LineSets
-	dc.w	.sr-.0					; ScoutReport
-	dc.w	.godds-.0				; GoalieOdds
-.pad								; new team palettes (home and visitor)
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	.pad-.0					;Palettedata
+	dc.w	.tn-.0					;Teamname
+	dc.w	.ls-.0					;LineSets
+	dc.w	.sr-.0					;ScoutReport
+	dc.w	.godds-.0				;GoalieOdds
+.pad								;new team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$4B4E,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$4B6E,32	;visitor colors (from the disc file)
-.sr									; scouting report ratings
+.sr									;scouting report ratings
 ;			qreb,hvfx
 	dc.w	$0702,$1396
-.godds								; starting goalie weights, 4 nibbles (PickStartingGoalie)
+.godds								;starting goalie weights, 4 nibbles (PickStartingGoalie)
 	dc.b	214,0
-.ls									; line sets: 8 lines of 8 roster numbers, by position
+.ls									;line sets: 8 lines of 8 roster numbers, by position
 ;			-G,LD,RD,LW,-C,RW,XA,00
 	dc.b	01,14,12,08,05,04,07,00	;line 1 NLC (no line changes)
 	dc.b	01,14,17,08,05,03,04,00	;line 2 Sc1
@@ -1485,32 +1493,32 @@ Florida								;team record: Florida (FLA), team 8
 	incbin	..\cdbin\HOCKEY.BIN,$4D32,22	;Player	<text>,		4383,2112,3821,2224 ;P665
 	incbin	..\cdbin\HOCKEY.BIN,$4D48,26	;Player	<text>,	2593,3333,3332,3322 ;P666
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Florida'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'FLA'
-.tm									; team nickname string
+.tm									;team nickname string
 	incbin	..\cdbin\HOCKEY.BIN,$4D74,10	;String	<text>
-.ar									; arena string
+.ar									;arena string
 	String	'Miami Arena'
 
 Anaheim								;team record: Anaheim (ANH), team 0
-.0									; record base: six word offsets (Playerdata ... GoalieOdds) from here
-	dc.w	.pld-.0					; Playerdata
-	dc.w	.pad-.0					; Palettedata
-	dc.w	.tn-.0					; Teamname
-	dc.w	.ls-.0					; LineSets
-	dc.w	.sr-.0					; ScoutReport
-	dc.w	.godds-.0				; GoalieOdds
-.pad								; new team palettes (home and visitor)
+.0									;record base: six word offsets (Playerdata ... GoalieOdds) from here
+	dc.w	.pld-.0					;Playerdata
+	dc.w	.pad-.0					;Palettedata
+	dc.w	.tn-.0					;Teamname
+	dc.w	.ls-.0					;LineSets
+	dc.w	.sr-.0					;ScoutReport
+	dc.w	.godds-.0				;GoalieOdds
+.pad								;new team palettes (home and visitor)
 	incbin	..\cdbin\HOCKEY.BIN,$4D98,32	;home colors (from the disc file)
 	incbin	..\cdbin\HOCKEY.BIN,$4DB8,32	;visitor colors (from the disc file)
-.sr									; scouting report ratings
+.sr									;scouting report ratings
 ;			qreb,hvfx
 	dc.w	$0702,$1397
-.godds								; starting goalie weights, 4 nibbles (PickStartingGoalie)
+.godds								;starting goalie weights, 4 nibbles (PickStartingGoalie)
 	dc.b	214,0
-.ls									; line sets: 8 lines of 8 roster numbers, by position
+.ls									;line sets: 8 lines of 8 roster numbers, by position
 ;			-G,LD,RD,LW,-C,RW,XA,00
 	dc.b	01,12,14,04,06,08,03,00	;line 1 NLC (no line changes)
 	dc.b	01,12,16,03,06,11,04,00	;line 2 Sc1
@@ -1541,13 +1549,13 @@ Anaheim								;team record: Anaheim (ANH), team 0
 	incbin	..\cdbin\HOCKEY.BIN,$4F80,22	;Player	<text>,		32B2,1121,2110,2111 ;P683
 	incbin	..\cdbin\HOCKEY.BIN,$4F96,22	;Player	<text>,		17B1,1121,3810,2113 ;P684
 	dc.b	0,2						;end of player data: empty String
-.tn									; team name: city string (Teamname)
+.tn									;team name: city string (Teamname)
 	String	'Anaheim'
-.ta									; team abbreviation string
+.ta									;team abbreviation string
 	String	'ANH'
 ;CD: no cartridge twin
 	incbin	..\cdbin\HOCKEY.BIN,$4FBE,22	;read from the disc file
-.ar									; arena string
+.ar									;arena string
 	String	'Pond'
 
 ;PlayoffRows equ 32					;playoffseats rows (NewPO picks one at random)	(defined in hockey.inc)
@@ -1592,7 +1600,7 @@ playoffseats						;32 rows of 16 team numbers (PlayoffRows by
 	dc.b	WSH,FLA,NJ,PIT, BOS,MTL,TB,BUF, SJ,STL,DET,CHI, ANH,LA,WPG,VAN
 ;CD: no cartridge twin
 	incbin	..\cdbin\HOCKEY.BIN,$51DA,24	;read from the disc file
-Credits						;CD: its first lines have no twin; the rest of it starts here
+Credits								;CD: its first lines have no twin; the rest of it starts here
 	String	'Licensed by'
 	String	'Sega Enterprises Ltd.'
 	String	CC_PageEnd

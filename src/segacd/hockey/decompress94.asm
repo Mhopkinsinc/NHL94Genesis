@@ -23,7 +23,7 @@ DecompressGraphicsWithRemap			;DecompressGraphics, then return 8 bytes past the 
 DecompressGraphicsPlain				;Clear remapTablePtr, fall into DecompressGraphics
 	clr.l	(remapTablePtr).l
 ;CD: no cartridge twin
-DecompressGraphics						;CD: placed where the disc branches to it
+DecompressGraphics					;CD: placed where the disc branches to it
 	move.l	a6,-(sp)
 	movea.l	$19360.l,a6
 	btst.b	#$5,$FF800F.l
@@ -75,7 +75,7 @@ DecompressBytecode					;Unpack a0 into the 256 byte ring buffer at decompbuffer.
 									;address in (kept in d3; d1 then = buffer offset)
 	movea.l	#(decompbuffer-M68K_RAM),a1
 	movea.l	#(decompbuffer-M68K_RAM),a3	;unused by the handlers
-	movea.l	#$18AE4,a4	;CD: the cartridge has #(remapTablePtr-M68K_RAM)
+	movea.l	#$18AE4,a4				;CD: the cartridge has #(remapTablePtr-M68K_RAM)
 	movea.l	#remap,a5
 	movea.l	#DoDMApro,a6
 	movem.l	d0-d3/a0-a2,-(sp)

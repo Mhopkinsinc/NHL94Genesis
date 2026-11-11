@@ -1,9 +1,11 @@
 ;	BOOT.BIN $0-$1FF: the disc header, sector 0 of the data track. Written by hand.
 ;
 ;	BOOT.BIN is the boot area, the first 16 sectors of the data track (not a file on the disc):
-;	tools/segacd_bootarea.py copies it from your own disc image into cdbin/BOOT.BIN. This header is read by
-;	the Sega CD BIOS: the volume and system names, where the initial program (security.asm, ip.asm) and the
-;	system program (sp.asm) are, then the system header in the cartridge's form.
+;	tools/segacd_bootarea.py copies it from your own disc image into cdbin/BOOT.BIN.
+;
+;	This header is read by the Sega CD BIOS: the volume and system names, where the initial program
+;	(security.asm, ip.asm) and the system program (sp.asm) are, then the system header in the cartridge's
+;	form.
 
 	org	0
 

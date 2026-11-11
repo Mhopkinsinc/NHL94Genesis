@@ -9,8 +9,13 @@ graphics files in Extracted/ ("file" below: the piece is that file, byte for byt
     python tools/segacd_graph2.py        then npm run build:segacd
 """
 import os
+import sys
 
-ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+sys.dont_write_bytecode = True           # no tools/__pycache__ files from the import below
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from segacd_comments import fix_layout   # noqa: E402  (comment layout, CONTRIBUTING.md)
+
+ROOT =os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 MARK = bytes.fromhex("12345678")        # every resource ends with it
 
 # Resource 0, the start-up pack (scoutload.asm): label, the pointer table entry the code stores it in,
@@ -201,7 +206,7 @@ def main():
             out.append(f"Res{k:02}\t{incbin(a, n - 4)}")
             mark()
     out.append(f"\tdcb.b\t${len(g):X}-*,0\t\t\t\t;zero fill to the end of the last sector")
-    open(os.path.join(ROOT, "src", "segacd", "data", "graph2.asm"), "w", newline="\n").write("\n".join(out) + "\n")
+    open(os.path.join(ROOT, "src", "segacd", "data", "graph2.asm"), "w", newline="\n").write(fix_layout("\n".join(out) + "\n"))
 
     what = {0: "the start-up pack", 1: "the game graphics pack", 2: "the sprite pack", 3: "FeaturedPictures",
             4: "TeamLogoBitmaps", 65: "the Stanley Cup sprite", 66: "Hot.map.jim", 67: "Cold.map.jim"}
@@ -210,7 +215,8 @@ def main():
         ";\t99 entries of 6 bytes, the start sector (word) and the byte size (long) of each resource, then a zero",
         ";\tentry and zero fill. Each resource starts on the sector after the one before it ends, so GRes works",
         ";\tthe start sector out from the sizes. The resource number the programs pass in d0 (BIOS call",
-        ";\t$6044, d7 = 1) is the entry number. The code that reads this file is not traced.",
+        ";\t$6044, d7 = 1) is the entry number. The system program reads this file at start-up (SegaOSMain) and",
+        ";\tOSLoadResource uses it (docs/segacd_boot.md).",
         "",
         "GRes\tMACRO\t\t\t\t\t\t;GRes size: one entry, at the next free sector",
         "\tdc.w\tgsector",
@@ -235,7 +241,7 @@ def main():
             w = f"per team: {byres[k]}" if k in byres else "per-team form, not used"
         gt.append(f"\tGRes\t${n:X}\t\t\t\t;{k:2}  sector ${s:03X}" + (f"  {w}" if w else ""))
     gt += ["\tdc.w\t0\t\t\t\t\t;the end: a zero entry", "\tdc.l\t0", "\tdcb.b\t$800-*,0"]
-    open(os.path.join(ROOT, "src", "segacd", "data", "gtable.asm"), "w", newline="\n").write("\n".join(gt) + "\n")
+    open(os.path.join(ROOT, "src", "segacd", "data", "gtable.asm"), "w", newline="\n").write(fix_layout("\n".join(gt) + "\n"))
     print("wrote src/segacd/data/graph2.asm and gtable.asm (99 resources)")
 
 

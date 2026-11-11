@@ -352,7 +352,7 @@ SortHotColdStarters					;Sum the hot / cold values of the 6 starters of team a0 
 	move.b	3(a1),d6				;next sum
 	cmp.b	1(a1),d6				;above this one?
 	ble.w	.next					;in order: no swap
-	st.b	d1							;swapped: d1 set, sort again
+	st.b	d1						;swapped: d1 set, sort again
 	move.w	2(a1),d2				;swap the pairs
 	move.w	0(a1),2(a1)
 	move.w	d2,0(a1)

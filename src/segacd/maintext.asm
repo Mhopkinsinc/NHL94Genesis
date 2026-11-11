@@ -51,8 +51,8 @@ LFF405A	move.l	a4,-(sp)
 	unlk	a6
 	rts
 ; DoDrawTextCommand
-	dc.b	$91,$44,$6F,$44,$72,$61,$77,$54,$65,$78,$74,$43,$6F,$6D,$6D,$61	; .DoDrawTextComma
-	dc.b	$6E,$64,$00,$00			; nd..
+	dc.b	$91,$44,$6F,$44,$72,$61,$77,$54,$65,$78,$74,$43,$6F,$6D,$6D,$61	;.DoDrawTextComma
+	dc.b	$6E,$64,$00,$00			;nd..
 ; DoMoviePlayBack
 	link	a6,#$0
 	movem.l	d5-d7/a4,-(sp)
@@ -80,8 +80,8 @@ LFF40BC	jsr	X_FF4456(pc)
 	unlk	a6
 	rts
 ; DoMoviePlayBack
-	dc.b	$8F,$44,$6F,$4D,$6F,$76,$69,$65,$50,$6C,$61,$79,$42,$61,$63,$6B	; .DoMoviePlayBack
-	dc.b	$00,$00					; ..
+	dc.b	$8F,$44,$6F,$4D,$6F,$76,$69,$65,$50,$6C,$61,$79,$42,$61,$63,$6B	;.DoMoviePlayBack
+	dc.b	$00,$00					;..
 ; MAINCODE
 	link	a6,#$0
 	move.l	d7,-(sp)
@@ -115,17 +115,17 @@ LFF4126	pea.l	X_FF4144(pc)
 	unlk	a6
 	rts
 ; MAINCODE
-	dc.b	$88,$4D,$41,$49,$4E,$43,$4F,$44,$45,$00,$00,$38,$4D,$61,$69,$6E	; .MAINCODE..8Main
-	dc.b	$20,$44,$6F,$6E,$65,$00,$43,$6F,$6D,$6D,$61,$6E,$64,$3A,$20,$25	;  Done.Command: %
-	dc.b	$64,$00,$4D,$41,$49,$4E,$43,$50,$55,$20,$72,$65,$61,$64,$79,$20	; d.MAINCPU ready 
-	dc.b	$74,$6F,$20,$68,$61,$6E,$64,$6C,$65,$20,$63,$6F,$6D,$6D,$61,$6E	; to handle comman
-	dc.b	$64,$73,$00,$00			; ds..
+	dc.b	$88,$4D,$41,$49,$4E,$43,$4F,$44,$45,$00,$00,$38,$4D,$61,$69,$6E	;.MAINCODE..8Main
+	dc.b	$20,$44,$6F,$6E,$65,$00,$43,$6F,$6D,$6D,$61,$6E,$64,$3A,$20,$25	;Done.Command: %
+	dc.b	$64,$00,$4D,$41,$49,$4E,$43,$50,$55,$20,$72,$65,$61,$64,$79,$20	;d.MAINCPU ready
+	dc.b	$74,$6F,$20,$68,$61,$6E,$64,$6C,$65,$20,$63,$6F,$6D,$6D,$61,$6E	;to handle comman
+	dc.b	$64,$73,$00,$00			;ds..
 ; ReDraw
 	link	a6,#$0
 	unlk	a6
 	rts
 ; ReDraw
-	dc.b	$86,$52,$65,$44,$72,$61,$77,$00,$00,$00	; .ReDraw...
+	dc.b	$86,$52,$65,$44,$72,$61,$77,$00,$00,$00	;.ReDraw...
 ; drawprint
 	link	a6,#$0
 	move.l	$8(a6),-(sp)
@@ -146,7 +146,7 @@ LFF41CA	jsr	X_FF417C(pc)
 	unlk	a6
 	rts
 ; drawprint
-	dc.b	$89,$64,$72,$61,$77,$70,$72,$69,$6E,$74,$00,$00	; .drawprint..
+	dc.b	$89,$64,$72,$61,$77,$70,$72,$69,$6E,$74,$00,$00	;.drawprint..
 ; NumStr
 	link	a6,#$FFF0
 	movem.l	d6-d7/a3-a4,-(sp)
@@ -179,7 +179,7 @@ LFF4224	tst.w	d7
 	unlk	a6
 	rts
 ; NumStr
-	dc.b	$86,$4E,$75,$6D,$53,$74,$72,$00,$00,$00	; .NumStr...
+	dc.b	$86,$4E,$75,$6D,$53,$74,$72,$00,$00,$00	;.NumStr...
 ; HexStr
 	link	a6,#$0
 	movem.l	d3-d7/a4,-(sp)
@@ -215,7 +215,7 @@ LFF4280	cmp.l	d7,d3
 	unlk	a6
 	rts
 ; HexStr
-	dc.b	$86,$48,$65,$78,$53,$74,$72,$00,$00,$00	; .HexStr...
+	dc.b	$86,$48,$65,$78,$53,$74,$72,$00,$00,$00	;.HexStr...
 ; aprint
 	link	a6,#$FED8
 	movem.l	d4-d7/a3-a4,-(sp)
@@ -313,7 +313,7 @@ LFF43B0	movem.l	-$140(a6),d4-d7/a3-a4
 	unlk	a6
 	rts
 ; aprint
-	dc.b	$86,$61,$70,$72,$69,$6E,$74,$00,$00,$00	; .aprint...
+	dc.b	$86,$61,$70,$72,$69,$6E,$74,$00,$00,$00	;.aprint...
 ; InitWorld
 	link	a6,#$0
 	movea.l	#$A12010,a0
@@ -338,10 +338,10 @@ LFF43B0	movem.l	-$140(a6),d4-d7/a3-a4
 	unlk	a6
 	rts
 ; InitWorld
-	dc.b	$89,$49,$6E,$69,$74,$57,$6F,$72,$6C,$64,$00,$32,$48,$65,$61,$70	; .InitWorld.2Heap
-	dc.b	$20,$53,$69,$7A,$65,$20,$3A,$20,$25,$78,$00,$00,$48,$65,$61,$70	;  Size : %x..Heap
-	dc.b	$20,$53,$74,$61,$72,$74,$3A,$20,$25,$78,$00,$00,$4D,$41,$49,$4E	;  Start: %x..MAIN
-	dc.b	$43,$50,$55,$20,$69,$73,$20,$61,$6C,$69,$76,$65,$00,$00	; CPU is alive..
+	dc.b	$89,$49,$6E,$69,$74,$57,$6F,$72,$6C,$64,$00,$32,$48,$65,$61,$70	;.InitWorld.2Heap
+	dc.b	$20,$53,$69,$7A,$65,$20,$3A,$20,$25,$78,$00,$00,$48,$65,$61,$70	;Size : %x..Heap
+	dc.b	$20,$53,$74,$61,$72,$74,$3A,$20,$25,$78,$00,$00,$4D,$41,$49,$4E	;Start: %x..MAIN
+	dc.b	$43,$50,$55,$20,$69,$73,$20,$61,$6C,$69,$76,$65,$00,$00	;CPU is alive..
 ; GetCommandFromSub
 	link	a6,#$0
 	movem.l	d7/a3-a4,-(sp)
@@ -358,8 +358,8 @@ LFF4472	tst.w	(a4)
 	unlk	a6
 	rts
 ; GetCommandFromSub
-	dc.b	$91,$47,$65,$74,$43,$6F,$6D,$6D,$61,$6E,$64,$46,$72,$6F,$6D,$53	; .GetCommandFromS
-	dc.b	$75,$62,$00,$00			; ub..
+	dc.b	$91,$47,$65,$74,$43,$6F,$6D,$6D,$61,$6E,$64,$46,$72,$6F,$6D,$53	;.GetCommandFromS
+	dc.b	$75,$62,$00,$00			;ub..
 ; Set1MFlag
 	link	a6,#$0
 	movea.l	#$A12010,a0
@@ -367,4 +367,4 @@ LFF4472	tst.w	(a4)
 	unlk	a6
 	rts
 ; Set1MFlag
-	dc.b	$89,$53,$65,$74,$31,$4D,$46,$6C,$61,$67,$00,$00	; .Set1MFlag..
+	dc.b	$89,$53,$65,$74,$31,$4D,$46,$6C,$61,$67,$00,$00	;.Set1MFlag..

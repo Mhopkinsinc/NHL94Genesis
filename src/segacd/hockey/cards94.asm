@@ -2,11 +2,12 @@
 ;	The cartridge source with long addresses and no short or quick forms. Lines under ;CD: have
 ;	no cartridge twin. Names are the cartridge's; segacd\hockey\hockey.inc has the disc RAM map.
 ;
-;	The record bookkeeping (GetRecordValue, UpdateRecords ...) and CalcAttrib are the cartridge code.
-;	CD: the save RAM readers (ReadPlayerRecord ... NameLogIO) moved next to sram94 (file $7534);
-;	FeaturedPictures and the player card screen (PlayerCards ... BuildCardPlayerList) are gone;
-;	TeamPalettes stay (read from the disc file); pictures come through FeaturedPicturesPtr ($47D88);
-;	MenuWaitVblank became the BIOS call at $6044.
+;	The record bookkeeping (GetRecordValue, UpdateRecords ...) and CalcAttrib are the cartridge code. CD: the
+;	save RAM readers (ReadPlayerRecord ... NameLogIO) moved next to sram94 (file $7534); FeaturedPictures and
+;	the player card screen (PlayerCards ...
+;
+;	BuildCardPlayerList) are gone; TeamPalettes stay (read from the disc file); pictures come through
+;	FeaturedPicturesPtr ($47D88); MenuWaitVblank became the BIOS call at $6044.
 
 	include	macros\genesis.mac
 	include	segacd\hockey\hockey.inc
@@ -81,7 +82,7 @@ PlayerCardTimer						;Player cards, called each frame from ReadSetupPads in the 
 	bclr.b	#2,(setupcardflags).l	;clear setupcardflags bits 2 and 3
 	bclr.b	#3,(setupcardflags).l
 	bchg.b	#1,(setupcardflags).l	;the next card goes on the other side
-	st.b	(setuphome).l				;force the logo boxes to be redrawn later
+	st.b	(setuphome).l			;force the logo boxes to be redrawn later
 	st.b	(setupvis).l
 	bclr.b	#6,(setupcardflags).l	;clear setupcardflags bits 6 and 7
 	bclr.b	#7,(setupcardflags).l
@@ -213,7 +214,7 @@ PlayerCardScreen					;Draw a player card on one side. setupcardflags bit 1 set: 
 	movea.l	#TeamList,a2
 	asl.w	#2,d0
 	movea.l	(a2,d0.w),a2
-	adda.w	0(a2),a2					;a2 = first player record of the team
+	adda.w	0(a2),a2				;a2 = first player record of the team
 	move.w	(cardroster).l,d0		;skip cardroster players to reach the featured one
 	bra.w	.10
 .loop2								;skip one player record: name length + fixed part
@@ -253,7 +254,7 @@ PlayerCardScreen					;Draw a player card on one side. setupcardflags bit 1 set: 
 	movea.l	#mesarea,a1
 	move.w	(cardteamnum).l,d0
 	move.w	(cardroster).l,d1
-	movea.l	#$C45C,a0	;CD: the cartridge has #M68K_RAM
+	movea.l	#$C45C,a0				;CD: the cartridge has #M68K_RAM
 	jsr	(PrintRecordHolder).l
 	move.w	(cardprintx).l,(printx).l
 	cmpi.w	#2,(a1)					;no record holder: skip the line
@@ -266,7 +267,7 @@ PlayerCardScreen					;Draw a player card on one side. setupcardflags bit 1 set: 
 	movea.l	#mesarea,a1
 	move.w	(cardteamnum).l,d0
 	move.w	(cardroster).l,d1
-	movea.l	#$C45C,a0	;CD: the cartridge has #M68K_RAM
+	movea.l	#$C45C,a0				;CD: the cartridge has #M68K_RAM
 	jsr	(PrintRecordVs).l
 	move.w	(cardprintx).l,(printx).l	;left edge of the text
 	addi.w	#1,(printy).l
@@ -283,7 +284,7 @@ wallcollduringcheck					;during a check, a skater a2 (not a goalie) near the wal
 	tst.w	position(a2)			;goalies have no wall check during a hit
 	beq.w	.end
 	movem.l	d0-d7,-(sp)
-	move.w	0(a2),d2					;Xpos of checking player
+	move.w	0(a2),d2				;Xpos of checking player
 	move.w	Ypos(a2),d3				;Ypos of checking player
 	move.w	radiusx(a2),(wcradiusx).l	;make the test box $17 bigger than the skater
 	addi.w	#$17,(wcradiusx).l		;add $17 to wcradiusx
@@ -316,7 +317,7 @@ setSlotBit							;Sflags6 bit 5 (the slot) = the puck carrier is in the slot in 
 	blt.w	.restore				;branch if not in off zone
 	cmpi.w	#$47,0(a0)				;and within $47 of the middle across the ice
 	bgt.w	.restore				;branch if greater than 47
-	cmpi.w	#$FFB9,0(a0)				;compare X position to -$47
+	cmpi.w	#$FFB9,0(a0)			;compare X position to -$47
 	blt.w	.restore				;branch if less than -47
 	bset.b	#5,(sflags6).l
 .restore							;pop the d0/a0 saved above
@@ -520,7 +521,7 @@ GetRecordValue						;d0 = record d0 of player d1 of team d0 from save RAM (ReadP
 	movea.l	#TeamList,a2
 	asl.w	#2,d0
 	movea.l	(a2,d0.w),a2
-	adda.w	0(a2),a2					;a2 = the team's first player record
+	adda.w	0(a2),a2				;a2 = the team's first player record
 	move.w	d1,d0					;skip d1 records to reach the player
 	bra.w	.0
 .loop								;skip one player record: name length + fixed part
@@ -534,7 +535,7 @@ GetRecordValue						;d0 = record d0 of player d1 of team d0 from save RAM (ReadP
 	move.w	d0,d5
 	move.w	d1,d4
 	ext.l	d0
-	movea.l	#$C45C,a0	;CD: the cartridge has #M68K_RAM
+	movea.l	#$C45C,a0				;CD: the cartridge has #M68K_RAM
 	bsr.w	ReadPlayerRecord		;his save record into M68K_RAM
 	move.b	(a0),d0					;byte 0 = the record value
 	ext.w	d0
@@ -617,9 +618,9 @@ AppendRecordHolder					;Append the user name of the record holder (byte 1 of rec
 	move.w	(sp)+,d1
 	ext.l	d1
 	ext.l	d0
-	movea.l	#$C45C,a0	;CD: the cartridge has #M68K_RAM
+	movea.l	#$C45C,a0				;CD: the cartridge has #M68K_RAM
 	bsr.w	ReadPlayerRecord
-	movea.l	#$C45C,a0			;a0 = the record (CD: the cartridge has #M68K_RAM)
+	movea.l	#$C45C,a0				;a0 = the record (CD: the cartridge has #M68K_RAM)
 	movem.l	(sp)+,d0-d7/a1-a6
 .0									;record ready (passed in, or read into M68K_RAM): byte 1 = holder
 	move.b	1(a0),d2
@@ -639,9 +640,9 @@ AppendRecordVs						;Append the user name (byte 3 of record a0), a space and the
 	move.w	(sp)+,d1
 	ext.l	d1
 	ext.l	d0
-	movea.l	#$C45C,a0	;CD: the cartridge has #M68K_RAM
+	movea.l	#$C45C,a0				;CD: the cartridge has #M68K_RAM
 	bsr.w	ReadPlayerRecord
-	movea.l	#$C45C,a0			;a0 = the record (CD: the cartridge has #M68K_RAM)
+	movea.l	#$C45C,a0				;a0 = the record (CD: the cartridge has #M68K_RAM)
 	movem.l	(sp)+,d0-d7/a1-a6
 .0									;record ready (passed in, or read into M68K_RAM): byte 3 = the user
 	move.b	3(a0),d2
@@ -727,7 +728,7 @@ UpdateTeamRecord					;After a game: add the game to team record block d1 (games,
 									;and keep the biggest win and loss margins with the user names
 	movem.l	d0-d7/a0-a6,-(sp)
 	bsr.w	ReadTeamRecord			;team record block to a0
-	st.b	d7							;d7 set: the team record is always written back
+	st.b	d7						;d7 set: the team record is always written back
 	movem.w	d0,-(sp)
 	clr.w	d0						;games, big endian
 	move.b	urgames(a0),d0
@@ -769,16 +770,16 @@ UpdateTeamRecord					;After a game: add the game to team record block d1 (games,
 	movem.w	(sp)+,d0
 	ble.w	.write					;not a win: no margin record
 	move.w	tmscore(a1),d5
-	cmp.b	0(a0),d5					;biggest goals scored in a win
+	cmp.b	0(a0),d5				;biggest goals scored in a win
 	ble.w	.2
 	st.b	d7
-	move.b	d5,0(a0)					;new goals record
+	move.b	d5,0(a0)				;new goals record
 	move.b	d3,urgoalsteam(a0)
 	move.b	d4,urgoalsopp(a0)
 	move.b	d2,urgoalsoppuser(a0)
 .2									;goals record kept or set: check the saves record
 	move.w	tmscore(a2),d5			;opponent goals
-	move.w	0(a2),d6					;shots - goals = saves of the other goalie
+	move.w	0(a2),d6				;shots - goals = saves of the other goalie
 	sub.w	d5,d6
 	cmp.b	ursaves(a0),d6			;above the record?
 	ble.w	.write
@@ -795,7 +796,7 @@ UpdateCrowdRecord					;Update the crowd records (ReadCrowdRecord, WriteCrowdReco
 	movem.l	d0-d7/a0-a6,-(sp)
 	bsr.w	ReadCrowdRecord			;crowd record block to a0
 	move.w	$C(a1),d3				;team goals of this game
-	cmp.b	0(a0),d3					;more goals than the record: new crowd goals record
+	cmp.b	0(a0),d3				;more goals than the record: new crowd goals record
 	ble.w	.0
 	move.b	d3,0(a0)
 	move.b	d4,crgoalsuser(a0)
@@ -866,7 +867,7 @@ UpdatePlayerRecords					;After a game: for the 26 players of team a2, keep each 
 	sub.b	(a2,d0.w),d4			;d4 = saves
 	move.w	(sp)+,d0
 .1									;this game's value in d4
-	move.b	0(a0),d3					;his record
+	move.b	0(a0),d3				;his record
 	cmp.b	d3,d4
 	ble.w	.3						;not above his record: next player
 	move.b	d4,0(a0)
@@ -944,7 +945,7 @@ AppendUserName						;Append user name d2 (12 bytes of the name log at namelog, s
 NoNameTxt	dc.b	0				;AppendUserName data
 	dc.b	2
 ;CD: no cartridge twin
-RunPlayerOverlay						;CD-only routine (a name given here, not a cartridge name)
+RunPlayerOverlay					;CD-only routine (a name given here, not a cartridge name)
 	movem.l	d0-d7/a0-a6,-(sp)
 	move.w	#$9,d7
 	jsr	$6044.w
@@ -1122,7 +1123,7 @@ CalcAttrib							;The overall rating of player d0: his attributes weighted by
 	asl.w	#4,d1					;mult d1 by 16
 	adda.l	d1,a4					;add d1 to a4
 	adda.l	#$10,a4					;add 16 dec to a4. Move to start of Hot/Cold for player.
-	adda.w	0(a0),a0					;add player table offset to Team Data start
+	adda.w	0(a0),a0				;add player table offset to Team Data start
 .skip								;skip one player record: name length + fixed part
 	adda.w	(a0),a0					;add Player Name length to a0
 ;CD: no cartridge twin
@@ -1231,7 +1232,7 @@ DrawPlayerPicture					;Draw the player picture (NoPicSkater1 ... NoPicGoalie2, C
 	movea.l	(a0),a0					;his picture
 	bra.w	.x
 ;CD: no cartridge twin
-.0						;CD: placed where the disc branches to it
+.0									;CD: placed where the disc branches to it
 	adda.l	#$6,a0
 .1									;stop at the 0 that ends the list
 	addi.w	#1,d2

@@ -347,7 +347,7 @@ ScoutingReport						;CD: its first lines have no twin; the rest of it starts her
 	move.l	#vb2,(VBint).l
 	jsr	$21FC8.l
 	bset.b	#$5,$FF800F.l
-.top						;CD: placed where the disc branches to it
+.top								;CD: placed where the disc branches to it
 	moveq	#$0,d0
 	jsr	(waitx).l
 	btst.b	#$1,$1AD77.l
@@ -355,7 +355,7 @@ ScoutingReport						;CD: its first lines have no twin; the rest of it starts her
 	movea.l	#$FFFFFFFF,a0
 	move.w	#$9,d0
 	move.w	#$10,d7
-	jsr	$6044.w					;d1 = new presses (CD: the cartridge has (waitx).l)
+	jsr	$6044.w						;d1 = new presses (CD: the cartridge has (waitx).l)
 .L288AC
 	subi.w	#1,(matchuptimer).l
 	bpl.w	.2						;not run out
@@ -395,7 +395,7 @@ ScoutingReport						;CD: its first lines have no twin; the rest of it starts her
 	clr.w	(asv).l					;normal text speed
 	btst	#dbut,d1				;down?
 	beq.w	.6
-	st.b	(asv).l						;down: type the rest without delays
+	st.b	(asv).l					;down: type the rest without delays
 .6									;down held?
 	btst.b	#1,(waitxpad+1).l		;down held (waitx pad bits)
 	beq.w	.upd
@@ -424,7 +424,7 @@ ScoutingReport						;CD: its first lines have no twin; the rest of it starts her
 	bpl.w	.top
 ;CD: no cartridge twin
 	beq.w	.top
-.exit						;CD: placed where the disc branches to it
+.exit								;CD: placed where the disc branches to it
 	movea.l	#$FFFFFFFF,a0
 	move.w	#$9,d0
 	move.w	#$10,d7

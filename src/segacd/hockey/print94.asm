@@ -50,7 +50,7 @@ eraser								;fill rectangle with char. d0/d1 = x/y size of rectangle, d2 = cha
 	move.w	(sp),d0
 	subi.w	#1,d0
 ;CD: no cartridge twin
-.0						;CD: placed where the disc branches to it
+.0									;CD: placed where the disc branches to it
 .L38C26
 	btst.b	#$7,$FF800E.l
 	bne.s	.L38C26
@@ -166,10 +166,11 @@ printsmall							;Print string macro a1 at printx/y/m with printa; uses the setu
 	move.w	(disflags).l,-(sp)
 	bset.b	#dfng,(disflags).l
 	movem.l	d0-d3/a0/a2-a3,-(sp)
-	movea.l	#$18D42,a3	;char set bases, picked by printfontset (CD: the cartridge has #(smallfontchars-M68K_RAM))
+	movea.l	#$18D42,a3				;char set bases, picked by printfontset (CD: the cartridge has
+									;#(smallfontchars-M68K_RAM))
 	btst.b	#3,(sflags6).l			;setup font?
 	beq.w	.start
-	movea.l	#$17EA2,a3	;setup font char base (CD: the cartridge has #(setupfontchars-M68K_RAM))
+	movea.l	#$17EA2,a3				;setup font char base (CD: the cartridge has #(setupfontchars-M68K_RAM))
 .start								;font chosen
 	bsr.w	xyVmMap
 	move.w	(printa).l,d2			;attribute
@@ -421,7 +422,7 @@ PeriodLabelTable					;String list for FormatAndPrintTime: " 1", " 2", " 3", "OT"
 ; convert d0 into string format of min:sec
 PushTime							;convert d0 into string format of minutes:seconds. Return a1 = string.
 									;pads the minutes to 2 places with a space
-	movea.l	#$17F10,a1	;end of the buffer (CD: the cartridge has #(mesarea+30-M68K_RAM))
+	movea.l	#$17F10,a1				;end of the buffer (CD: the cartridge has #(mesarea+30-M68K_RAM))
 	move.l	d0,-(sp)
 	move.l	a1,-(sp)
 	ext.l	d0
@@ -537,7 +538,7 @@ appstring							;append string a1 to string a3
 	subi.w	#3,d0
 	bmi.w	.1
 ;CD: no cartridge twin
-.0						;CD: placed where the disc branches to it
+.0									;CD: placed where the disc branches to it
 	adda.w	#$1,a0
 	tst.b	(a0)					;zero?
 	dbeq	d0,.0					;stop at the zero byte
@@ -692,7 +693,8 @@ AddSmallFont						;transfer smallfont.map tiles to vram. d4 = char to start tile
 	movea.l	(SmallFontMapPtr).l,a2
 	addq.l	#$8,a2
 	bra.w	DecompressGraphicsPlain
-AddFramer						;CD: entered here; the cartridge AddFramer starts at its first twin line, $39402
+AddFramer							;CD: entered here; the cartridge AddFramer starts at its first twin line,
+									;$39402
 	movea.l	(FramerMapPtr).l,a2
 	addq.l	#$8,a2
 	move.w	d4,(framercset).l		;frame chars

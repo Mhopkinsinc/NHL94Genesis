@@ -59,7 +59,7 @@ ReadPads	equ	$47DB2
 	addq.w	#$1,$17460.l
 .L22094
 	rts
-Begin						;CD: its first lines have no twin; the rest of it starts here
+Begin								;CD: its first lines have no twin; the rest of it starts here
 	movea.l	#(Stack-M68K_RAM),sp	;stack pointer to Stack
 	movea.l	#(VSCRLPM-M68K_RAM),a0	;clear out ram
 .0	clr.l	(a0)+					;clear the RAM from VSCRLPM through PALflag
@@ -128,14 +128,14 @@ Begin						;CD: its first lines have no twin; the rest of it starts here
 	move.w	#$FFFF,$17DD6.l
 	jsr	$21FC8.l
 	move.w	#$3,d7
-	jsr	$6044.w	;CD: the cartridge has (InitSaveRAM).l
-	jsr	$3FDE8.l	;CD: the cartridge has (ReadLineData).l
+	jsr	$6044.w						;CD: the cartridge has (InitSaveRAM).l
+	jsr	$3FDE8.l					;CD: the cartridge has (ReadLineData).l
 	jsr	(HiScoreScreen).l
 	jsr	(DefaultMenus).l
 	move.w	(OptLine).l,(TmpOptLine2).l
 	move.w	(OptPlayMode).l,(TempOptPlayMode).l
 	jsr	(orjoy).l					;clear any previous button presses
-	jmp	(Opening).l						;goto title screen and options etc.
+	jmp	(Opening).l					;goto title screen and options etc.
 ;CD: no cartridge twin
 .L2221C
 	btst.b	#$7,$FF800E.l
@@ -203,7 +203,7 @@ GamePcmSounds						;CD-only data (a name given here, not a cartridge name)
 	dc.w	$00FF,$0600,$095A,$00FF,$FF02,$0202,$00FF,$00FF
 	dc.w	$0608,$0B54,$00FF,$FF02,$0202,$00FF,$00FF,$0600
 	dc.w	$0C5A,$00FF,$FF02,$0202,$00FF,$00FF
-GamePcmSampleList						;CD-only data (a name given here, not a cartridge name)
+GamePcmSampleList					;CD-only data (a name given here, not a cartridge name)
 	dc.w	$0002,$0000,$0002,$0001,$0002,$0002,$0002,$0003
 	dc.w	$0002,$0004,$0002,$0005,$0002,$0006,$0002,$0007
 	dc.w	$0002,$0008,$0002,$0009,$0002,$000A,$0002,$000B
@@ -227,8 +227,8 @@ ClearSRAM							;Clears first $2000 of RAM and SaveRAM: zero M68K_RAM $0-$1FFF w
 									;$1FFE = $FF (the checksum of zeros), write it to
 									;the save RAM, set byte 1 to 1, then MakeSRAMChecksum. Called from
 									;InitSaveRAM
-	lea	$193BC.l,a0	;CD: the cartridge has (M68K_RAM).l
-	move.w	#$F1F,d0	;CD: the cartridge has #$1FFF
+	lea	$193BC.l,a0					;CD: the cartridge has (M68K_RAM).l
+	move.w	#$F1F,d0				;CD: the cartridge has #$1FFF
 	clr.l	d1
 .loop								;clear each byte
 	move.b	d1,(a0)+

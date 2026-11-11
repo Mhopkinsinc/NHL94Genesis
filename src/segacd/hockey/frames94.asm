@@ -20,51 +20,51 @@
 
 ; Sprite Frame (SPF) base indices
 SPFskatewp	=	1					;skating, stick down
-SPFskate	=	SPFskatewp+40		; 41 (skating, stick up)
-SPFturnl	=	SPFskate+40			; 81 (turning left)
-SPFturnr	=	SPFturnl+8			; 89 (turning right)
-SPFswing	=	SPFturnr+8			; 97 (pass and shot swings)
-SPFstop	=	SPFswing+48				; 145 (scrape stop)
-SPFskateb	=	SPFstop+16			; 161 (skating backwards)
-SPFcelebrate	=	SPFskateb+24	; 185 (celebrating)
-SPFpump	=	SPFcelebrate+16			; 201 (arm pump)
-SPFcup	=	SPFpump+16				; 217 (skating with the cup)
-SPFhipl	=	SPFcup+8				; 225 (hip check left)
-SPFhipr	=	SPFhipl+8				; 233 (hip check right)
-SPFshoulderl	=	SPFhipr+8		; 241 (shoulder check left)
-SPFshoulderr	=	SPFshoulderl+8	; 249 (shoulder check right)
-SPFsweep	=	SPFshoulderr+8		; 257 (sweep check)
+SPFskate	=	SPFskatewp+40		;41 (skating, stick up)
+SPFturnl	=	SPFskate+40			;81 (turning left)
+SPFturnr	=	SPFturnl+8			;89 (turning right)
+SPFswing	=	SPFturnr+8			;97 (pass and shot swings)
+SPFstop	=	SPFswing+48				;145 (scrape stop)
+SPFskateb	=	SPFstop+16			;161 (skating backwards)
+SPFcelebrate	=	SPFskateb+24	;185 (celebrating)
+SPFpump	=	SPFcelebrate+16			;201 (arm pump)
+SPFcup	=	SPFpump+16				;217 (skating with the cup)
+SPFhipl	=	SPFcup+8				;225 (hip check left)
+SPFhipr	=	SPFhipl+8				;233 (hip check right)
+SPFshoulderl	=	SPFhipr+8		;241 (shoulder check left)
+SPFshoulderr	=	SPFshoulderl+8	;249 (shoulder check right)
+SPFsweep	=	SPFshoulderr+8		;257 (sweep check)
 
-SPFfallback	=	SPFsweep+16			; 273 (falling backward)
-SPFfallfwd	=	SPFfallback+32		; 305 (falling forward)
-SPFduck	=	SPFfallfwd+32			; 337 (ducking)
-SPFHold	=	SPFduck+8				; 345 (holding)
+SPFfallback	=	SPFsweep+16			;273 (falling backward)
+SPFfallfwd	=	SPFfallback+32		;305 (falling forward)
+SPFduck	=	SPFfallfwd+32			;337 (ducking)
+SPFHold	=	SPFduck+8				;345 (holding)
 
-SPFgloves	=	SPFHold+8			; 353 (gloves on the ice (fights), not used by any table)
-SPFfight	=	SPFgloves+1			; 354 (fighting, not used by any table)
-SPFfinjury	=	SPFfight+17			; 371 (fight injury, not used by any table)
-SPFPen	=	SPFfinjury+6			; 377 (frames used by the wall jump animations)
+SPFgloves	=	SPFHold+8			;353 (gloves on the ice (fights), not used by any table)
+SPFfight	=	SPFgloves+1			;354 (fighting, not used by any table)
+SPFfinjury	=	SPFfight+17			;371 (fight injury, not used by any table)
+SPFPen	=	SPFfinjury+6			;377 (frames used by the wall jump animations)
 
-SPFarrow	=	SPFPen+7			; 384 (arrows for off screen players, not used by any table)
-SPFpad	=	SPFarrow+6				; 390 (face off pads, not used by any table)
-SPFreplay	=	SPFpad+3			; 393 (replay marker, not used by any table)
-SPFpuck	=	SPFreplay+1				; 394 (puck)
-SPFgoal	=	SPFpuck+11				; 405 (goal, not used by any table)
-SPFGoalie	=	SPFgoal+2			; 407 (goalie)
-SPFgdive	=	SPFGoalie+112		; 519 (goalie dive)
-SPFglovel2	=	SPFgdive+16			; 535 (goalie second glove save)
-SPFgready	=	SPFglovel2+4		; 539 (goalie ready)
-SPFSiren	=	SPFgready+24		; 563 (siren)
+SPFarrow	=	SPFPen+7			;384 (arrows for off screen players, not used by any table)
+SPFpad	=	SPFarrow+6				;390 (face off pads, not used by any table)
+SPFreplay	=	SPFpad+3			;393 (replay marker, not used by any table)
+SPFpuck	=	SPFreplay+1				;394 (puck)
+SPFgoal	=	SPFpuck+11				;405 (goal, not used by any table)
+SPFGoalie	=	SPFgoal+2			;407 (goalie)
+SPFgdive	=	SPFGoalie+112		;519 (goalie dive)
+SPFglovel2	=	SPFgdive+16			;535 (goalie second glove save)
+SPFgready	=	SPFglovel2+4		;539 (goalie ready)
+SPFSiren	=	SPFgready+24		;563 (siren)
 
-SPFcatch	=	SPFSiren+14			; 577 (catching a puck hit)
-SPFhook	=	SPFcatch+16				; 593 (hooking)
-SPFstumble	=	SPFhook+16			; 609 (stumbling)
-SPFflip	=	SPFstumble+24			; 633 (flipping over)
-SPFinjury1	=	SPFflip+8			; 641 (injured on the ice)
-SPFbglass	=	SPFinjury1+12		; 653 (glass bang)
-SPFslamtop	=	708					; 708 (goalie in the top net slams his stick)
-SPFslambot	=	712					; 712 (goalie in the bottom net slams his stick)
-SPFghighr	=	658					; 658 (goalie high shoulder save right; the frames after it have no name)
+SPFcatch	=	SPFSiren+14			;577 (catching a puck hit)
+SPFhook	=	SPFcatch+16				;593 (hooking)
+SPFstumble	=	SPFhook+16			;609 (stumbling)
+SPFflip	=	SPFstumble+24			;633 (flipping over)
+SPFinjury1	=	SPFflip+8			;641 (injured on the ice)
+SPFbglass	=	SPFinjury1+12		;653 (glass bang)
+SPFslamtop	=	708					;708 (goalie in the top net slams his stick)
+SPFslambot	=	712					;712 (goalie in the bottom net slams his stick)
+SPFghighr	=	658					;658 (goalie high shoulder save right; the frames after it have no name)
 
 ;	Each animation table is: 8 word offsets (one per facing direction 0-7, relative to .t), a flags word
 ;	(0 or 1), then per direction a list of frame,time word pairs; a negative time ends the list. A SPA value,
@@ -1260,7 +1260,7 @@ SPAwallright_table:					;table of the animation above: direction offsets, flags,
 	dc.w	.4-.t
 	dc.w	.5-.t
 	dc.w	.6-.t
-	dc.w	$003E	;dc.w	.7-.t
+	dc.w	$003E					;dc.w	.7-.t
 	dc.w	0
 
 .a	=	SPFPen
@@ -1272,7 +1272,7 @@ SPAwallright_table:					;table of the animation above: direction offsets, flags,
 .4
 .5
 .6	dc.w	.a+3,8,.a+2,8,.a+1,8,.a,-8
-.7									; (skipped)
+.7									;(skipped)
 
 SPAwallleft	=	*-SPAlist			;player jumps wall with legs to the left
 SPAwallleft_table:					;table of the animation above: direction offsets, flags, frame/time lists
@@ -1296,7 +1296,7 @@ SPAwallleft_table:					;table of the animation above: direction offsets, flags, 
 .4
 .5
 .6	dc.w	.a,8,.a+1,8,.a+2,8,.a+3,-8
-.7									; (skipped)
+.7									;(skipped)
 
 SPAfaceoff	=	*-SPAlist			;player does faceoff stick check
 SPAfaceoff_table:					;table of the animation above: direction offsets, flags, frame/time lists

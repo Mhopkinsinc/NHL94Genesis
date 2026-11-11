@@ -32,14 +32,14 @@ waitx								;wait d0 vblanks or until input from either joystick. Return joysti
 	or.w	d3,(waitxpad).l			;plus its held bits
 	tst.w	d1						;any press?
 	bne.w	rtss2
-	bsr.w	ReadJoy2	;CD: the cartridge has ReadJoy3
+	bsr.w	ReadJoy2				;CD: the cartridge has ReadJoy3
 	or.w	d3,(waitxpad).l			;plus its held bits
 	tst.w	d1						;any press?
 	bne.w	rtss2
 ;CD: no cartridge twin
 	tst.w	(FourWayPlay).l
 	beq.w	.1
-	bsr.w	ReadJoy3	;CD: the cartridge has ReadJoy4
+	bsr.w	ReadJoy3				;CD: the cartridge has ReadJoy4
 	or.w	d3,(waitxpad).l			;plus its held bits
 	tst.w	d1						;any press?
 	bne.w	rtss2
@@ -400,7 +400,7 @@ DoDMApro							;initiate dma transfer and protect from vblank interuption. d0 = 
 	move.w	(sp)+,(disflags).l
 	rts
 ;CD: no cartridge twin
-DoDMA						;CD: placed where the disc branches to it
+DoDMA								;CD: placed where the disc branches to it
 	move.l	a6,-(sp)
 	movea.l	$19360.l,a6
 	btst.b	#$5,$FF800F.l
@@ -643,12 +643,12 @@ DoDMA						;CD: placed where the disc branches to it
 .L37B50
 	move.l	a6,$19360.l
 	movea.l	(sp)+,a6
-WaitDMA						;CD: its first lines have no twin; the rest of it starts here
+WaitDMA								;CD: its first lines have no twin; the rest of it starts here
 	rts
 ; d0 = color to fade to
 setVram								;initialize all necesary video parameters based on my variables. d0 =
 									;color to fade to. Falls into setVram_0
-	movea.l	#$BBCB0,a0	;CD: the cartridge has #(palfadenew-M68K_RAM)
+	movea.l	#$BBCB0,a0				;CD: the cartridge has #(palfadenew-M68K_RAM)
 	moveq	#$3F,d1
 .0									;fill each target color
 	move.w	d0,(a0)+				;fill the 64 target colors with d0
@@ -702,13 +702,13 @@ setVram								;initialize all necesary video parameters based on my variables. 
 	btst.b	#$6,$FF800E.l
 	bne.s	.L37C38
 	bclr.b	#$7,$FF800F.l
-setVram_0						;CD: its first lines have no twin; the rest of it starts here
+setVram_0							;CD: its first lines have no twin; the rest of it starts here
 	move.w	#$8C00,d0				;8 for shadow mode
 	btst.b	#df32c,(disflags).l
 	bne.w	.i32					;32 column flag set: leave bits 0 and 7 clear
 	ori.w	#$81,d0
 ;CD: no cartridge twin
-.i32						;CD: placed where the disc branches to it
+.i32								;CD: placed where the disc branches to it
 	btst.b	#$7,$FF800E.l
 	bne.s	.i32
 	move.w	d0,$FF8022.l
@@ -758,7 +758,7 @@ setVram_0						;CD: its first lines have no twin; the rest of it starts here
 	beq.w	.i64					;Map1col 6 = 64 columns wide
 	move.w	#$9003,d0				;otherwise 128x32
 ;CD: no cartridge twin
-.i64						;CD: placed where the disc branches to it
+.i64								;CD: placed where the disc branches to it
 	btst.b	#$7,$FF800E.l
 	bne.s	.i64
 	move.w	d0,$FF8022.l
@@ -852,7 +852,7 @@ setVram_0						;CD: its first lines have no twin; the rest of it starts here
 	bne.s	.L37EFC
 	bclr.b	#$7,$FF800F.l
 	move.w	#$8D00,d0				;reg $D: scroll table
-	move.b	$18D30.l,d0	;CD: the cartridge has (VSCRLPM).w
+	move.b	$18D30.l,d0				;CD: the cartridge has (VSCRLPM).w
 	lsr.b	#2,d0
 ;CD: no cartridge twin
 .L37F1A
@@ -1317,7 +1317,9 @@ Vmaddr								;set video port to address d0. d0 = vram address, returns a0 = Vda
 	bne.s	.L387CE
 	bclr.b	#$4,$FF800F.l
 	rts
-dobitmap						;transfer palette data/map data/tiles data to vram. a0 = palette, a1 = (CD: entered here; the cartridge dobitmap starts at its first twin line, $3880E)
+dobitmap							;transfer palette data/map data/tiles data to vram. a0 = palette, a1 =
+									;(CD: entered here; the cartridge dobitmap starts at its first twin line,
+									;$3880E)
 	move.l	a6,-(sp)
 	movea.l	$19360.l,a6
 	btst.b	#$5,$FF800F.l
@@ -1346,10 +1348,11 @@ dobitmap						;transfer palette data/map data/tiles data to vram. a0 = palette, 
 	bset.b	#dfng,(disflags).l
 	movem.l	d0-d3/d5-d6/a0-a3,-(sp)	;2(sp) start x, $A(sp) width x, $E(sp) width y (low words of d0, d2, d3)
 	move.w	d1,d6
-	movea.l	#$BBCB0,a3	;a3 = target palette, a0 = palette data (CD: the cartridge has #(palfadenew-M68K_RAM))
+	movea.l	#$BBCB0,a3				;a3 = target palette, a0 = palette data (CD: the cartridge has
+									;#(palfadenew-M68K_RAM))
 	bra.w	.00
 .01									;loop
-	move.b	(a0,d0.w),(a3,d0.w)	;copy the color
+	move.b	(a0,d0.w),(a3,d0.w)		;copy the color
 	dbf	d0,.01						;loop
 .02									;loop
 	adda.l	#$20,a0					;next line

@@ -43,7 +43,7 @@ L100C0	movea.l	-$8(a6),a4
 	unlk	a6
 	rts
 ; AudioPlayPos
-	dc.b	$8C,$41,$75,$64,$69,$6F,$50,$6C,$61,$79,$50,$6F,$73,$00,$00,$00	; .AudioPlayPos...
+	dc.b	$8C,$41,$75,$64,$69,$6F,$50,$6C,$61,$79,$50,$6F,$73,$00,$00,$00	;.AudioPlayPos...
 ; AudioInit
 	link	a6,#$0
 	move.l	a4,-(sp)
@@ -59,7 +59,7 @@ L100C0	movea.l	-$8(a6),a4
 	unlk	a6
 	rts
 ; AudioInit
-	dc.b	$89,$41,$75,$64,$69,$6F,$49,$6E,$69,$74,$00,$00	; .AudioInit..
+	dc.b	$89,$41,$75,$64,$69,$6F,$49,$6E,$69,$74,$00,$00	;.AudioInit..
 ; AudioIdle
 	link	a6,#$0
 	movem.l	d7/a4,-(sp)
@@ -93,7 +93,7 @@ L1016A	movem.l	-$8(a6),d7/a4
 	unlk	a6
 	rts
 ; AudioIdle
-	dc.b	$89,$41,$75,$64,$69,$6F,$49,$64,$6C,$65,$00,$00	; .AudioIdle..
+	dc.b	$89,$41,$75,$64,$69,$6F,$49,$64,$6C,$65,$00,$00	;.AudioIdle..
 ; AudioFeed
 	link	a6,#$0
 	move.l	a4,-(sp)
@@ -124,7 +124,7 @@ L101CA	movea.l	-$4(a6),a4
 	unlk	a6
 	rts
 ; AudioFeed
-	dc.b	$89,$41,$75,$64,$69,$6F,$46,$65,$65,$64,$00,$00	; .AudioFeed..
+	dc.b	$89,$41,$75,$64,$69,$6F,$46,$65,$65,$64,$00,$00	;.AudioFeed..
 ; AudioSilence
 	link	a6,#$0
 	movem.l	d3/d7/a3-a4,-(sp)
@@ -166,14 +166,14 @@ L1023C	movem.l	-$10(a6),d3/d7/a3-a4
 	unlk	a6
 	rts
 ; AudioSilence
-	dc.b	$8C,$41,$75,$64,$69,$6F,$53,$69,$6C,$65,$6E,$63,$65,$00,$00,$00	; .AudioSilence...
+	dc.b	$8C,$41,$75,$64,$69,$6F,$53,$69,$6C,$65,$6E,$63,$65,$00,$00,$00	;.AudioSilence...
 ; AudioStop
 	link	a6,#$0
 	jsr	X_F070(pc)
 	unlk	a6
 	rts
 ; AudioStop
-	dc.b	$89,$41,$75,$64,$69,$6F,$53,$74,$6F,$70,$00,$00	; .AudioStop..
+	dc.b	$89,$41,$75,$64,$69,$6F,$53,$74,$6F,$70,$00,$00	;.AudioStop..
 ; AudioTicks
 	link	a6,#$FFFC
 	move.l	a4,-(sp)
@@ -194,7 +194,7 @@ L1023C	movem.l	-$10(a6),d3/d7/a3-a4
 	unlk	a6
 	rts
 ; AudioTicks
-	dc.b	$8A,$41,$75,$64,$69,$6F,$54,$69,$63,$6B,$73,$00,$00,$00	; .AudioTicks...
+	dc.b	$8A,$41,$75,$64,$69,$6F,$54,$69,$63,$6B,$73,$00,$00,$00	;.AudioTicks...
 ; AudioTime
 	link	a6,#$0
 	move.l	$8(a6),-(sp)
@@ -210,7 +210,7 @@ L1023C	movem.l	-$10(a6),d3/d7/a3-a4
 	unlk	a6
 	rts
 ; AudioTime
-	dc.b	$89,$41,$75,$64,$69,$6F,$54,$69,$6D,$65,$00,$00	; .AudioTime..
+	dc.b	$89,$41,$75,$64,$69,$6F,$54,$69,$6D,$65,$00,$00	;.AudioTime..
 ; AudioBusy
 	link	a6,#$0
 	movea.l	$8(a6),a0
@@ -218,4 +218,4 @@ L1023C	movem.l	-$10(a6),d3/d7/a3-a4
 	unlk	a6
 	rts
 ; AudioBusy
-	dc.b	$89,$41,$75,$64,$69,$6F,$42,$75,$73,$79,$00,$00	; .AudioBusy..
+	dc.b	$89,$41,$75,$64,$69,$6F,$42,$75,$73,$79,$00,$00	;.AudioBusy..

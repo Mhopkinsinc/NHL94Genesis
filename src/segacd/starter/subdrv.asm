@@ -1,10 +1,11 @@
 ;	STARTER.BIN $1542-$3A0B (runtime $C542-$EA0B).
 ;
 ;	The sub CPU driver module: the PCM sound driver (commands 0-8 and packed commands, records, eight
-;	channels, envelopes), then the start-up sequence (screens, samples, two stages, film, credits), the commands
-;	it sends to the main CPU, word RAM handover, frames, pads. Names given here; docs/segacd_starter_driver.md.
-;	Inline command words after some calls show as instructions; PcmPitchTable is words.
-;	pcmclear.asm follows.
+;	channels, envelopes), then the start-up sequence (screens, samples, two stages, film, credits), the
+;	commands it sends to the main CPU, word RAM handover, frames, pads.
+;
+;	Names given here; docs/segacd_starter_driver.md. Inline command words after some calls show as
+;	instructions; PcmPitchTable is words. pcmclear.asm follows.
 
 
 DispatchPcmCommandEntry	equ	$C4BC

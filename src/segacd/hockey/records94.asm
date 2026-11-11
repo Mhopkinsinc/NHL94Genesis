@@ -60,7 +60,8 @@ NameEntryScreen						;"NAME ENTRY" screen for the user records (own vblank VBlan
 	bclr.b	#dfok,(disflags).l		;display not ready
 	bset.b	#dfng,(disflags).l		;no game drawing while the screen is built
 	bclr.b	#df32c,(disflags).l		;32 cell flag off
-	move.w	#0,$18D30.l			;plain scroll and the map / sprite table layout of the setup screens (CD: the cartridge has (VSCRLPM).w)
+	move.w	#0,$18D30.l				;plain scroll and the map / sprite table layout of the setup screens (CD:
+									;the cartridge has (VSCRLPM).w)
 	move.w	#$B400,(VSPRITES).l
 	move.w	#$B800,(VmMAP3).l
 	move.w	#5,(Map3col).l
@@ -385,7 +386,7 @@ NameLetterGrid						;Name entry: the letter grid ("D-Pad to a letter.", "C to se
 	move.b	(a0)+,(a1)+
 	move.b	#$20,(a1)+
 	dbf	d1,.loop2					;next letter
-	movea.l	#$17EF2,a1	;CD: the cartridge has #(mesarea-M68K_RAM)
+	movea.l	#$17EF2,a1				;CD: the cartridge has #(mesarea-M68K_RAM)
 	jsr	(print).l
 	addi.w	#2,(printy).l			;two rows down
 	subi.w	#$C,(printx).l			;back to the row start
@@ -973,12 +974,12 @@ RecordHoldersScreen					;"Record Holders" menu item (menu lists): the save RAM r
 	bsr.w	PrintRecordTitles		;first page: titles and win records
 	bsr.w	PrintWinRecords
 .loop								;each frame: read the pad
-	jsr	(MenuWaitVblank).l				;wait for the next frame
+	jsr	(MenuWaitVblank).l			;wait for the next frame
 	jsr	(getpzjoy).l				;read the pads
 	jsr	(ProcessInputWithRepeat).l
 	btst	#7,d3					;start?
 	beq.w	.1						;start leaves the screen
-	jmp	(ExitStatsScreen).l				;back to the stats menu
+	jmp	(ExitStatsScreen).l			;back to the stats menu
 .1									;page 0: A + C clears the win records
 	tst.w	(TempWord1).l			;page 0?
 .2									;(not branched to)
@@ -1376,7 +1377,7 @@ PrintRecordName						;Record Holders: print a value (AppendUserName)
 	movea.l	#mesarea,a1
 	bclr.b	#7,(sflags6).l			;bit 7 clear: AppendUserName does not trim
 	bsr.w	AppendUserName
-	jmp	(printsmall).l					;print the name
+	jmp	(printsmall).l				;print the name
 CalcWinPercents						;Record Holders: for the 8 user record blocks at recordbuf, the win %
 									;(winpcts), games (wingames) and ties (winties), then sort the rows
 									;(winsort)

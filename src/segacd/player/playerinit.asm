@@ -1,7 +1,7 @@
 ;	PLAYER.BIN $0-$1D53 (runtime $0-$1D53).
 ;
-;	The start of PLAYER.BIN, the player information overlay HOCKEY.BIN runs with $6044 d7 = 5 (d0, d1 the
-;	two teams, d2 FourWayPlay): stack and a6 (base + $A594), the team resources, the photo and team stat pages,
+;	The start of PLAYER.BIN, the player information overlay HOCKEY.BIN runs with $6044 d7 = 5 (d0, d1 the two
+;	teams, d2 FourWayPlay): stack and a6 (base + $A594), the team resources, the photo and team stat pages,
 ;	text sprites and page transitions, up to playerpic.asm. Names given here; docs/segacd_player.md.
 
 

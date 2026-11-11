@@ -9,7 +9,7 @@ remapTablePtr	equ	$FF2912
 
 	org	$FF1272
 
-DecompressGraphicsPlain					;clear remapTablePtr, fall into DecompressGraphics (decompress94.asm)
+DecompressGraphicsPlain				;clear remapTablePtr, fall into DecompressGraphics (decompress94.asm)
 	lea.l	remapTablePtr(pc),a0
 	clr.l	(a0)
 DecompressGraphics					;a2 = tile count word and tiles (bit 15: packed), d4 = start char
@@ -62,7 +62,8 @@ LFF12F4	andi.w	#$F,d4
 	move.w	(sp)+,$23C6E8.l
 	move.w	(sp)+,sr
 	rts
-FlushOutputBuffer					;the ring buffer to VRAM; this copy can skip tiles through the byte list at a3
+FlushOutputBuffer					;the ring buffer to VRAM; this copy can skip tiles through the byte list
+									;at a3
 	movem.l	d0-d1/a0-a1,-(sp)
 	move.w	d1,d0
 	bne.w	LFF1324
@@ -111,7 +112,7 @@ LFF139C	bsr.w	LFF13D2
 	bra.w	LFF13A4
 LFF13A4	movem.l	(sp)+,d0-d1/a0-a1
 	rts
-SubCmd03					;command $03 (CmdJumpTable): clear VRAM (64 KB), word RAM flags kept
+SubCmd03							;command $03 (CmdJumpTable): clear VRAM (64 KB), word RAM flags kept
 	move.w	$23C6E8.l,-(sp)
 	bset.b	#$4,$23C6E8.l
 	moveq	#$0,d0
@@ -127,13 +128,15 @@ LFF13D2	move.w	$23C6E8.l,-(sp)
 	bsr.w	LFF1418
 	move.w	(sp)+,$23C6E8.l
 	rts
-SubCmd01					;command $01 (CmdJumpTable): command $00 with word RAM flag bit 4 kept and set
+SubCmd01							;command $01 (CmdJumpTable): command $00 with word RAM flag bit 4 kept and
+									;set
 	move.w	$23C6E8.l,-(sp)
 	bset.b	#$4,$23C6E8.l
 	bsr.w	SubCmd00
 	move.w	(sp)+,$23C6E8.l
 	rts
-SubCmd00					;command $00 (CmdJumpTable): DMA to VRAM: length, destination and source (a sub CPU pointer, translated) from $23A450
+SubCmd00							;command $00 (CmdJumpTable): DMA to VRAM: length, destination and source
+									;(a sub CPU pointer, translated) from $23A450
 	lea.l	$23A450.l,a1
 	move.w	(a1)+,d0
 	move.w	(a1)+,d1

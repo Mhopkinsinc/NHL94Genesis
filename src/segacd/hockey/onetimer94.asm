@@ -266,7 +266,7 @@ assonetimer							;Assignment $23 (asstab), player a3 shooting a one-timer: take
 	bne.w	.chkcarrier				;branch if set
 	movem.w	d0-d1,-(sp)				;push to stack
 	move.w	(puckx).l,d0			;move puckx to d0
-	sub.w	0(a3),d0					;sub Xpos from d0
+	sub.w	0(a3),d0				;sub Xpos from d0
 	cmpi.w	#$3C,d0					;compare diff to 3C (60 pixels)
 	bgt.w	.chkxvel				;branch if greater than
 	cmpi.w	#$FFC4,d0				;compare to -60 pixels
@@ -305,7 +305,7 @@ assonetimer							;Assignment $23 (asstab), player a3 shooting a one-timer: take
 	bge.w	.windup					;branch if greater than or equal
 	btst.b	#2,(onetimerflags).l	;check bit 2
 	bne.w	.windup					;branch if set
-	move.w	0(a3),d0					;move Xpos into d0
+	move.w	0(a3),d0				;move Xpos into d0
 	move.w	(puckx).l,d1			;move puckx into d1
 	sub.w	d1,d0					;sub d1 from d0
 	bpl.w	.dy						;branch if positive
@@ -406,7 +406,7 @@ setonetimeranim						;the one-timer animation: d1 = SPAshotf or SPAshotb from th
 									;goal (vtoa, CheckOneTimerFacing)
 	move.w	#SPAshotf,d1
 	movem.w	d0-d1,-(sp)				;push to stack d0 and d1
-	move.w	0(a3),d0					;move XPos of a3 into d0
+	move.w	0(a3),d0				;move XPos of a3 into d0
 	neg.w	d0						;negate d0
 	move.w	#$108,d1				;move top goal line into d1
 	btst.b	#pfgoal,pflags(a3)		;check which goal shooting at

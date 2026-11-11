@@ -20,10 +20,11 @@ X_FF177C	equ	$FF177C
 	move.l	#$40020010,$4(a0)
 	move.w	d2,(a0)
 	rts
-SubCmd13					;command $13 (CmdJumpTable): a word from $23A450 to VDP control
+SubCmd13							;command $13 (CmdJumpTable): a word from $23A450 to VDP control
 	move.w	$23A450.l,$C00004.l
 	rts
-SubCmd14					;command $14 (CmdJumpTable): VSRAM, VDP registers and the configured tables cleared
+SubCmd14							;command $14 (CmdJumpTable): VSRAM, VDP registers and the configured
+									;tables cleared
 	movea.l	#$C00000,a0
 	move.l	#$40000010,$4(a0)
 	move.l	#$0,(a0)
@@ -32,7 +33,7 @@ SubCmd14					;command $14 (CmdJumpTable): VSRAM, VDP registers and the configure
 	bclr.b	#$4,$23C6E8.l
 	bsr.w	X_FF177C
 	rts
-SubCmd15					;command $15 (CmdJumpTable): two configured VRAM fills
+SubCmd15							;command $15 (CmdJumpTable): two configured VRAM fills
 	move.w	#$800,d0
 	move.w	$FF2852.l,d1
 	move.w	#$7FF,d2
@@ -42,7 +43,8 @@ SubCmd15					;command $15 (CmdJumpTable): two configured VRAM fills
 	move.w	#$7FF,d2
 	bsr.w	FillVram
 	rts
-SubCmd16					;command $16 (CmdJumpTable): a word at $FF2A24 plus the next word, to VSRAM address 2
+SubCmd16							;command $16 (CmdJumpTable): a word at $FF2A24 plus the next word, to
+									;VSRAM address 2
 	lea.l	$23A450.l,a1
 	move.w	(a1)+,$FF2A24.l
 	move.w	(a1)+,d0
@@ -51,13 +53,14 @@ SubCmd16					;command $16 (CmdJumpTable): a word at $FF2A24 plus the next word, 
 	add.w	$FF2A24.l,d0
 	move.w	d0,(a0)
 	rts
-SubCmd19					;command $19 (CmdJumpTable): one word to VSRAM address 2
+SubCmd19							;command $19 (CmdJumpTable): one word to VSRAM address 2
 	move.w	$23A450.l,d0
 	movea.l	#$C00000,a0
 	move.l	#$40020010,$4(a0)
 	move.w	d0,(a0)
 	rts
-SubCmd1A					;command $1A (CmdJumpTable): VDP registers, VSRAM and VRAM set up for the film
+SubCmd1A							;command $1A (CmdJumpTable): VDP registers, VSRAM and VRAM set up for the
+									;film
 	move.w	#$8164,$C00004.l
 	move.w	#$8C00,$C00004.l
 	move.w	#$8700,$C00004.l
@@ -80,7 +83,8 @@ SubCmd1A					;command $1A (CmdJumpTable): VDP registers, VSRAM and VRAM set up f
 	move.l	#$70000003,$C00004.l
 	move.l	#$0,$C00000.l
 	rts
-SubCmd1B					;command $1B (CmdJumpTable): the film: handshake, the C code at $FF2E00, the shell put back
+SubCmd1B							;command $1B (CmdJumpTable): the film: handshake, the C code at $FF2E00,
+									;the shell put back
 	move.w	sr,-(sp)
 	move.w	#$2700,sr
 	bset.b	#$0,$A12014.l
@@ -104,13 +108,14 @@ LFF2438	btst.b	#$1,$A12024.l
 	move.w	#$8164,$C00004.l
 	addq.l	#$8,sp
 	jmp	$FF103A.l
-SubCmd1C					;command $1C (CmdJumpTable): VDP registers $9100, $9213, $8B03
+SubCmd1C							;command $1C (CmdJumpTable): VDP registers $9100, $9213, $8B03
 	movea.l	#$C00000,a0
 	move.w	#$9100,$4(a0)
 	move.w	#$9213,$4(a0)
 	move.w	#$8B03,$4(a0)
 	rts
-SubCmd1D					;command $1D (CmdJumpTable): a word at $FF2A24, to VSRAM address 0 (the credits scroll)
+SubCmd1D							;command $1D (CmdJumpTable): a word at $FF2A24, to VSRAM address 0 (the
+									;credits scroll)
 	lea.l	$23A450.l,a0
 	move.w	(a0),$FF2A24.l
 	move.w	$23C6E8.l,-(sp)

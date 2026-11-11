@@ -347,7 +347,7 @@ DrawPlayoffSprite					;The StanleyCupSprite sprite at playoffspritex / playoffsp
 .0									;end the link chain at the last sprite
 	clr.b	satLink-satLen(a6)
 	move.l	a6,d0					;end of the list
-	subi.l	#$BBD30,d0	;CD: the cartridge has #Satt
+	subi.l	#$BBD30,d0				;CD: the cartridge has #Satt
 	lsr.w	#1,d0
 	move.w	d0,(Sattsize).l
 	rts
@@ -360,7 +360,8 @@ GetTeamStruct						;a2 = tmstruct, or awtmstruct when team d2 is not tmteam of t
 .x									;exit (also the end of the code above)
 	rts
 ;CD: no cartridge twin
-CountButtonPress						;CD: entered here; the cartridge CountButtonPress starts at its first twin line, $2AD3E
+CountButtonPress					;CD: entered here; the cartridge CountButtonPress starts at its first twin
+									;line, $2AD3E
 	movem.l	d1/a0,-(sp)
 	btst.b	#gmclock,(gmode).l		;clock running?
 	bne.w	.x						;no count while the clock is stopped
@@ -377,7 +378,7 @@ CountButtonPress						;CD: entered here; the cartridge CountButtonPress starts a
 	beq.w	.x						;same direction as he faces: not a turn
 	addi.l	#1,4(a0)				;presses that change direction
 ;CD: no cartridge twin
-.x						;CD: placed where the disc branches to it
+.x									;CD: placed where the disc branches to it
 	movem.l	(sp)+,d1/a0
 	rts
 TerminateLogName					;Unreferenced. The GetLogName String at lognametext, ended with 0 at

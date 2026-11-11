@@ -28,7 +28,7 @@ ReadLineData						;Read the $100 bytes at save RAM LineDataBase to databuffer; s
 	jsr	(ReadSRAM).l
 	bclr.b	#sfwrap,(sflags).l		;the SRAM routines leave these set: reset them
 	move.w	#$FFFF,(lastsfx).l
-	move.l	#$C45C,(recbpr).l	;CD: the cartridge has #M68K_RAM
+	move.l	#$C45C,(recbpr).l		;CD: the cartridge has #M68K_RAM
 	movem.l	(sp)+,d0-d1/a0
 	rts
 WriteLineData						;Write databuffer back to save RAM at LineDataBase (WriteSRAM,
@@ -41,7 +41,7 @@ WriteLineData						;Write databuffer back to save RAM at LineDataBase (WriteSRAM
 	jsr	(WriteSRAM).l
 	bclr.b	#sfwrap,(sflags).l
 	move.w	#$FFFF,(lastsfx).l
-	move.l	#$C45C,(recbpr).l	;CD: the cartridge has #M68K_RAM
+	move.l	#$C45C,(recbpr).l		;CD: the cartridge has #M68K_RAM
 	movem.l	(sp)+,d0-d1/a0
 	rts
 ClearWinRecords						;Clear bytes 8-$B of the 8 ThreeStars records and write the $80 bytes at
@@ -151,7 +151,7 @@ NextPathPoint						;Next point of shootout path sopath: sopathx / sopathy = x (t
 	neg.w	(sopathx).l
 .0									;point X ready
 	move.w	$2(a0,d0.w),(sopathy).l	;point Y
-	cmpi.b	#$80,$4(a0,d0.w)			;next entry not the end marker: done
+	cmpi.b	#$80,$4(a0,d0.w)		;next entry not the end marker: done
 	bne.w	.x
 	bset.b	#3,(sflags7).l			;end reached: flag it and keep the end values
 	clr.w	(sopathend).l
@@ -173,7 +173,7 @@ SkatePath							;Shootout skate path: d0 / d1 = the point (mirrored for the bott
 	neg.w	d0
 	neg.w	d1
 .0									;point for this end of the ice
-	sub.w	0(a3),d0					;minus the player X
+	sub.w	0(a3),d0				;minus the player X
 	bpl.w	.1
 	neg.w	d0
 .1									;|dx| ready
@@ -239,7 +239,7 @@ ShootoutShootCheck					;Shootout, skater a3 has the puck (gmode2 bit 1): Z set (
 	neg.w	d0
 	neg.w	d1
 .1									;point for this end of the ice
-	sub.w	0(a3),d0					;minus the player X
+	sub.w	0(a3),d0				;minus the player X
 	bpl.w	.2
 	neg.w	d0
 .2									;|dx| ready

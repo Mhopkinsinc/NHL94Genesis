@@ -56,13 +56,13 @@ clockcont							;monitor period clock and initiate various clock activated event
 	jsr	(sfx).l
 	bsr.w	freezewindow
 clockcont_0							;End of period. Also entered from puckfaceoff
-	movea.l	#$17B80,a3	;puck (CD: the cartridge has #(puckx-M68K_RAM))
+	movea.l	#$17B80,a3				;puck (CD: the cartridge has #(puckx-M68K_RAM))
 	move.l	#$18,d0					;pucknothing assignment
 	jsr	(assinsert).l
 	cmpi.w	#2,(gsp).l				;periods 1-2 just end the period
 	blt.w	.eop
 	move.l	#7,d0					;score assignment
-	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
+	movea.l	#$17480,a3				;CD: the cartridge has #(SortCords-M68K_RAM)
 	cmpi.w	#3,(gamelevel).l		;playoffs?
 	bne.w	.t3
 	cmpi.w	#7,(bosgames).l
@@ -89,7 +89,7 @@ clockcont_0							;End of period. Also entered from puckfaceoff
 .t0	bclr.b	#pfjoycon,pflags(a3)	;pfjoycon, pflags(a3)
 	adda.w	#SCstruct,a3			;SCstruct
 	dbf	d2,.t0
-	movea.l	#$17480,a3	;CD: the cartridge has #(SortCords-M68K_RAM)
+	movea.l	#$17480,a3				;CD: the cartridge has #(SortCords-M68K_RAM)
 .t3	moveq	#5,d2					;winning team's skaters celebrate
 	move.w	(HmGoals).l,d1
 	sub.w	(AwGoals).l,d1
@@ -143,7 +143,7 @@ demoread							;monitor joystick if in demo mode (called every game loop)
 EndDemoOnPress						;Any button on the pad just read (d1) ends the demo
 	tst.w	d1
 	beq.w	rtss8					;nothing pressed
-	jmp	(ExitToOpening).l				;exit demo
+	jmp	(ExitToOpening).l			;exit demo
 
 startpause1							;pause initiated by cont 1
 	clr.w	(pausepad).l			;pausing pad number (0 = pad 1 or 2)
@@ -185,7 +185,7 @@ Pausemode							;Game is in pause mode now
 	beq.w	.0
 	movea.l	#PauseText2,a0			;alternate item list
 .0	bsr.w	Pausemode_top			;build menu from list a0, draw routine a1
-.loop	bsr.w	MenuWaitVblank			;loop
+.loop	bsr.w	MenuWaitVblank		;loop
 	bsr.w	getpzjoy
 	jsr	(showclock).l
 	jsr	(ProcessInputWithRepeat).l
@@ -289,7 +289,7 @@ Pausemode_pall						;Draw routine for the pause menu.
 
 seta2								;Set a2 to the team struct of the pause joystick also called from
 									;HandleMenuInput
-	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
+	movea.l	#$1834C,a2				;CD: the cartridge has #(tmstruct-M68K_RAM)
 	btst.b	#sfpj,(sflags).l		;sfpj
 	beq.w	.seta20
 	cmpi.w	#1,(cont2team).l

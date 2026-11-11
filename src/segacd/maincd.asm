@@ -1,6 +1,5 @@
-;	NHL 94 Sega CD, main CPU shell (MAIN.BIN). Runs at $FF1000 in Genesis work RAM
-;	(file + $FF1000; docs/segacd_main_shell.md).
-;	Official Sega CD SDK code: Sierra C (link a6) plus the SDK's main/sub command
+;	NHL 94 Sega CD, main CPU shell (MAIN.BIN). Runs at $FF1000 in Genesis work RAM (file + $FF1000;
+;	docs/segacd_main_shell.md). Official Sega CD SDK code: Sierra C (link a6) plus the SDK's main/sub command
 ;	protocol. The cartridge game does not have this file.
 ;
 ;	The sub CPU owns the game. This CPU drives the VDP and trades commands through

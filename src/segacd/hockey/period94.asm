@@ -73,7 +73,7 @@ EndShootout							;Shootout over (CountShootoutGoals): freezewindow, then the 5 
 .1									;lined up at this end of the view
 	add.w	(Vpos).l,d0				;relative to the view
 	move.w	d0,Ypos(a3)
-	move.w	#0,0(a3)					;X center
+	move.w	#0,0(a3)				;X center
 	move.w	#7,d0					;score assignment
 	jsr	(assinsert).l
 	bclr.b	#pfalock,pflags(a3)
@@ -237,7 +237,7 @@ AddArenaAnimSprite					;Add the frame arenaframe of the arena animation (sprite 
 	cmpi.w	#$40,d6					;64 sprites at most?
 	beq.w	.x						;table full: stop
 ;CD: no cartridge twin
-.next						;CD: placed where the disc branches to it
+.next								;CD: placed where the disc branches to it
 	adda.w	#$8,a0
 	dbf	d4,.loop2					;next sprite
 .x									;pop the d0-d5 saved above
@@ -255,10 +255,10 @@ PrintPlayerNameRight				;Print the name of player d0 of team a2 (FormatPlayerNam
 	movea.l	a1,a0
 	move.w	(a0),d0
 	move.w	d0,d5
-	tst.b	-$1(a0,d5.w)				;trailing pad byte?
+	tst.b	-$1(a0,d5.w)			;trailing pad byte?
 	bne.w	.0
 	subi.w	#1,d0					;first pad byte
-	tst.b	-$2(a0,d5.w)				;second pad byte?
+	tst.b	-$2(a0,d5.w)			;second pad byte?
 	bne.w	.0
 	subi.w	#1,d0					;second pad byte
 .0									;text width without the padding
@@ -444,7 +444,7 @@ PeriodStatsScreen					;"Period Stats" menu item (menu lists): both team logos (T
 .2									;bit 3 of d1 set
 	tst.w	(matchup).l				;goals page?
 	bne.w	.loop2					;already: ignore
-	st.b	(matchup).l					;shots page
+	st.b	(matchup).l				;shots page
 	bsr.w	.title
 	bsr.w	.lines
 	bra.w	.loop2					;next frame
@@ -612,7 +612,7 @@ StatsReport							;"Game Statistics" menu item (menu lists): both
 	bsr.w	DisplayStats
 	bsr.w	PrintStatScrollArrows
 .loop								;loop
-	jsr	(MenuWaitVblank).l				;wait for the frame
+	jsr	(MenuWaitVblank).l			;wait for the frame
 	jsr	(getpzjoy).l				;read the pads
 	btst	#7,d3					;start?
 	beq.w	.1
@@ -764,7 +764,7 @@ DisplayStats						;Team logos (PutTeamBlock), then each
 	jsr	(print).l
 	movea.l	a1,a0					;a0 = stat offsets
 	move.w	#$22,(printx).l
-	movea.l	#$1834C,a2	;CD: the cartridge has #(tmstruct-M68K_RAM)
+	movea.l	#$1834C,a2				;CD: the cartridge has #(tmstruct-M68K_RAM)
 	bsr.w	PrintStatValue
 	move.w	#9,(printx).l
 	lea	tmsize(a2),a2
@@ -777,7 +777,7 @@ PrintStatValue						;Print TeamStatTextTbl entry a0 for team a2 centred at print
 									;(tmATOP and tmPwrPlayTime are times
 									;PushTime), "/second" if any, " (pct%)" for passing. Offset $FFFF is the
 									;shooting percentage (tmscore * 100 / tmshots), printed with a "%"
-	movea.l	#$17EF2,a3	;CD: the cartridge has #(mesarea-M68K_RAM)
+	movea.l	#$17EF2,a3				;CD: the cartridge has #(mesarea-M68K_RAM)
 	move.w	#2,(a3)					;empty string
 	cmpi.w	#$FFFF,(a0)				;shooting percentage row
 	bne.w	.1
@@ -835,7 +835,7 @@ PrintStatValue						;Print TeamStatTextTbl entry a0 for team a2 centred at print
 	jsr	(appendz).l
 	String	'%)'
 ;CD: no cartridge twin
-.6						;CD: placed where the disc branches to it
+.6									;CD: placed where the disc branches to it
 	movea.l	a3,a1
 	move.w	(a1),d0
 	lsr.w	#1,d0
