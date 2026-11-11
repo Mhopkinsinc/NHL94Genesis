@@ -52,8 +52,12 @@
      the driver. Its tables, the sound record, key map and envelope formats, and FilmSwitch's open arguments (the
      film window's layout, which the main CPU's frame routine uses) are in that doc. `tools/segacd_port.py` takes
      `--code` / `--data` ranges for CD-only code (used for the PCM pitch table in `sp.asm` and STARTER's `subdrv.asm`).
-     Left: which packed commands the game's sound engine sends and which records resource 96 holds; 54 of the
-     disc's films are in no PLAYER list (nothing found plays them).
+     The sound path end to end: MAIN.BIN's sound bank (48 sequences = the cartridge's SFX numbers, 31 FM
+     instruments) runs eight streams as MIDI ports; controller 18 sends a channel to the sub CPU PCM driver,
+     which plays HOCKEY.BIN's 13 sound records (GamePcmSounds) from resource 96's 13 samples: the whistle,
+     passes, shots, checks, hits, the crowd, the glass (`docs/segacd_main_shell.md` "The sound engine").
+     Left: 54 of the disc's films are in no PLAYER list (nothing found plays them); what the Z80 program does
+     with sound operation 4 (program `$7F` on channel 16), which no sender was found for.
 - Open questions:
   - The team struct is one word longer from `tmap` on; probably `tmsort` became a long. Confirm when a fragment uses
     `tmsort` (logic94 has `movea.w tmsort(a2),a0` among its CD lines).
