@@ -62,8 +62,8 @@
      Left: 54 of the disc's films are in no PLAYER list (nothing found plays them); what the Z80 program does
      with sound operation 4 (program `$7F` on channel 16), which no sender was found for.
 - Open questions:
-  - The team struct is one word longer from `tmap` on; probably `tmsort` became a long. Confirm when a fragment uses
-    `tmsort` (logic94 has `movea.w tmsort(a2),a0` among its CD lines).
+  - Answered: the team struct is one word longer from `tmap` on because `tmsort` is a long on the disc (the sort
+    objects are in sub CPU RAM above `$FFFF`): each cartridge `movea.w tmsort(aN)` is `movea.l $22(aN)`.
   - Answered: `STARTER.BIN` runs at `$B000` (the whole file), not `$21300`; its tail jumps to `$B00E`, which loads
     HOCKEY.BIN at `$1B000` over STARTER's top part. The STARTER fragments were written again at that base.
 
