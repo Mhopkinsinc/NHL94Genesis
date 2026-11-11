@@ -114,7 +114,9 @@ def main():
         67: "Cold.map.jim (ColdMap); no load of this one found",
         96: "the game's PCM wave samples: a record directory of 13 type 2 records (as StarterPcmRecords).\n"
             "LoadGameGfx loads it (d0 = $60) into $47DA0 and passes it to OSInitMainSound (service 8, boot/sp.asm),\n"
-            "which installs it in the sub CPU PCM driver; the list at HOCKEY.BIN $223D6 loads the samples",
+            "which installs it in the sub CPU PCM driver; GamePcmSampleList (HOCKEY.BIN $223D6) loads the samples,\n"
+            "which GamePcmSounds ($222EA) plays: the whistle, passes, shots, checks, hits, the crowd, the glass\n"
+            "(docs/segacd_main_shell.md, the sound engine)",
         97: "the arena scoreboard frame around the film window ($0808 picture, 40 x 28). STARTER.BIN loads it\n"
             "(d0 = $61) into $C436",
         98: "resource 0 piece 3 (the scouting speech clips) without the end mark; no load of this one found",

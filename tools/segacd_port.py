@@ -1811,7 +1811,12 @@ class Fragment:
                 for rt, name in sorted(self.cdlabels):
                     if rt == BASE + sp[0] and (rt, name) not in placed:
                         # a Sierra C name comes from its tag; any other is a name given here
-                        out.append(name if self.a.tags else name + "\t\t\t\t\t\t;CD-only routine (a name given here, not a cartridge name)")
+                        what = "routine"
+                        for se in getattr(self.a, "data", []) or []:
+                            lo, hi = (int(x, 0) for x in se.split("-"))
+                            if lo <= rt < hi:
+                                what = "data"
+                        out.append(name if self.a.tags else name + f"\t\t\t\t\t\t;CD-only {what} (a name given here, not a cartridge name)")
                         placed.add((rt, name))
             if markers and sp is not None:
                 out.append(f".zzm{k}")

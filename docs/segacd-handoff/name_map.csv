@@ -263,6 +263,8 @@ HOCKEY.BIN,$6E32,SPAbenchcheckr_table,frames94.asm
 HOCKEY.BIN,$6EF4,SPAcrosscheck_table,frames94.asm
 HOCKEY.BIN,$6F26,SPAinjury1_table,frames94.asm
 HOCKEY.BIN,$7096,Begin,sram94.asm
+HOCKEY.BIN,$72EA,GamePcmSounds,CD-only name in sram94.asm
+HOCKEY.BIN,$73D6,GamePcmSampleList,CD-only name in sram94.asm
 HOCKEY.BIN,$743C,ValidateSRAM,sram94.asm
 HOCKEY.BIN,$743E,ClearSRAM,sram94.asm
 HOCKEY.BIN,$7534,ReadPlayerRecord,cards94.asm
@@ -1321,11 +1323,13 @@ MAIN.BIN,$765C,DispatchSoundOperation,Sierra C name tag
 MAIN.BIN,$77B8,TickSoundSequences,Sierra C name tag
 MAIN.BIN,$7A34,StartSoundSequence,Sierra C name tag
 MAIN.BIN,$7ADE,StopSoundSequence,Sierra C name tag
+MAIN.BIN,$7B36,PlayZ80Channel16Note,Sierra C name tag
 MAIN.BIN,$7B90,ClearZ80SoundBuffers,Sierra C name tag
 MAIN.BIN,$7BFC,RouteSoundEvent,Sierra C name tag
 MAIN.BIN,$7C2A,QueueDeferredSoundEvent,Sierra C name tag
 MAIN.BIN,$7C76,QueueZ80SoundEvent,Sierra C name tag
 MAIN.BIN,$7CF0,FlushDeferredSoundEvents,Sierra C name tag
+MAIN.BIN,$7D5A,UploadZ80SoundResource,Sierra C name tag
 MAIN.BIN,$7E1E,ClearPendingNoteOffs,Sierra C name tag
 MAIN.BIN,$7E52,ExpireSequenceNoteOffs,Sierra C name tag
 MAIN.BIN,$7E96,QueueTimedNoteOff,Sierra C name tag
@@ -1341,6 +1345,21 @@ MAIN.BIN,$8352,ReleaseSoundZ80Bus,Sierra C name tag
 MAIN.BIN,$835C,AcquireSoundSubProgramRam,Sierra C name tag
 MAIN.BIN,$83B0,ReleaseSoundSubProgramRam,Sierra C name tag
 MAIN.BIN,$83FC,MapSoundSubProgramPointer,Sierra C name tag
+MAIN.BIN,$841A,SoundEngineGuard,Sierra C name tag
+MAIN.BIN,$841C,SequenceData,Sierra C name tag
+MAIN.BIN,$843C,SequencePosition,Sierra C name tag
+MAIN.BIN,$845C,SequenceId,Sierra C name tag
+MAIN.BIN,$846C,SequenceDelay,Sierra C name tag
+MAIN.BIN,$847C,SequenceTempo,Sierra C name tag
+MAIN.BIN,$848C,SequenceFraction,Sierra C name tag
+MAIN.BIN,$849C,SequenceRunState,Sierra C name tag
+MAIN.BIN,$853E,CurrentSoundStream,Sierra C name tag
+MAIN.BIN,$854A,PcmChannelRouting,Sierra C name tag
+MAIN.BIN,$855A,PcmQueuePointer,Sierra C name tag
+MAIN.BIN,$855E,DeferredSoundEvents,Sierra C name tag
+MAIN.BIN,$85EC,SoundResourceBanks,Sierra C name tag
+MAIN.BIN,$863C,SoundBank,Sierra C name tag
+MAIN.BIN,$90C6,Z80SoundResourceList,Sierra C name tag
 PLAYER.BIN,$0,PlayerOverlayEntry,Sierra C name tag
 PLAYER.BIN,$CAA,FetchTeamPhotoAndStatTables,Sierra C name tag
 PLAYER.BIN,$EAA,WaitDisplayFrames,Sierra C name tag

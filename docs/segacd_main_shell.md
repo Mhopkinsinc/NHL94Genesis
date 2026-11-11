@@ -40,7 +40,7 @@ MainShellEntry (`$FF45A8`) sets the stack at `$FFFC00`, clears `$A12010`-`$A1201
 | `$20` | ClearAllVramCommand | 64 KB of zeros | middle94_2, startertail |
 | `$21` | WriteVdpWordsFromWordRamCommand | | middle94_2 |
 | `$22` | WriteZ80ResetCommand | | |
-| `$23` | SoundOperation4Command | sound operation 4, gated by `$FF6CF8` | |
+| `$23` | SoundOperation4Command | sound operation 4 (PlayZ80Channel16Note) with d1 = the word in `$A12022` (0-6) and d2 = its note from the table at `$FF4E76` (0, `$6B`, `$6A`, `$75`, `$7C`, `$73`, `$74`), gated by `$FF6CF8` | |
 | `$24` | TickSoundSequenceCommand | sound operation 1 | |
 | `$25` | EnterMainShellCProgram | the shell C program, then the shell again | OSPlayFilm (boot/sp) |
 | `$26` | StartSoundSequenceCommand | sound operation 2 with the id in `$A12022` | sfxcd.asm |
@@ -115,12 +115,36 @@ DrawTextInline, DrawCodedTextInline and CopyCellRectanglesInline take the block 
 
 ## The sound engine
 
-DispatchSoundOperation (`$FF865C`) takes d0: 0 the Z80 loader (`z80load.asm`), 1 TickSoundSequences, 2 StartSoundSequence, 3 StopSoundSequence, 4 (`$FF8B36`, not worked out), 5 ClearZ80SoundBuffers, 6 RegisterSoundResourceBank, 7 LoadZ80SoundResources, 8 RemoveZ80SoundResources, 9 ClearZ80SoundResourceDirectory; any other returns 1 with carry set.
+DispatchSoundOperation (`$FF865C`) takes d0: 0 LoadZ80SoundProgram (`z80load.asm`), 1 TickSoundSequences, 2 StartSoundSequence, 3 StopSoundSequence (by SequenceId), 4 PlayZ80Channel16Note (d1 into the Z80's slot at its word `$0028` + 3, then program `$7F` and note d2 on MIDI channel 16), 5 ClearZ80SoundBuffers, 6 RegisterSoundResourceBank, 7 LoadZ80SoundResources, 8 RemoveZ80SoundResources, 9 ClearZ80SoundResourceDirectory; any other returns 1 with carry set.
 
 TickSoundSequences (`$FF87B8`) needs the word `$1234` as its guard. It serves the timed note-offs and the Z80's data requests, then runs eight streams: MIDI-style status bytes (`$90`, `$B0`, `$C0`, `$E0`, `$FF` the end) with variable-length delays. A `$90` event also queues a timed `$80` (QueueTimedNoteOff, TickPendingNoteOffs). Events go to the Z80 queue at Z80 `$0030` (QueueZ80SoundEvent, 24 at most) or to a deferred queue of 32 (QueueDeferredSoundEvent, FlushDeferredSoundEvents). ServiceZ80DataRequest answers the request byte at Z80 `$0072` with `$200`-byte chunks. FindSoundResource looks up a type and id in the registered directories (a count, then 4-byte entries, as the sub CPU's PCM records). The bus helpers take the Z80 bus or map a sub CPU program RAM pointer into the main CPU window `$020000`-`$03FFFF`.
+
+InitSoundCommand registers SoundBank (`$FF963C`, in MAIN.BIN) as directory 0: 48 sequences (type 3, id = the sound number) and 31 FM instruments (type 0, kind byte 0), and loads the instruments into the Z80 (Z80SoundResourceList; LoadZ80SoundResources sends a type 0 record only when its kind byte is below 6). HOCKEY.BIN's `sfx` (`sfxcd.asm`) sends the cartridge's sound number with command `$26`, so a sequence id is the cartridge's SFX number (`ram94.asm`).
+
+A sequence starts with a little-endian word n and n words, then events: a variable-length delay (one byte, or two when the first has bit 7 set), a status byte (or the running status), its data. `$9x` note on: note, velocity, a variable-length length (divided by SequenceTempo; QueueTimedNoteOff sends the `$8x` when it runs out); `$Bx`: controller, value; `$Cx`: program; `$Ex`: one byte; `$FF` the end. TickSoundSequences builds each event as a long: the stream number * 16 in the top byte, then the second data byte, the first data byte and the status byte. That top byte is the port: the sub CPU driver's slot is it + the MIDI channel.
+
+Controller 18 (`$12`) is not sent on: its value picks where the channel's events go from then on (PcmChannelRouting, a bit per channel for each stream): 0 the Z80 (FM), anything else the sub CPU's PCM driver (DeferredSoundEvents, copied into its queue at PcmQueuePointer by FlushDeferredSoundEvents). Every PCM sequence sends controller 18 = 1 on its channel, then a program change and a note (`$08` plays an FM note first, with controller 18 = 0):
+
+| Sequence | Cartridge name | PCM sound (sample) | Note |
+| --- | --- | --- | --- |
+| `$03` | SFXwhistle | `$6F` (11) | 60 |
+| `$07` | SFXpuckget | `$60` (7) | 74 |
+| `$08` / `$0D` | SFXoooh / SFXoooh2 | `$6C` (10) | 70 |
+| `$09` / `$0A` | SFXhithigh / SFXhitlow | `$67` (5) | 60 / 65 |
+| `$0B` | SFXcrowdcheer | `$6D` (8) | 67 |
+| `$0C` | SFXcrowdboo | `$6B` (12) | 58 |
+| `$0E` | SFXbglass | `$6E` (9), then `$6C` (10) | 91, 72 |
+| `$0F` | SFXhomewin | `$6D` (8) | six notes 66-69, softer each time |
+| `$10`-`$13` | SFXpass + 0-3 | `$61` (2) | 70, 69, 68, 68 |
+| `$14`-`$17` | SFXshotbh + 0-3 | `$62` (1) | 74, 73, 72, 72 |
+| `$18`-`$1B` | SFXshotfh + 0-3 | `$63` (6) | 74, 73, 72, 72 |
+| `$1C`-`$1F` | SFXcheck + 0-3 | `$67` (5) and `$65` (0) or `$64` (4) | two notes |
+| `$20`-`$23` | SFXplayerwall 1-4 | `$66` (3) | 67, 67, 66, 66 |
+
+The sounds are the sub CPU records HOCKEY.BIN installs (GamePcmSounds, `docs/segacd_boot.md`), the samples GRAPH2 resource 96's. Sequences `$07` and `$20`-`$23` also send channel 1 to the PCM driver with program 23 or 24, for which there is no record, so those notes play nothing. The other sequences are FM only: `$00` the siren, `$01` / `$02` the beeps, `$04` the horn, `$05` the shot that misses, `$06` (SFXstdef), `$24` the puck on a body, `$25` the post, `$28`-`$2B` the boards, `$2C`-`$2F` the ice; `$26` and `$27` are empty (only the end).
 
 The Z80 side is `src/segacd/main/mainz80.z80`: Z80SoundImage, MAIN.BIN `$5E0C`-`$765B`. InitSoundCommand (`$29`) and InitSoundDriverCommand (`$40`) pass its `$1850` bytes to z80load.asm, which copies them to Z80 RAM `$0000`. That puts `jp $0600` at the reset vector, `jp` to a `reti` at the restart vectors, the program at `$0600`, and zeroed RAM below and after it (the command queue at `$0030`).
 
 ## Not worked out
 
-What sound operation 4 does; what the drawing commands `$07`-`$12` draw; which screen command `$3D` shows and what the overlay installed by `$3F` is; whether the game shell commands with no sender seen are used.
+What the Z80 program does with sound operation 4's slot and program `$7F` on channel 16; which screen command `$3D` shows and what the overlay installed by `$3F` is; whether the game shell commands with no sender seen are used.

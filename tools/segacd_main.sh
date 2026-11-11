@@ -110,12 +110,31 @@ MMOD_LABELS=(
   --label AcquireSoundSubProgramRam=0xFF935C
   --label ReleaseSoundSubProgramRam=0xFF93B0
   --label MapSoundSubProgramPointer=0xFF93FC  # into the main CPU window $020000-$03FFFF
+  --label PlayZ80Channel16Note=0xFF8B36  # sound operation 4: d1 into the Z80's slot (its word at Z80 $0028, + 3), then
+                                         # program $7F and note d2 on MIDI channel 16 (shell command $23)
+  --label UploadZ80SoundResource=0xFF8D5A  # d1+1 bytes from a0 to Z80 RAM at its free pointer ($A00022), an entry in the Z80 $0100 table
+  --label SoundEngineGuard=0xFF941A  # $1234 while the state is whole (TickSoundSequences checks it)
+  --label SequenceData=0xFF941C  # 8 longs, one per stream: its sequence record (-1: free)
+  --label SequencePosition=0xFF943C  # 8 longs: the offset of the next event
+  --label SequenceId=0xFF945C  # 8 words: StartSoundSequence's d1
+  --label SequenceDelay=0xFF946C  # 8 words: ticks to the next event
+  --label SequenceTempo=0xFF947C  # 8 words: ticks per frame in 1/256 (StartSoundSequence's d4); note lengths are divided by it
+  --label SequenceFraction=0xFF948C  # 8 words: the 1/256 left over
+  --label SequenceRunState=0xFF949C  # 8 longs: frames an event waited for a full queue (word), then the running status byte
+  --label CurrentSoundStream=0xFF953E  # the stream TickSoundSequences is on (0-7): the events' top byte is it * 16
+  --label PcmChannelRouting=0xFF954A  # 8 words, one per stream: a set bit sends that MIDI channel to the sub CPU PCM driver
+  --label PcmQueuePointer=0xFF955A  # the sub CPU PCM driver's command queue (z80load.asm: InitSoundCommand's pointer + 4)
+  --label DeferredSoundEvents=0xFF955E  # count, then up to 32 events for the PCM driver
+  --label SoundResourceBanks=0xFF95EC  # four directory pointers (RegisterSoundResourceBank)
+  --label SoundBank=0xFF963C  # InitSoundCommand's bank 0: 48 sequences (type 3) and 31 FM instruments (type 0, kind 0)
+  --label Z80SoundResourceList=0xFFA0C6  # the type / id pairs InitSoundCommand loads into the Z80 (the 31 instruments), $FFFF
 )
 # Every name, for calls from one fragment into another (an equate where used); the hwread.asm handlers
 # (names only in maintable.asm) and the table itself too.
 ALLNAMES=(
   --cdname ShellCommandTable=0xFF471C
   --cdname Z80SoundImage=0xFF6E0C
+  --cdname LoadZ80SoundProgram=0xFF86C8  # z80load.asm (sound operation 0)
   --cdname WriteVdpControlByteCommand=0xFF4B3C
   --cdname WriteVdpControlWordCommand=0xFF4B48
   --cdname WriteVdpControlLongCommand=0xFF4B54
@@ -159,6 +178,6 @@ port mainvdpinit 0x57E8 0x5E0C "${MVDPINIT_LABELS[@]}" --note 'After the second 
 # src/segacd/main/mainz80.z80, written by tools/segacd_z80dis.py and assembled by tools/build.js --segacd;
 # mainz80.asm (by hand) includes it.
 port maincmd 0x765C 0x76C8 "${MCMD_LABELS[@]}" --note 'DispatchSoundOperation (after the Z80 sound image): d0 = 0 (z80load.asm, next) or 1-9 (mainmod.asm).'
-port mainmod 0x77B8 0xEC00 "${MMOD_LABELS[@]}" --note 'After z80load.asm: the sound sequence engine (eight streams of MIDI-style events, timed note-offs,\nthe Z80 event queue, resource directories, bus access), its state and tables, then zeros to the end.\ndocs/segacd_main_shell.md.'
+port mainmod 0x77B8 0xEC00 "${MMOD_LABELS[@]}" --data 0xFF963C-0xFFA144 --note 'After z80load.asm: the sound sequence engine (eight streams of MIDI-style events, timed note-offs,\nthe Z80 event queue, resource directories, bus access), its state and tables, then zeros to the end.\ndocs/segacd_main_shell.md.'
 
 exit $fail

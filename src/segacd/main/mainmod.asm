@@ -5,57 +5,31 @@
 ;	docs/segacd_main_shell.md.
 
 
-X_FF282C	equ	$FF282C
-X_FF285A	equ	$FF285A
-X_FF2880	equ	$FF2880
-X_FF2884	equ	$FF2884
-X_FF2892	equ	$FF2892
-X_FF289A	equ	$FF289A
-X_FF28AA	equ	$FF28AA
-X_FF28C6	equ	$FF28C6
-X_FF28D8	equ	$FF28D8
-X_FF7906	equ	$FF7906
-X_FF7908	equ	$FF7908
-X_FF8D5A	equ	$FF8D5A
-X_FF941A	equ	$FF941A
-X_FF941C	equ	$FF941C
-X_FF943C	equ	$FF943C
-X_FF945C	equ	$FF945C
-X_FF946C	equ	$FF946C
-X_FF947C	equ	$FF947C
-X_FF948C	equ	$FF948C
-X_FF949C	equ	$FF949C
 X_FF94BC	equ	$FF94BC
 X_FF953C	equ	$FF953C
-X_FF953E	equ	$FF953E
 X_FF9544	equ	$FF9544
 X_FF9548	equ	$FF9548
-X_FF954A	equ	$FF954A
-X_FF955A	equ	$FF955A
-X_FF955E	equ	$FF955E
 X_FF95EA	equ	$FF95EA
-X_FF95EC	equ	$FF95EC
-X_FFA04F	equ	$FFA04F
 
 	org	$FF87B8
 
 TickSoundSequences
 	movem.l	d0-d7/a0-a6,-(sp)
-	lea	X_FF941A(pc),a0
+	lea	SoundEngineGuard(pc),a0
 	cmpi.w	#$1234,(a0)
 	bne.w	.LFF8A2A
 	bsr.w	TickPendingNoteOffs
 	bsr.w	ServiceZ80DataRequest
-	lea	X_FF953E(pc),a0
+	lea	CurrentSoundStream(pc),a0
 	move.w	#$0,(a0)
-	lea	X_FF941C(pc),a6
-	lea	X_FF943C(pc),a5
-	lea	X_FF946C(pc),a4
-	lea	X_FF947C(pc),a3
-	lea	X_FF948C(pc),a2
-	lea	X_FF949C(pc),a1
+	lea	SequenceData(pc),a6
+	lea	SequencePosition(pc),a5
+	lea	SequenceDelay(pc),a4
+	lea	SequenceTempo(pc),a3
+	lea	SequenceFraction(pc),a2
+	lea	SequenceRunState(pc),a1
 .LFF87F0
-	move.w	X_FF953E(pc),d6
+	move.w	CurrentSoundStream(pc),d6
 	lsl.w	#$1,d6
 	move.w	d6,d7
 	lsl.w	#$1,d7
@@ -102,7 +76,7 @@ TickSoundSequences
 	andi.b	#$F0,d0
 	cmpi.b	#$90,d0
 	bne.w	.LFF890C
-	move.w	X_FF953E(pc),d0
+	move.w	CurrentSoundStream(pc),d0
 	lsl.w	#$8,d0
 	lsl.w	#$4,d0
 	move.b	$1(a0,d5.l),d0
@@ -129,7 +103,7 @@ TickSoundSequences
 	swap	d0
 	move.b	(a0,d5.l),d0
 	lsl.w	#$8,d0
-	move.w	X_FF953E(pc),d1
+	move.w	CurrentSoundStream(pc),d1
 	lsl.w	#$4,d1
 	move.b	$2(a1,d7.w),d0
 	andi.b	#$F,d0
@@ -151,12 +125,12 @@ TickSoundSequences
 	bne.s	.LFF894C
 	move.l	a0,-(sp)
 	move.b	$1(a0,d5.l),d1
-	move.w	X_FF953E(pc),d0
+	move.w	CurrentSoundStream(pc),d0
 	lsl.w	#$1,d0
 	clr.w	d2
 	move.b	$2(a1,d7.w),d2
 	andi.b	#$F,d2
-	lea	X_FF954A(pc),a0
+	lea	PcmChannelRouting(pc),a0
 	move.w	(a0,d0.w),d3
 	cmpi.b	#$0,d1
 	bne.s	.LFF8942
@@ -169,7 +143,7 @@ TickSoundSequences
 	movea.l	(sp)+,a0
 	bra.s	.LFF8976
 .LFF894C
-	move.w	X_FF953E(pc),d0
+	move.w	CurrentSoundStream(pc),d0
 	lsl.w	#$8,d0
 	lsl.w	#$4,d0
 	move.b	$1(a0,d5.l),d0
@@ -188,7 +162,7 @@ TickSoundSequences
 .LFF897E
 	cmpi.b	#$C0,d0
 	bne.s	.LFF89B0
-	move.w	X_FF953E(pc),d0
+	move.w	CurrentSoundStream(pc),d0
 	lsl.w	#$8,d0
 	lsl.w	#$4,d0
 	swap	d0
@@ -206,7 +180,7 @@ TickSoundSequences
 .LFF89B0
 	cmpi.b	#$E0,d0
 	bne.s	.LFF89E2
-	move.w	X_FF953E(pc),d0
+	move.w	CurrentSoundStream(pc),d0
 	lsl.w	#$8,d0
 	lsl.w	#$4,d0
 	swap	d0
@@ -240,7 +214,7 @@ TickSoundSequences
 	bne.s	.LFF8A16
 	bra.w	.LFF87F0
 .LFF8A16
-	lea	X_FF953E(pc),a0
+	lea	CurrentSoundStream(pc),a0
 	addi.w	#$1,(a0)
 	cmpi.w	#$8,(a0)
 	blt.w	.LFF87F0
@@ -251,12 +225,12 @@ TickSoundSequences
 	rts
 StartSoundSequence
 	movem.l	d1-d4/a0-a1,-(sp)
-	lea	X_FF941A(pc),a0
+	lea	SoundEngineGuard(pc),a0
 	move.w	d1,$1C8(a0)
 	move.w	d2,$1CA(a0)
 	move.w	d3,$1CC(a0)
 	move.w	d4,$1CE(a0)
-	lea	X_FF941C(pc),a1
+	lea	SequenceData(pc),a1
 	clr.w	d0
 .LFF8A52
 	cmpi.l	#$FFFFFFFF,(a1)+
@@ -277,13 +251,13 @@ StartSoundSequence
 	move.b	(a0),d1
 	lsl.w	#$1,d1
 	addi.w	#$2,d1
-	lea	X_FF941A(pc),a1
+	lea	SoundEngineGuard(pc),a1
 	move.w	#$0,$0(a1)
 	move.w	$1C6(a1),d0
 	lsl.w	#$2,d0
 	move.l	a0,$2(a1,d0.w)
 	move.l	d1,$22(a1,d0.w)
-	lea	X_FF949C(pc),a0
+	lea	SequenceRunState(pc),a0
 	move.l	#$0,(a0,d0.w)
 	move.w	$1C6(a1),d0
 	lsl.w	#$1,d0
@@ -301,7 +275,7 @@ StartSoundSequence
 	rts
 StopSoundSequence
 	movem.l	d1-d2/a0,-(sp)
-	lea	X_FF945C(pc),a0
+	lea	SequenceId(pc),a0
 	clr.w	d0
 .LFF8AE8
 	cmp.w	(a0)+,d1
@@ -313,21 +287,22 @@ StopSoundSequence
 	ori.b	#$1,ccr
 	bra.s	.LFF8B30
 .LFF8B00
-	lea	X_FF941A(pc),a0
+	lea	SoundEngineGuard(pc),a0
 	move.w	d0,$1C6(a0)
 	lsl.w	#$1,d0
-	lea	X_FF945C(pc),a0
+	lea	SequenceId(pc),a0
 	move.w	#$FFFF,(a0,d0.w)
 	lsl.w	#$1,d0
-	lea	X_FF941C(pc),a0
+	lea	SequenceData(pc),a0
 	move.l	#$FFFFFFFF,(a0,d0.w)
-	lea	X_FF941A(pc),a0
+	lea	SoundEngineGuard(pc),a0
 	move.w	$1C6(a0),d0
 	bsr.w	ExpireSequenceNoteOffs
 	clr.w	d0
 .LFF8B30
 	movem.l	(sp)+,d1-d2/a0
 	rts
+PlayZ80Channel16Note
 	movem.l	d1-d2/a0,-(sp)
 	move.w	sr,-(sp)
 	move.w	#$2700,sr
@@ -354,7 +329,7 @@ StopSoundSequence
 	rts
 ClearZ80SoundBuffers
 	movem.l	a0-a1,-(sp)
-	lea	X_FF941A(pc),a0
+	lea	SoundEngineGuard(pc),a0
 	move.w	#$0,$0(a0)
 	bsr.w	AcquireSoundZ80Bus
 	clr.l	d0
@@ -384,7 +359,7 @@ ClearZ80SoundBuffers
 	rts
 RouteSoundEvent
 	movem.l	d1-d3/a0,-(sp)
-	lea	X_FF954A(pc),a0
+	lea	PcmChannelRouting(pc),a0
 	move.l	d0,d1
 	swap	d1
 	lsr.w	#$8,d1
@@ -403,13 +378,13 @@ RouteSoundEvent
 	rts
 QueueDeferredSoundEvent
 	movem.l	d1-d2/a0,-(sp)
-	lea	X_FF941A(pc),a0
+	lea	SoundEngineGuard(pc),a0
 	move.w	#$0,(a0)
-	lea	X_FF955E(pc),a0
+	lea	DeferredSoundEvents(pc),a0
 	move.w	(a0),d2
 	cmpi.w	#$20,d2
 	bne.s	.LFF8C54
-	lea	X_FF941A(pc),a0
+	lea	SoundEngineGuard(pc),a0
 	move.w	#$1234,(a0)
 	move.w	#$FFFF,d0
 	ori.b	#$1,ccr
@@ -421,7 +396,7 @@ QueueDeferredSoundEvent
 	move.l	d0,(a0,d1.w)
 	addi.w	#$1,d2
 	move.w	d2,(a0)
-	lea	X_FF941A(pc),a0
+	lea	SoundEngineGuard(pc),a0
 	move.w	#$1234,(a0)
 	clr.w	d0
 .LFF8C70
@@ -429,7 +404,7 @@ QueueDeferredSoundEvent
 	rts
 QueueZ80SoundEvent
 	movem.l	d1/a0,-(sp)
-	lea	X_FF941A(pc),a0
+	lea	SoundEngineGuard(pc),a0
 	move.w	#$0,$0(a0)
 .LFF8C84
 	bsr.w	AcquireSoundZ80Bus
@@ -465,27 +440,27 @@ QueueZ80SoundEvent
 	move.w	#$0,d0
 .LFF8CDC
 	bsr.w	ReleaseSoundZ80Bus
-	lea	X_FF941A(pc),a0
+	lea	SoundEngineGuard(pc),a0
 	move.w	#$1234,$0(a0)
 	movem.l	(sp)+,d1/a0
 	rts
 FlushDeferredSoundEvents
 	movem.l	d0-d1/a0-a1,-(sp)
-	lea	X_FF955E(pc),a1
+	lea	DeferredSoundEvents(pc),a1
 	cmpi.w	#$0,(a1)
 	beq.s	.LFF8D54
-	movea.l	X_FF955A(pc),a0
+	movea.l	PcmQueuePointer(pc),a0
 	bsr.w	AcquireSoundSubProgramRam
 	bsr.w	MapSoundSubProgramPointer
 .LFF8D0A
 	cmpi.w	#$FFFF,(a0)
 	bne.s	.LFF8D2E
-	movea.l	X_FF955A(pc),a0
+	movea.l	PcmQueuePointer(pc),a0
 	bsr.w	ReleaseSoundSubProgramRam
 	move.w	#$1F4,d0
 .LFF8D1C
 	dbf	d0,.LFF8D1C
-	movea.l	X_FF955A(pc),a0
+	movea.l	PcmQueuePointer(pc),a0
 	bsr.w	AcquireSoundSubProgramRam
 	bsr.w	MapSoundSubProgramPointer
 	bra.s	.LFF8D0A
@@ -501,15 +476,16 @@ FlushDeferredSoundEvents
 .LFF8D3E
 	move.l	(a1)+,(a0)+
 	dbf	d0,.LFF8D3E
-	lea	X_FF955E(pc),a1
+	lea	DeferredSoundEvents(pc),a1
 	move.w	#$0,(a1)
-	movea.l	X_FF955A(pc),a0
+	movea.l	PcmQueuePointer(pc),a0
 	bsr.w	ReleaseSoundSubProgramRam
 .LFF8D54
 	movem.l	(sp)+,d0-d1/a0-a1
 	rts
+UploadZ80SoundResource
 	movem.l	d0-d2/a0-a1,-(sp)
-	lea	X_FF941A(pc),a1
+	lea	SoundEngineGuard(pc),a1
 	move.w	#$0,(a1)
 	bsr.w	AcquireSoundZ80Bus
 	move.b	$A00022.l,d2
@@ -531,7 +507,7 @@ FlushDeferredSoundEvents
 	subi.w	#$1,d2
 	bne.s	.LFF8D96
 	bsr.w	ReleaseSoundZ80Bus
-	lea	X_FF941A(pc),a1
+	lea	SoundEngineGuard(pc),a1
 	move.w	#$1234,(a1)
 	move.w	#$7,d0
 	ori.b	#$1,ccr
@@ -556,7 +532,7 @@ FlushDeferredSoundEvents
 	lsr.w	#$8,d2
 	move.b	d2,$A00022.l
 	bsr.w	ReleaseSoundZ80Bus
-	lea	X_FF941A(pc),a1
+	lea	SoundEngineGuard(pc),a1
 	move.w	#$1234,(a1)
 	clr.w	d0
 .LFF8E18
@@ -564,7 +540,7 @@ FlushDeferredSoundEvents
 	rts
 ClearPendingNoteOffs
 	movem.l	d0-d1/a0-a1,-(sp)
-	lea	X_FF941A(pc),a0
+	lea	SoundEngineGuard(pc),a0
 	move.w	#$0,$0(a0)
 	move.w	#$0,$122(a0)
 	lea	X_FF94BC(pc),a1
@@ -578,7 +554,7 @@ ClearPendingNoteOffs
 	rts
 ExpireSequenceNoteOffs
 	movem.l	d0-d2/a0-a1,-(sp)
-	lea	X_FF941A(pc),a0
+	lea	SoundEngineGuard(pc),a0
 	move.w	#$0,$0(a0)
 	lea	X_FF94BC(pc),a1
 	move.w	$122(a0),d1
@@ -601,18 +577,18 @@ ExpireSequenceNoteOffs
 	rts
 QueueTimedNoteOff
 	movem.l	d0-d1/a0,-(sp)
-	lea	X_FF941A(pc),a0
+	lea	SoundEngineGuard(pc),a0
 	move.w	$122(a0),d1
 	lsl.w	#$2,d1
 	lea	X_FF94BC(pc),a0
 	move.l	d0,(a0,d1.w)
-	lea	X_FF941A(pc),a0
+	lea	SoundEngineGuard(pc),a0
 	addi.w	#$1,$122(a0)
 	movem.l	(sp)+,d0-d1/a0
 	rts
 TickPendingNoteOffs
 	movem.l	d0-d1/a0-a2,-(sp)
-	lea	X_FF941A(pc),a2
+	lea	SoundEngineGuard(pc),a2
 	cmpi.w	#$0,$122(a2)
 	beq.s	.LFF8F2A
 	lea	X_FF94BC(pc),a0
@@ -662,7 +638,7 @@ ServiceZ80DataRequest
 	bcs.w	.LFF90B8
 	cmpa.l	#$FFFFFFFF,a0
 	beq.w	.LFF90B8
-	lea	X_FF941A(pc),a1
+	lea	SoundEngineGuard(pc),a1
 	move.l	a0,$126(a1)
 	move.l	a0,-(sp)
 	bsr.w	AcquireSoundSubProgramRam
@@ -735,7 +711,7 @@ ServiceZ80DataRequest
 	move.b	(a0)+,(a1)+
 	beq.s	.LFF907A
 	dbf	d1,.LFF9058
-	lea	X_FF941A(pc),a1
+	lea	SoundEngineGuard(pc),a1
 	move.l	$12A(a1),d0
 	addi.l	#$200,d0
 	move.l	d0,$12A(a1)
@@ -751,14 +727,14 @@ ServiceZ80DataRequest
 	cmpi.w	#$FFFF,d0
 	beq.s	.LFF90AC
 	move.b	#$FF,(a1)
-	lea	X_FF941A(pc),a1
+	lea	SoundEngineGuard(pc),a1
 	movea.l	$126(a1),a0
 	adda.l	#$2,a0
 	adda.l	d0,a0
 	move.l	a0,$12A(a1)
 	bra.s	.LFF90B8
 .LFF90AC
-	lea	X_FF941A(pc),a1
+	lea	SoundEngineGuard(pc),a1
 	move.l	#$0,$12A(a1)
 .LFF90B8
 	move.b	#$0,$A00072.l
@@ -767,7 +743,7 @@ ServiceZ80DataRequest
 	rts
 FindSoundResource
 	movem.l	d1-d4/a1-a2,-(sp)
-	lea	X_FF95EC(pc),a1
+	lea	SoundResourceBanks(pc),a1
 	move.w	#$4,d2
 .LFF90D6
 	cmpi.l	#$FFFFFFFF,(a1)
@@ -848,7 +824,7 @@ FindSoundResource
 RegisterSoundResourceBank
 	movem.l	d1/a1,-(sp)
 	lsl.w	#$2,d1
-	lea	X_FF95EC(pc),a1
+	lea	SoundResourceBanks(pc),a1
 	move.l	a0,(a1,d1.w)
 	movem.l	(sp)+,d1/a1
 	rts
@@ -871,7 +847,7 @@ LoadZ80SoundResources
 	bcc.s	.LFF91E8
 	move.w	d0,d1
 	move.w	$2(a1),d0
-	bsr.w	X_FF8D5A
+	bsr.w	UploadZ80SoundResource
 	bcs.s	.LFF91F0
 	bra.w	.LFF91E8
 .LFF91E8
@@ -884,7 +860,7 @@ LoadZ80SoundResources
 	rts
 RemoveZ80SoundResources
 	movem.l	d1-d3/a0-a2,-(sp)
-	lea	X_FF941A(pc),a1
+	lea	SoundEngineGuard(pc),a1
 	move.w	#$0,(a1)
 	bsr.w	AcquireSoundZ80Bus
 .LFF920A
@@ -958,14 +934,14 @@ RemoveZ80SoundResources
 	bra.w	.LFF920A
 .LFF92E4
 	bsr.w	ReleaseSoundZ80Bus
-	lea	X_FF941A(pc),a1
+	lea	SoundEngineGuard(pc),a1
 	move.w	#$1234,(a1)
 	clr.w	d0
 	movem.l	(sp)+,d1-d3/a0-a2
 	rts
 ClearZ80SoundResourceDirectory
 	movem.l	a0-a1,-(sp)
-	lea	X_FF941A(pc),a0
+	lea	SoundEngineGuard(pc),a0
 	move.w	#$0,(a0)
 	bsr.w	AcquireSoundZ80Bus
 	lea	$A00100.l,a0
@@ -978,7 +954,7 @@ ClearZ80SoundResourceDirectory
 	move.b	(a0)+,(a1)+
 	move.b	(a0),(a1)
 	bsr.w	ReleaseSoundZ80Bus
-	lea	X_FF941A(pc),a0
+	lea	SoundEngineGuard(pc),a0
 	move.w	#$1234,(a0)
 	clr.w	d0
 	movem.l	(sp)+,a0-a1
@@ -1054,981 +1030,213 @@ MapSoundSubProgramPointer
 .LFF9416
 	move.l	(sp)+,d0
 	rts
+SoundEngineGuard
 	dc.w	$0000
+SequenceData
 	dcb.b	32,0
+SequencePosition
 	dcb.b	32,0
+SequenceId
 	dcb.b	16,0
+SequenceDelay
 	dcb.b	16,0
+SequenceTempo
 	dcb.b	16,0
+SequenceFraction
 	dcb.b	16,0
+SequenceRunState
 	dcb.b	32,0
 	dcb.b	130,0
+CurrentSoundStream
 	ori.b	#$0,d0
 	ori.b	#$0,d0
 	ori.b	#$0,d0
-	dcb.b	20,0
+PcmChannelRouting
+	dcb.b	16,0
+PcmQueuePointer
+	ori.b	#$0,d0
+DeferredSoundEvents
 	dcb.b	140,0
 	dc.w	$0000
-	dcb.b	81,0
-	dc.b	$4F
-	btst.b	d1,-(a6)
-	dc.w	$0004,$0327
-	dc.w	$0004,$0304
-	ori.w	#$303,-(a4)
-	dc.w	$0010,$0301
-	dc.w	$0010,$0302
-	dc.w	$0010,$030C
-	dc.w	$0010,$030E
-	dc.w	$0018,$031C
-	dc.w	$0018,$031D
-	dc.w	$0018,$031E
-	dc.w	$0018,$031F
-	dc.w	$001C,$030B
-	dc.w	$0012,$030F
-	dc.w	$002D,$030D,$0010
-	btst.b	d1,(a0)
-	dc.w	$0010,$0311
-	dc.w	$0010,$0312
-	dc.w	$0010,$0313
-	dc.w	$0010,$0320
-	dc.w	$001C,$0321
-	dc.w	$001C,$0322
-	dc.w	$001C,$0323
-	dc.w	$001C,$0324
-	dc.w	$001C,$0307
-	dc.w	$001C,$032C
-	dc.w	$0010,$032D
-	dc.w	$0010,$032E
-	dc.w	$0010,$032F
-	dc.w	$0010,$0308
-	dc.w	$001E,$0325
-	dc.w	$0010,$0328
-	dc.w	$0010,$0329
-	dc.w	$0010,$032A
-	dc.w	$0010,$032B
-	dc.w	$0010,$0309
-	dc.w	$0010,$030A
-	dc.w	$0010,$0314
-	dc.w	$0010,$0315
-	dc.w	$0010,$0316
-	dc.w	$0010,$0317
-	dc.w	$0010,$0318
-	dc.w	$0010,$0319
-	dc.w	$0010,$031A
-	dc.w	$0010,$031B
-	dc.w	$0010,$0300
-	btst.b	d0,(sp)
-	btst	d1,d6
-	dc.w	$001C,$0305
-	ori.b	#$0,(a0)
-	ori.b	#$1,-(a4)
-	ori.b	#$2,-(a4)
-	ori.b	#$3,-(a4)
-	ori.b	#$4,-(a4)
-	ori.b	#$5,-(a4)
-	ori.b	#$6,-(a4)
-	ori.b	#$7,-(a4)
-	ori.b	#$8,-(a4)
-	ori.b	#$9,-(a4)
-	ori.b	#$A,-(a4)
-	ori.b	#$B,-(a4)
-	ori.b	#$C,-(a4)
-	ori.b	#$D,-(a4)
-	ori.b	#$E,-(a4)
-	ori.b	#$F,-(a4)
-	ori.b	#$10,-(a4)
-	ori.b	#$11,-(a4)
-	ori.b	#$12,-(a4)
-	ori.b	#$13,-(a4)
-	ori.b	#$14,-(a4)
-	ori.b	#$15,-(a4)
-	ori.b	#$16,-(a4)
-	ori.b	#$17,-(a4)
-	ori.b	#$18,-(a4)
-	ori.b	#$19,-(a4)
-	ori.b	#$1A,-(a4)
-	ori.b	#$1B,-(a4)
-	ori.b	#$1C,-(a4)
-	ori.b	#$1D,-(a4)
-	ori.b	#$1F,-(a4)
-	ori.b	#$0,-(a4)
-	dc.w	$00FF
-	ori.b	#$FF,d0
-	ori.b	#$B0,d0
-	move.b	d0,d1
-	dc.w	$00C0
-	move.b	d0,d5
-	eor.b	d0,(a2)
-	dc.w	$0000,$C11A
-	ori.l	#$3E7F6E00,(a0)
-	lsr.w	d0,d4
-	ori.l	#$3E7F6E00,(a1)
-	asl.w	d0,d5
-	dc.w	$00E0
-	beq.w	X_FF7906
-	bset.b	d0,-(a0)
-	bls.w	X_FF7908
-	bset.b	d0,-(a0)
-	addq.b	#$7,d0
-	roxl.w	#$8,d7
-	bset.b	d0,-(a0)
-	addq.b	#$5,d0
-	roxl.w	#$8,d3
-	dc.w	$00E0
-	addq.b	#$3,d0
-	lsl.w	#$8,d7
-.LFF97C0
-	bset.b	d0,-(a0)
-	subq.b	#$8,d0
-	lsl.w	#$8,d2
-	bset.b	d0,-(a0)
-	dc.w	$4D00
-	asl.w	#$8,d6
-	dc.w	$00E0
-	nbcd.b	d0
-	asl.w	#$8,d1
-	bset.b	d0,-(a0)
-	neg.b	d0
-	rol.b	d0,d5
-	bset.b	d0,-(a0)
-	negx.b	d0
-	rol.b	d0,d1
-	bvc.s	.LFF97C0
-	negx.b	d0
-	asl.w	#$8,d0
-	dc.w	$00FF
-	ori.b	#$B0,d0
-	move.b	d1,d1
-	dc.w	$00C0
-	ble.w	X_FF282C
-	dc.w	$7F1E
-	dc.w	$1EFF
-	ori.b	#$B0,d0
-	move.b	d0,d1
-	dc.w	$00C0
-	move.b	d0,-(a6)
-	sub.w	a0,d0
-	dc.w	$7F14
-	dc.w	$14FF
-	ori.b	#$B0,d0
-	move.b	d0,d1
-	dc.w	$00C0
-	move.b	d0,-(a6)
-	sub.w	a2,d0
-	dc.w	$7F14
-	dc.w	$14FF
-	ori.b	#$B0,d0
-	move.b	d1,d1
-	dc.w	$00C0
-	bmi.w	X_FF285A
-	bra.s	.LFF987E
-	dc.w	$5AFF
-	ori.b	#$B0,d0
-	move.b	d1,d1
-	dc.w	$00C0
-	dc.w	$6E00
-	sub.w	(a3)+,d0
-	dc.w	$7F1E
-	move.b	d0,(sp)+
-	bge.w	X_FF2880
-	dc.w	$7F50
-	dc.w	$50FF
-	ori.b	#$B0,d0
-	move.b	d1,d1
-	dc.w	$00C0
-	beq.w	X_FF2884
-	dc.w	$7F04
-	dc.w	$04C0
-	bcs.w	X_FF289A
-	dc.w	$7F28
-	dc.w	$28FF
-	ori.b	#$B0,d0
-	move.b	d1,d1
-	dc.w	$00C0
-	beq.w	X_FF2892
-	dc.w	$7F0A
-	dc.w	$0AC0
-	bcc.w	X_FF28AA
-	dc.w	$7F28
-	dc.w	$28FF
-	ori.b	#$B0,d0
-	move.b	d1,d1
-	dc.w	$00C0
-	dc.w	$6700
-	dc.w	$9037
-	subq.b	#$7,d4
-	dc.w	$04C0
-.LFF987E
-	bcs.w	X_FF28C6
-	dc.w	$5F32,$32FF
-	ori.b	#$B0,d0
-	move.b	d1,d1
-	dc.w	$00C0
-	dc.w	$6700
-	sub.b	$4006(a5),d0
-	dc.w	$063C
-	negx.b	d3
-	bset	d1,d0
-	bcc.w	X_FF28D8
-	subq.b	#$7,(a6)+
-	dc.w	$1EFF
-	ori.b	#$B0,d0
-	move.b	d1,d1
-	dc.w	$00C0
-	dc.w	$6D00
-	sub.w	d3,d0
-	dc.w	$7F81
-	moveq	#-127,d0
-	moveq	#-1,d0
-	ori.b	#$B0,d0
-	move.b	d1,d1
-	dc.w	$00C0
-	dc.w	$6D00
-	sub.w	d5,d0
-	addq.l	#$5,d1
-	movea.w	$4250.w,a2
-	dc.w	$8134
-	or.b	d0,(a6)
-	dc.w	$4346
-	or.b	d0,-(a0)
-	moveq	#$44,d4
-	move.w	d1,(a6)
-	cmpi.w	#$4232,(a2)+
-	or.w	d0,(a4)+
-	dc.w	$8134
-	dc.w	$4328
-	dc.w	$8148
-	dc.w	$8148
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-	and.w	$90(a4),d0
-	dc.w	$467F
-	bcc.s	.LFF9954
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-	and.w	-(a1),d0
-	ori.l	#$467F1919,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-	and.w	-(a1),d0
-	ori.l	#$455F1919,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-	and.w	-(a1),d0
-	ori.l	#$44501919,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-	and.w	-(a1),d0
-	ori.l	#$44321919,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-	and.w	-(a6),d0
-	ori.l	#$437F2000,(a0)
-	eor.b	d0,(a2)
-	btst	d0,d0
-	and.b	d0,(a0)+
-	ori.l	#$14500220,(a1)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-.LFF9954
-	and.w	-(a6),d0
-	ori.l	#$43692000,(a0)
-	eor.b	d0,(a2)
-	btst	d0,d0
-	and.b	d0,(a0)+
-	ori.l	#$14460220,(a1)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-	and.w	-(a6),d0
-	ori.l	#$42502000,(a0)
-	eor.b	d0,(a2)
-	btst	d0,d0
-	and.b	d0,(a0)+
-	ori.l	#$143C0220,(a1)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-	and.w	-(a6),d0
-	ori.l	#$423C2000,(a0)
-	eor.b	d0,(a2)
-	btst	d0,d0
-	and.b	d0,(a0)+
-	ori.l	#$14320220,(a1)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	dc.w	$0000,$C019
-	ori.l	#$1C281400,(a0)
-	eor.b	d0,(a2)
-	dc.w	$0000,$C11B
-	ori.l	#$8281414,(a1)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-	and.w	-(a0),d0
-	ori.l	#$4A7F0A00,(a0)
-	eor.b	d0,(a2)
-	btst	d0,d0
-	and.b	d0,(sp)
-	ori.l	#$1440020A,(a1)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	dc.w	$0000,$C017
-	ori.l	#$147F0202,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	dc.w	$0000,$C017
-	ori.l	#$125F0202,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	dc.w	$0000,$C017
-	ori.l	#$E500202,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	dc.w	$0000,$C017
-	ori.l	#$A320202,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	dc.w	$0000,$C016
-	ori.l	#$3C780606,(a0)
-	cmp.b	(a2),d0
-	btst	d0,d0
-	and.w	$90(a4),d0
-	dc.w	$467F
-	or.b	d0,(a2)
-	or.b	d0,(a2)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	dc.w	$0000,$C016
-	ori.l	#$3C7F0606,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	dc.w	$0000,$C018
-	ori.l	#$197F0404,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	dc.w	$0000,$C018
-	ori.l	#$195F0303,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	dc.w	$0000,$C018
-	ori.l	#$19500202,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	dc.w	$0000,$C018
-	ori.l	#$19320101,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-	and.w	-(sp),d0
-	ori.l	#$3C7F1E1E,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-	and.w	-(sp),d0
-	ori.l	#$417F1E1E,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-	and.w	-(a2),d0
-	ori.l	#$4A7F1919,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-	and.w	-(a2),d0
-	ori.l	#$495F1919,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-	and.w	-(a2),d0
-	ori.l	#$48501919,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-	and.w	-(a2),d0
-	ori.l	#$48321919,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-	and.w	-(a3),d0
-	ori.l	#$4A7F1E1E,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-	and.w	-(a3),d0
-	ori.l	#$495F1E1E,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-	and.w	-(a3),d0
-	ori.l	#$48501E1E,(a0)
-	dc.w	$FF00
-	dc.w	$0000,$B012
-	btst	d0,d0
-	and.w	-(a3),d0
-	ori.l	#$48321E1E,(a0)
-	dc.w	$FF01
-	ori.b	#$0,d0
-	cmp.b	(a2),d0
-	dc.w	$0000,$C01F
-	dc.w	$00E0
-	move.l	d0,d4
-	sub.w	a1,d0
-	dc.w	$7182
-	move.w	d3,d6
-	lsr.b	d0,d2
-	dc.w	$022B,$022D,$022E
-	dc.w	$022F,$0231,$0232
-	dc.w	$0234,$0235,$0237
-	dc.w	$0238,$023A,$023B
-	dc.w	$023C
-	dc.w	$023E
-	dc.w	$023F
-	andi.w	#$242,d1
-	andi.w	#$245,d4
-	andi.w	#$248,d7
-	dc.w	$0249
-	dc.w	$024B
-	dc.w	$024C
-	dc.w	$024E
-	dc.w	$024F
-	andi.w	#$252,(a1)
-	andi.w	#$255,(a3)
-	andi.w	#$258,(a6)
-	andi.w	#$25B,(a1)+
-	andi.w	#$25E,(a4)+
-	andi.w	#$260,(sp)+
-	andi.w	#$263,-(a2)
-	andi.w	#$366,-(a5)
-	andi.w	#$269,$26B(a0)
-	andi.w	#$26D,$26F(a4)
-	dc.w	$0270,$0272,$0273
-	dc.w	$0275,$0276,$0278
-	andi.w	#$27A,$27C027D.l
-	dc.w	$027F
-	dc.w	$017E
-	dc.w	$037C
-	dc.w	$037B
-	bchg.b	d1,$3780376.l
-	dc.w	$0375
-	dc.w	$0374,$0472
-	dc.w	$0371
-	bchg.b	d1,$36E(sp)
-	bchg.b	d1,$36B(a5)
-	bchg.b	d1,$368(a2)
-	bchg.b	d1,-(sp)
-	bchg.b	d1,-(a6)
-	subi.w	#$363,-(a4)
-	bchg.b	d1,-(a1)
-	bchg.b	d1,-(a0)
-	bchg.b	d1,(sp)+
-	bchg.b	d1,(a5)+
-	bchg.b	d1,(a4)+
-	bchg.b	d1,(a2)+
-	bchg.b	d1,(a1)+
-	bchg.b	d1,(a0)+
-	subi.w	#$355,(a6)
-	bchg.b	d1,(a3)
-	bchg.b	d1,(a2)
-	bchg.b	d1,(a0)
-	movep.l	$34E(sp),d1
-	movep.l	$34B(a4),d1
-	movep.l	$448(a1),d1
-	bchg	d1,d7
-	bchg	d1,d5
-	bchg	d1,d4
-	bchg	d1,d2
-	bchg	d1,d1
-	bchg	d1,d0
-	dc.w	$033E
-	dc.w	$033D
-	dc.w	$033B
-	btst.b	d1,X_FFA04F(pc)
-	dc.w	$0337
-	dc.w	$0336
-	dc.w	$0334
-	dc.w	$0333
-	dc.w	$0332
-	dc.w	$0330
-	btst.b	d1,$32D(sp)
-	btst.b	d1,$42A(a4)
-	btst.b	d1,$328(a1)
-	btst.b	d1,-(a6)
-	btst.b	d1,-(a5)
-	btst.b	d1,-(a3)
-	btst.b	d1,-(a2)
-	btst.b	d1,-(a1)
-	bchg	d1,d0
-	dc.w	$00FF
-	ori.b	#$B0,d0
-	move.b	d0,d1
-	dc.w	$00C0
-	move.b	d0,-(a4)
-	sub.b	(a4)+,d0
-	move.w	(a4),d1
-	dc.w	$00B1
-	move.b	d0,d1
-	dc.w	$00C1
-	move.b	d0,-(a5)
-	subx.b	-(a0),-(a0)
-	move.w	(a4),d1
-	dc.w	$14FF
-	ori.b	#$B0,d0
-	move.b	d0,d1
-	dc.w	$00C0
-	move.b	d0,d6
-	dc.w	$903C,$7F14
-	dc.w	$14FF
-	dc.w	$0000,$3D37
-	dc.w	$3731
-	move.b	-(a0),-(a3)
-	move.l	d0,d0
-	move.b	(sp)+,-(sp)
-	move.b	(sp)+,-(sp)
-	move.b	(a2),-(a5)
-	movep.w	$0(a4),d6
-	dc.w	$0000,$F5F4
-	dc.w	$F5F6
-	dc.w	$02C0
-	dc.w	$00F0
-	dc.w	$0007,$0702
-	ori.b	#$0,d0
-	move.b	d1,-(a2)
-	dc.w	$5531,$2E18
-	move.l	d0,d3
-	add.b	d1,(a3)
-	adda.l	(a3),a1
-	dc.w	$0202,$0202
-	btst	d0,d1
-	btst	d0,d1
-	dc.w	$3434,$3434
-	move.w	d0,(a5)+
-	dc.w	$00F0
-	dc.w	$0004,$0402
-	ori.b	#$0,d0
-	dc.w	$3C37
-	bchg.b	d0,-(a1)
-	dc.w	$2C30
-	btst	d3,d7
-	subq.w	#$7,(sp)+
-	subq.w	#$7,(sp)+
-	dc.w	$0C08
-	btst	d2,d5
-	move.b	(a2),d1
-	dc.w	$0012,$F5F6
-	dc.w	$F5F6
-	move.w	(a0),(a6)+
-	dc.w	$00F0
-	dc.w	$0001,$0102
-	ori.b	#$0,d0
-	dc.w	$6F31
-	move.w	$19(a1,d4.w),-(a0)
-	dc.w	$0000,$1F5F
-	move.b	(sp)+,$E0F(sp)
-	move.b	(a2),d1
-	btst	d7,d5
-	dc.w	$0606,$6E1B
-	move.b	(a0)+,d4
-	move.w	d0,(a2)+
-	dc.w	$00F0
-	dc.w	$0001,$0102
-	ori.b	#$0,d0
-	bchg.b	d0,-(a1)
-	dc.w	$0132
-	move.b	d0,d5
-	dc.w	$0000,$1A1C
-	dc.w	$1F0E
-	dc.w	$0C0B
-	movep.w	$701(a3),d5
-	dc.w	$0000,$0507
-	movep.w	$3DC0(a0),d2
-	dc.w	$00F0
-	dc.w	$0002,$0202
-	ori.b	#$0,d0
-	move.w	$30(a0,d3.w),d0
-	move.b	(a3),-(a2)
-	move.b	d0,d4
-	move.b	(sp)+,-(sp)
-	move.b	(sp)+,-(sp)
-	dc.w	$061F,$1F1F
-	ori.b	#$0,d0
-	dc.w	$FF0F
-	movep.w	$30D0(sp),d7
-	dc.w	$00F0
-	dc.w	$0002,$0202
-	ori.b	#$0,d0
-	dc.w	$3131,$3431
-	move.l	(a5)+,-(a0)
-	move.l	d0,d5
-	dc.w	$100E
-	move.b	(a0),d0
-	move.b	(sp)+,-(sp)
-	move.b	(sp)+,-(sp)
-	ori.b	#$0,d0
-	btst	d4,d7
-	movep.w	$3BC0(a1),d4
-	dc.w	$00F0
-	dc.w	$0002,$0202
-	ori.b	#$0,d0
-	addq.b	#$7,(a0)
-	dc.w	$4A33,$160B
-	move.l	d0,d3
-	sub.b	(a6)+,d7
-	sub.l	d6,(a6)+
-	move.b	(a3)+,d6
-	btst.b	d0,(a4)+
-	btst	d2,d1
-	btst	d0,d5
-	move.w	-$3C7(a1),-(a4)
-	dc.w	$1BC0
-	dc.w	$00F0
-	dc.w	$0002,$0202
-	ori.b	#$0,d0
-	clr.b	(a6)
-	move.w	$23(a4,d1.l),d2
-	dc.w	$1D09
-	subq.w	#$7,(a5)+
-	subq.w	#$6,a2
-	btst.b	d5,(sp)+
-	move.b	(sp)+,-(sp)
-	ori.b	#$0,d0
-	move.l	d4,-(a2)
-	btst	d2,d6
-	move.w	-(a2),(a5)+
-	dc.w	$00F0
-	dc.w	$0002,$0202
-	ori.b	#$0,d0
-	move.w	-(a1),$3161(a0)
-	move.b	(a3)+,-(a6)
-	dc.w	$0808
-	movep.w	$100F(a6),d6
-	move.b	(sp)+,-(sp)
-	move.b	(sp)+,-(sp)
-	btst	d5,d0
-	dc.w	$0000,$0708
-	movep.w	$3DC0(a0),d4
-	dc.w	$00F0
-	dc.w	$0002,$0202
-	ori.b	#$0,d0
-	dc.w	$6331
-	dc.w	$3131,$1A1A
-	move.b	d0,-(a5)
-	move.b	(a2)+,d0
-	move.b	(a3)+,-(a1)
-	btst.b	d7,(sp)+
-	move.b	(sp)+,-(sp)
-	ori.b	#$0,d0
-	move.w	d0,d0
-	btst	d0,d7
-	move.w	-$10(a1,d0.w),(a4)+
-	dc.w	$0007,$0702
-	ori.b	#$0,d0
-	andi.w	#$231,-(a2)
-	move.b	d3,d6
-	dc.w	$0000,$131C
-	dc.w	$120E
-	movep.w	$B0B(a3),d1
-	btst	d3,d1
-	dc.w	$0000,$0507
-	dc.w	$0608
-	dc.w	$3DC0
-	dc.w	$00F0
-	dc.w	$0002,$0202
-	ori.b	#$0,d0
-	movea.w	-(a0),a0
-	dc.w	$0030
-	move.l	-(sp),d2
-	move.b	d0,d1
-	move.b	(sp)+,$5F5F(sp)
-	movep.w	$A08(a1),d6
-	move.b	d0,-(a4)
-	btst	d7,d0
-	cmpa.w	$48F8.w,a4
-	move.w	(a0),$F00002.l
-	andi.b	#$0,d2
-	dc.w	$0000,$3D30
-	dc.w	$3130,$2A18
-	move.b	d0,d4
-	sub.b	d7,(sp)+
-	move.b	(sp)+,-(sp)
-	dc.w	$0E09
-	movep.w	$0(a1),d6
-	dc.w	$0000,$DFD7
-	adda.l	(a0)+,sp
-	dc.w	$3BC0
-	dc.w	$00F0
-	dc.w	$0002,$0202
-	ori.b	#$0,d0
-	movea.w	d0,a0
-	subq.b	#$8,(a0)
-	move.b	d0,d0
-	dc.w	$0000,$1F0C
-	move.b	(a0)+,d5
-	dc.w	$0A0C
-	btst	d3,d7
-	dc.w	$0E08
-	dc.w	$160F
-	dc.w	$A70F
-	dc.w	$FCFA
-	dc.w	$35D3
-	dc.w	$00F0
-	dc.w	$0004,$0402
-	ori.b	#$0,d0
-	move.w	$31(a0,d3.w),-(a0)
-	move.b	(sp),d5
-	move.b	d0,-(a6)
-	move.b	(sp)+,-(sp)
-	btst.b	d7,(sp)+
-	dc.w	$0810
-	subi.b	#$0,(sp)+
-	dc.w	$0000,$5804
-	dc.w	$5A0C
-	dc.w	$39C0
-	dc.w	$00F0
-	dc.w	$0002,$0202
-	ori.b	#$0,d0
-	dc.w	$6F05
-	dc.w	$6701
-	ori.b	#$0,d0
-	move.b	(sp)+,-(sp)
-	move.b	(a4)+,-(sp)
-	or.b	d0,d0
-	dc.w	$000F
-	ori.b	#$10,d0
-	movep.w	$D0F(a5),d6
-	move.w	d6,(a4)+
-	dc.w	$00F0
-	dc.w	$0004,$0402
-	ori.b	#$0,d0
-	dc.w	$3D30,$3431
-	ori.b	#$0,d0
-	move.b	(sp)+,-(sp)
-	move.b	(sp)+,-(sp)
-	move.b	(a2),-(a5)
-	move.b	(a5),-(a2)
-	ori.b	#$0,d0
-	dc.w	$F5F4
-	dc.w	$FFEF
-	dc.w	$04C0
-	dc.w	$00F0
-	dc.w	$0007,$0702
-	ori.b	#$0,d0
-	dc.b	'0000(,'
-	move.b	d0,d2
-	move.b	(sp)+,-(a6)
-	move.b	(sp)+,-(sp)
-	move.b	(a1)+,d1
-	btst.b	d7,(a1)+
-	dc.w	$000C
-	dc.w	$120C
-	dc.w	$F304
-	move.w	d4,-(a1)
-	move.w	d0,(a5)+
-	dc.w	$00F0
-	dc.w	$0007,$0702
-	ori.b	#$0,d0
-	move.w	$3F3F0113.l,d4
-	move.l	d0,d5
-	move.b	(sp)+,-(sp)
-	move.b	(sp)+,-(sp)
-	dc.w	$130D
-	move.b	(sp)+,-(sp)
-	addi.b	#$F,d0
-	subx.w	d7,d2
-	dc.w	$0607,$3AD3
-	dc.w	$00F0
-	dc.w	$0005,$0502
-	ori.b	#$0,d0
-	dc.w	$3333
-	move.w	(a3,d1.w),-(a0)
-	dc.w	$0000,$1F98
-	sub.l	d5,(sp)+
-	move.b	(a0),-(a4)
-	dc.w	$120F
-	move.b	(a1)+,-(a4)
-	move.b	(a2),d0
-	dc.w	$E9D8
-	dc.w	$ECFF
-	dc.w	$35C0
-	dc.w	$00F0
-	ori.b	#$2,d0
-.LFF9F5C
-	ori.b	#$0,d0
-	bra.w	.LFFA6C6
-	dc.w	$0016,$0800
-	move.b	(sp)+,-(a3)
-	move.b	(a2),-(a4)
-	move.b	d2,d3
-	move.b	(sp)+,d1
-	dc.w	$0403,$060F
-	dc.w	$540A
-	bpl.s	.LFF9F80
-	dc.w	$29C0
-	dc.w	$00F0
-	dc.w	$0002,$0202
-.LFF9F80
-	ori.b	#$0,d0
-	dc.w	$3730,$3638
-	dc.w	$001F,$4A00
-	move.b	(a2)+,-(sp)
-	move.b	(sp)+,-(sp)
-	dc.w	$170E
-	btst.b	d4,(a0)
-	dc.w	$000C
-	dc.w	$0017,$F3F4
-	dc.w	$84FB,$3AC0
-	dc.w	$00F0
-	asr.b	#$4,d5
-	btst	d2,d2
-	ori.b	#$0,d0
-	dc.w	$3D30,$3431
-	ori.b	#$0,d0
-	move.b	(sp)+,-(sp)
-	move.b	(sp)+,-(sp)
-	move.b	(a2),-(a5)
-	move.b	(a5),-(a2)
-	ori.b	#$0,d0
-	dc.w	$FFFF
-	dc.w	$FFEF
-	dc.w	$04C0
-	dc.w	$00F0
-	dc.w	$0007,$0702
-	ori.b	#$0,d0
-	dc.w	$3F30
-	move.w	$C14.w,-(a2)
-	dc.w	$0000,$1F14
-	dc.w	$001F,$1A0A
-	dc.w	$000A
-	dc.w	$000C
-	dc.w	$0008
-	dc.w	$FF34
-	dc.w	$04F7
-	move.w	d0,(a5)+
-	dc.w	$00F0
-	asr.b	#$4,d5
-	btst	d2,d2
-	ori.b	#$0,d0
-	dc.w	$6F05
-	dc.w	$6701
-	ori.b	#$0,d0
-	move.b	(sp)+,-(sp)
-	move.b	(a4)+,-(sp)
-	or.b	d0,d0
-	dc.w	$000F
-	ori.b	#$10,d0
-	movep.w	$F0F(sp),d7
-	move.w	d6,(a4)+
-	dc.w	$00F0
-	dc.w	$0004,$0402
-	ori.b	#$0,d0
-	dc.w	$6251
-	dc.w	$0131,$3419
-	move.l	d0,d0
-	dc.w	$140E
-	dc.w	$0E11
-	movep.w	$1F(a2),d4
-	ori.b	#$0,d0
-	dc.w	$F006
-	dc.w	$0006,$38F1
-	dc.w	$00F0
-	dc.w	$0002,$0202
-	ori.b	#$0,d0
-	ble.s	.LFFA03C
-	dc.w	$6F00
-.LFFA03C
-	move.l	d2,-(a5)
-	move.l	d0,-(a3)
-	move.b	(a4)+,d7
-	move.b	(a5)+,d6
-	sub.b	d5,(a2)
-	move.b	(sp),-(a5)
-	dc.w	$130E
-	dc.w	$0E0F
-	dc.w	$0937,$5609
-	move.w	d6,(a5)+
-	dc.w	$00F0
-	dc.w	$0004,$0402
-	ori.b	#$0,d0
-	dc.w	$6F05
-	dc.w	$6701
-	ori.b	#$0,d0
-	move.b	(sp)+,-(sp)
-	dc.w	$1F0C
-	or.b	d0,d0
-	dc.w	$000F
-	ori.b	#$1F,d0
-	ori.b	#$B,d0
-	move.w	d6,(a4)+
-	dc.w	$00F0
-	dc.w	$0004,$0402
-	ori.b	#$0,d0
-	andi.w	#$131,-(a2)
-	dc.w	$631D
-	dc.w	$6300
-	btst.b	d6,(sp)+
-	btst.b	d7,(a6)
-	btst	d5,d6
-	dc.w	$020C
-	btst	d4,d0
-	dc.w	$0410,$4707
-	move.l	a3,d4
-	move.w	d0,(a4)+
-	dc.w	$00F0
-	dc.w	$0002,$0202
-	ori.b	#$0,d0
-	dc.w	$6151
-	dc.w	$0131,$1663
-	bls.w	.LFFA9BA
-	btst	d5,d7
-	dc.w	$040A
-	ori.b	#$0,d6
-	dc.w	$0000,$6707
-	btst	d4,d7
-	move.w	-$10(a1,d0.w),(a5)+
-	lsr.b	#$4,d4
-	cmpi.b	#$0,d2
-	ori.b	#$0,d0
-	ori.b	#$1,d0
-	ori.b	#$2,d0
-	ori.b	#$3,d0
-	ori.b	#$4,d0
-	ori.b	#$5,d0
-	ori.b	#$6,d0
-	ori.b	#$7,d0
-	ori.b	#$8,d0
-	ori.b	#$9,d0
-	ori.b	#$A,d0
-	ori.b	#$B,d0
-	ori.b	#$C,d0
-	ori.b	#$D,d0
-	ori.b	#$E,d0
-	ori.b	#$F,d0
-	ori.b	#$10,d0
-	ori.b	#$11,d0
-	ori.b	#$12,d0
-	ori.b	#$13,d0
-	ori.b	#$14,d0
-	ori.b	#$15,d0
-	ori.b	#$16,d0
-	ori.b	#$17,d0
-	ori.b	#$18,d0
-	ori.b	#$19,d0
-	ori.b	#$1A,d0
-	ori.b	#$1B,d0
-	ori.b	#$1C,d0
-	ori.b	#$1D,d0
-	ori.b	#$1F,d0
-	dc.w	$FFFF
-	dcb.b	1410,0
-.LFFA6C6
-	dcb.b	756,0
-.LFFA9BA
-	dcb.b	8580,0
-	dcb.b	12482,0
+SoundResourceBanks
+	dcb.b	80,0
+SoundBank
+	dc.w	$004F,$0326,$0004,$0327,$0004,$0304,$0064,$0303
+	dc.w	$0010,$0301,$0010,$0302,$0010,$030C,$0010,$030E
+	dc.w	$0018,$031C,$0018,$031D,$0018,$031E,$0018,$031F
+	dc.w	$001C,$030B,$0012,$030F,$002D,$030D,$0010,$0310
+	dc.w	$0010,$0311,$0010,$0312,$0010,$0313,$0010,$0320
+	dc.w	$001C,$0321,$001C,$0322,$001C,$0323,$001C,$0324
+	dc.w	$001C,$0307,$001C,$032C,$0010,$032D,$0010,$032E
+	dc.w	$0010,$032F,$0010,$0308,$001E,$0325,$0010,$0328
+	dc.w	$0010,$0329,$0010,$032A,$0010,$032B,$0010,$0309
+	dc.w	$0010,$030A,$0010,$0314,$0010,$0315,$0010,$0316
+	dc.w	$0010,$0317,$0010,$0318,$0010,$0319,$0010,$031A
+	dc.w	$0010,$031B,$0010,$0300,$0117,$0306,$001C,$0305
+	dc.w	$0010,$0000,$0024,$0001,$0024,$0002,$0024,$0003
+	dc.w	$0024,$0004,$0024,$0005,$0024,$0006,$0024,$0007
+	dc.w	$0024,$0008,$0024,$0009,$0024,$000A,$0024,$000B
+	dc.w	$0024,$000C,$0024,$000D,$0024,$000E,$0024,$000F
+	dc.w	$0024,$0010,$0024,$0011,$0024,$0012,$0024,$0013
+	dc.w	$0024,$0014,$0024,$0015,$0024,$0016,$0024,$0017
+	dc.w	$0024,$0018,$0024,$0019,$0024,$001A,$0024,$001B
+	dc.w	$0024,$001C,$0024,$001D,$0024,$001F,$0024,$0000
+	dc.w	$00FF,$0000,$00FF,$0000,$00B0,$1200,$00C0,$1A00
+	dc.w	$B112,$0000,$C11A,$0090,$3E7F,$6E00,$E06C,$0091
+	dc.w	$3E7F,$6E00,$E165,$00E0,$6700,$E160,$01E0,$6300
+	dc.w	$E15C,$01E0,$5E00,$E157,$01E0,$5A00,$E153,$00E0
+	dc.w	$5600,$E14F,$01E0,$5100,$E14A,$01E0,$4D00,$E146
+	dc.w	$00E0,$4800,$E141,$01E0,$4400,$E13D,$01E0,$4000
+	dc.w	$E139,$68E0,$4000,$E140,$00FF,$0000,$00B0,$1201
+	dc.w	$00C0,$6F00,$903C,$7F1E,$1EFF,$0000,$00B0,$1200
+	dc.w	$00C0,$1D00,$9048,$7F14,$14FF,$0000,$00B0,$1200
+	dc.w	$00C0,$1D00,$904A,$7F14,$14FF,$0000,$00B0,$1201
+	dc.w	$00C0,$6B00,$903A,$605A,$5AFF,$0000,$00B0,$1201
+	dc.w	$00C0,$6E00,$905B,$7F1E,$1EC0,$6C00,$9048,$7F50
+	dc.w	$50FF,$0000,$00B0,$1201,$00C0,$6700,$903C,$7F04
+	dc.w	$04C0,$6500,$904A,$7F28,$28FF,$0000,$00B0,$1201
+	dc.w	$00C0,$6700,$9032,$7F0A,$0AC0,$6400,$9042,$7F28
+	dc.w	$28FF,$0000,$00B0,$1201,$00C0,$6700,$9037,$5F04
+	dc.w	$04C0,$6500,$9046,$5F32,$32FF,$0000,$00B0,$1201
+	dc.w	$00C0,$6700,$902D,$4006,$063C,$4003,$03C0,$6400
+	dc.w	$903C,$5F1E,$1EFF,$0000,$00B0,$1201,$00C0,$6D00
+	dc.w	$9043,$7F81,$7081,$70FF,$0000,$00B0,$1201,$00C0
+	dc.w	$6D00,$9045,$5A81,$3478,$4250,$8134,$8116,$4346
+	dc.w	$8120,$7844,$3C81,$0C5A,$4232,$815C,$8134,$4328
+	dc.w	$8148,$8148,$FF00,$0000,$B012,$0100,$C06C,$0090
+	dc.w	$467F,$6464,$FF00,$0000,$B012,$0100,$C061,$0090
+	dc.w	$467F,$1919,$FF00,$0000,$B012,$0100,$C061,$0090
+	dc.w	$455F,$1919,$FF00,$0000,$B012,$0100,$C061,$0090
+	dc.w	$4450,$1919,$FF00,$0000,$B012,$0100,$C061,$0090
+	dc.w	$4432,$1919,$FF00,$0000,$B012,$0100,$C066,$0090
+	dc.w	$437F,$2000,$B112,$0100,$C118,$0091,$1450,$0220
+	dc.w	$FF00,$0000,$B012,$0100,$C066,$0090,$4369,$2000
+	dc.w	$B112,$0100,$C118,$0091,$1446,$0220,$FF00,$0000
+	dc.w	$B012,$0100,$C066,$0090,$4250,$2000,$B112,$0100
+	dc.w	$C118,$0091,$143C,$0220,$FF00,$0000,$B012,$0100
+	dc.w	$C066,$0090,$423C,$2000,$B112,$0100,$C118,$0091
+	dc.w	$1432,$0220,$FF00,$0000,$B012,$0000,$C019,$0090
+	dc.w	$1C28,$1400,$B112,$0000,$C11B,$0091,$0828,$1414
+	dc.w	$FF00,$0000,$B012,$0100,$C060,$0090,$4A7F,$0A00
+	dc.w	$B112,$0100,$C117,$0091,$1440,$020A,$FF00,$0000
+	dc.w	$B012,$0000,$C017,$0090,$147F,$0202,$FF00,$0000
+	dc.w	$B012,$0000,$C017,$0090,$125F,$0202,$FF00,$0000
+	dc.w	$B012,$0000,$C017,$0090,$0E50,$0202,$FF00,$0000
+	dc.w	$B012,$0000,$C017,$0090,$0A32,$0202,$FF00,$0000
+	dc.w	$B012,$0000,$C016,$0090,$3C78,$0606,$B012,$0100
+	dc.w	$C06C,$0090,$467F,$8112,$8112,$FF00,$0000,$B012
+	dc.w	$0000,$C016,$0090,$3C7F,$0606,$FF00,$0000,$B012
+	dc.w	$0000,$C018,$0090,$197F,$0404,$FF00,$0000,$B012
+	dc.w	$0000,$C018,$0090,$195F,$0303,$FF00,$0000,$B012
+	dc.w	$0000,$C018,$0090,$1950,$0202,$FF00,$0000,$B012
+	dc.w	$0000,$C018,$0090,$1932,$0101,$FF00,$0000,$B012
+	dc.w	$0100,$C067,$0090,$3C7F,$1E1E,$FF00,$0000,$B012
+	dc.w	$0100,$C067,$0090,$417F,$1E1E,$FF00,$0000,$B012
+	dc.w	$0100,$C062,$0090,$4A7F,$1919,$FF00,$0000,$B012
+	dc.w	$0100,$C062,$0090,$495F,$1919,$FF00,$0000,$B012
+	dc.w	$0100,$C062,$0090,$4850,$1919,$FF00,$0000,$B012
+	dc.w	$0100,$C062,$0090,$4832,$1919,$FF00,$0000,$B012
+	dc.w	$0100,$C063,$0090,$4A7F,$1E1E,$FF00,$0000,$B012
+	dc.w	$0100,$C063,$0090,$495F,$1E1E,$FF00,$0000,$B012
+	dc.w	$0100,$C063,$0090,$4850,$1E1E,$FF00,$0000,$B012
+	dc.w	$0100,$C063,$0090,$4832,$1E1E,$FF01,$0000,$0000
+	dc.w	$B012,$0000,$C01F,$00E0,$2800,$9049,$7182,$3C03
+	dc.w	$E02A,$022B,$022D,$022E,$022F,$0231,$0232,$0234
+	dc.w	$0235,$0237,$0238,$023A,$023B,$023C,$023E,$023F
+	dc.w	$0241,$0242,$0244,$0245,$0247,$0248,$0249,$024B
+	dc.w	$024C,$024E,$024F,$0251,$0252,$0253,$0255,$0256
+	dc.w	$0258,$0259,$025B,$025C,$025E,$025F,$0260,$0262
+	dc.w	$0263,$0265,$0366,$0268,$0269,$026B,$026C,$026D
+	dc.w	$026F,$0270,$0272,$0273,$0275,$0276,$0278,$0279
+	dc.w	$027A,$027C,$027D,$027F,$017E,$037C,$037B,$0379
+	dc.w	$0378,$0376,$0375,$0374,$0472,$0371,$036F,$036E
+	dc.w	$036D,$036B,$036A,$0368,$0367,$0366,$0464,$0363
+	dc.w	$0361,$0360,$035F,$035D,$035C,$035A,$0359,$0358
+	dc.w	$0456,$0355,$0353,$0352,$0350,$034F,$034E,$034C
+	dc.w	$034B,$0349,$0448,$0347,$0345,$0344,$0342,$0341
+	dc.w	$0340,$033E,$033D,$033B,$033A,$0439,$0337,$0336
+	dc.w	$0334,$0333,$0332,$0330,$032F,$032D,$032C,$042A
+	dc.w	$0329,$0328,$0326,$0325,$0323,$0322,$0321,$0340
+	dc.w	$00FF,$0000,$00B0,$1200,$00C0,$1900,$901C,$3214
+	dc.w	$00B1,$1200,$00C1,$1B00,$9108,$3214,$14FF,$0000
+	dc.w	$00B0,$1200,$00C0,$1C00,$903C,$7F14,$14FF,$0000
+	dc.w	$3D37,$3731,$1720,$2000,$1F1F,$1F1F,$1B12,$0D0C
+	dc.w	$0000,$0000,$F5F4,$F5F6,$02C0,$00F0,$0007,$0702
+	dc.w	$0000,$0000,$1501,$5531,$2E18,$2600,$D313,$D3D3
+	dc.w	$0202,$0202,$0101,$0101,$3434,$3434,$3AC0,$00F0
+	dc.w	$0004,$0402,$0000,$0000,$3C37,$0161,$2C30,$0707
+	dc.w	$5F5F,$5F5F,$0C08,$0505,$1212,$0012,$F5F6,$F5F6
+	dc.w	$3CD0,$00F0,$0001,$0102,$0000,$0000,$6F31,$3131
+	dc.w	$4019,$0000,$1F5F,$1F5F,$0E0F,$1212,$0F05,$0606
+	dc.w	$6E1B,$1818,$34C0,$00F0,$0001,$0102,$0000,$0000
+	dc.w	$0161,$0132,$1A00,$0000,$1A1C,$1F0E,$0C0B,$0B0B
+	dc.w	$0701,$0000,$0507,$0508,$3DC0,$00F0,$0002,$0202
+	dc.w	$0000,$0000,$3030,$3030,$1513,$1800,$1F1F,$1F1F
+	dc.w	$061F,$1F1F,$0000,$0000,$FF0F,$0F0F,$30D0,$00F0
+	dc.w	$0002,$0202,$0000,$0000,$3131,$3431,$211D,$2A00
+	dc.w	$100E,$1010,$1F1F,$1F1F,$0000,$0000,$0907,$0909
+	dc.w	$3BC0,$00F0,$0002,$0202,$0000,$0000,$5E10,$4A33
+	dc.w	$160B,$2600,$9E1E,$9D9E,$1C1B,$011C,$0501,$0105
+	dc.w	$3929,$FC39,$1BC0,$00F0,$0002,$0202,$0000,$0000
+	dc.w	$4216,$3434,$1823,$1D09,$5F5D,$5D4A,$0B1F,$1F1F
+	dc.w	$0000,$0000,$2504,$0506,$3AE2,$00F0,$0002,$0202
+	dc.w	$0000,$0000,$3161,$3161,$1D1B,$0808,$0D0E,$100F
+	dc.w	$1F1F,$1F1F,$0B00,$0000,$0708,$0908,$3DC0,$00F0
+	dc.w	$0002,$0202,$0000,$0000,$6331,$3131,$1A1A,$1B00
+	dc.w	$101A,$131B,$0F1F,$1F1F,$0000,$0000,$3000,$0107
+	dc.w	$38F1,$00F0,$0007,$0702,$0000,$0000,$0262,$0231
+	dc.w	$1C03,$0000,$131C,$120E,$030B,$0B0B,$0701,$0000
+	dc.w	$0507,$0608,$3DC0,$00F0,$0002,$0202,$0000,$0000
+	dc.w	$3060,$0030,$2427,$1200,$1F5F,$5F5F,$0D09,$0A08
+	dc.w	$1900,$0F00,$B8F8,$48F8,$33D0,$00F0,$0002,$0202
+	dc.w	$0000,$0000,$3D30,$3130,$2A18,$1800,$9F1F,$1F1F
+	dc.w	$0E09,$0D09,$0000,$0000,$DFD7,$DFD8,$3BC0,$00F0
+	dc.w	$0002,$0202,$0000,$0000,$3040,$5110,$1000,$0000
+	dc.w	$1F0C,$1A18,$0A0C,$0707,$0E08,$160F,$A70F,$FCFA
+	dc.w	$35D3,$00F0,$0004,$0402,$0000,$0000,$3130,$3031
+	dc.w	$1A17,$1D00,$1F1F,$0F1F,$0810,$041F,$0000,$0000
+	dc.w	$5804,$5A0C,$39C0,$00F0,$0002,$0202,$0000,$0000
+	dc.w	$6F05,$6701,$0000,$0000,$1F1F,$1F1C,$8000,$000F
+	dc.w	$0000,$0010,$0D0D,$0D0F,$38C6,$00F0,$0004,$0402
+	dc.w	$0000,$0000,$3D30,$3431,$0000,$0000,$1F1F,$1F1F
+	dc.w	$1B12,$1515,$0000,$0000,$F5F4,$FFEF,$04C0,$00F0
+	dc.w	$0007,$0702,$0000,$0000,$3030,$3030,$282C,$1400
+	dc.w	$1D1F,$1F1F,$1219,$0F19,$000C,$120C,$F304,$3304
+	dc.w	$3AC0,$00F0,$0007,$0702,$0000,$0000,$3839,$3F3F
+	dc.w	$0113,$2A00,$1F1F,$1F1F,$130D,$1F1F,$0600,$000F
+	dc.w	$9547,$0607,$3AD3,$00F0,$0005,$0502,$0000,$0000
+	dc.w	$3333,$3133,$1000,$0000,$1F98,$9B9F,$1910,$120F
+	dc.w	$1919,$1012,$E9D8,$ECFF,$35C0,$00F0,$0000,$0002
+	dc.w	$0000,$0000,$6000,$0764,$0016,$0800,$171F,$1912
+	dc.w	$1602,$121F,$0403,$060F,$540A,$6A08,$29C0,$00F0
+	dc.w	$0002,$0202,$0000,$0000,$3730,$3638,$001F,$4A00
+	dc.w	$1F1A,$1F1F,$170E,$0910,$000C,$0017,$F3F4,$84FB
+	dc.w	$3AC0,$00F0,$E805,$0502,$0000,$0000,$3D30,$3431
+	dc.w	$0000,$0000,$1F1F,$1F1F,$1B12,$1515,$0000,$0000
+	dc.w	$FFFF,$FFEF,$04C0,$00F0,$0007,$0702,$0000,$0000
+	dc.w	$3F30,$3538,$0C14,$0000,$1F14,$001F,$1A0A,$000A
+	dc.w	$000C,$0008,$FF34,$04F7,$3AC0,$00F0,$E805,$0502
+	dc.w	$0000,$0000,$6F05,$6701,$0000,$0000,$1F1F,$1F1C
+	dc.w	$8000,$000F,$0000,$0010,$0F0F,$0F0F,$38C6,$00F0
+	dc.w	$0004,$0402,$0000,$0000,$6251,$0131,$3419,$2000
+	dc.w	$140E,$0E11,$090A,$001F,$0000,$0000,$F006,$0006
+	dc.w	$38F1,$00F0,$0002,$0202,$0000,$0000,$6F02,$6F00
+	dc.w	$2B02,$2700,$1E1C,$1C1D,$9B12,$1B17,$130E,$0E0F
+	dc.w	$0937,$5609,$3AC6,$00F0,$0004,$0402,$0000,$0000
+	dc.w	$6F05,$6701,$0000,$0000,$1F1F,$1F0C,$8000,$000F
+	dc.w	$0000,$001F,$0000,$000B,$38C6,$00F0,$0004,$0402
+	dc.w	$0000,$0000,$0262,$0131,$631D,$6300,$0D1F,$0F16
+	dc.w	$0B06,$020C,$0900,$0410,$4707,$280B,$38C0,$00F0
+	dc.w	$0002,$0202,$0000,$0000,$6151,$0131,$1663,$6300
+	dc.w	$090E,$0B07,$040A,$0006,$0000,$0000,$6707,$0907
+	dc.w	$3AF1,$00F0,$E80C,$0C02,$0000
+Z80SoundResourceList
+	dc.w	$0000,$0000,$0000,$0001,$0000,$0002,$0000,$0003
+	dc.w	$0000,$0004,$0000,$0005,$0000,$0006,$0000,$0007
+	dc.w	$0000,$0008,$0000,$0009,$0000,$000A,$0000,$000B
+	dc.w	$0000,$000C,$0000,$000D,$0000,$000E,$0000,$000F
+	dc.w	$0000,$0010,$0000,$0011,$0000,$0012,$0000,$0013
+	dc.w	$0000,$0014,$0000,$0015,$0000,$0016,$0000,$0017
+	dc.w	$0000,$0018,$0000,$0019,$0000,$001A,$0000,$001B
+	dc.w	$0000,$001C,$0000,$001D,$0000,$001F,$FFFF
+	dcb.b	23228,0

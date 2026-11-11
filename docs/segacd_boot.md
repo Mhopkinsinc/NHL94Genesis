@@ -131,7 +131,7 @@ A note on (packed `$9x`) is a long: the slot (status nibble with the top byte), 
 
 | Byte | Use |
 | --- | --- |
-| 1 | priority: the smaller byte wins (a sound takes a playing channel only when that channel's byte is not below its own) |
+| 1 | priority (a sound takes a playing channel only when that channel's PcmChannelPriority is not below this byte) |
 | 2 | the wave sample id (PcmSampleAddress: the start) |
 | 3 | the root note: the note that plays at the recorded rate |
 | 4 | fine tune (signed) |
@@ -142,12 +142,20 @@ A note on (packed `$9x`) is a long: the slot (status nibble with the top byte), 
 | `$C` | flags: bit 0, a note of this sound takes a channel already playing it; bit 1 clear, that channel is not restarted |
 | `$D` | the envelope (type 4 record id), `$FF` none: the envelope level is then the velocity * 2 |
 
-SelectPcmChannel takes a channel playing the same sound (when bit 0 of byte `$C` says so), then one that is off, then the first whose PcmChannelPriority is not below the record's; with none, the note is not played. The stream's channel gets priority 0, so no sound takes it. The channel's tables (PcmChannelSlot, PcmChannelSound, PcmChannelNote, PcmChannelVelocity, PcmChannelPriority, PcmChannelEnvelope) are filled, the start and loop addresses written, and StartPcmEnvelope, UpdatePcmPan and UpdatePcmFrequency run.
+SelectPcmChannel takes a channel playing the same sound (when bit 0 of byte `$C` says so), then one that is off, then the first whose PcmChannelPriority is not below the record's; with none, the note is not played. The stream's channel gets priority 0, so a sound of priority 0 (all of the game's but the whistle) can take it when every channel is busy. The channel's tables (PcmChannelSlot, PcmChannelSound, PcmChannelNote, PcmChannelVelocity, PcmChannelPriority, PcmChannelEnvelope) are filled, the start and loop addresses written, and StartPcmEnvelope, UpdatePcmPan and UpdatePcmFrequency run.
 
 UpdatePcmFrequency takes the note's distance from the root, adds fine tune, pitch bend and modulation as a fraction of a semitone, and reads PcmPitchTable (`$8EAC`): the frequency step for 0 to 48 semitones above the root, `$0800` (the recorded rate) doubling every 12, between two entries by the fraction.
 
 A type 4 record (an envelope): byte 0 the segment count, byte 1 the segment to loop back to, byte 2 the sustain segment, then from byte 4 a level and a time for each segment (level, time, level, time ...). Segment s goes from its level to the next one's in its time, counted in `$FF800C` ticks / 32 (PcmChannelSegmentTime). While the note is held (its PcmEnvelopeHeld bit), reaching segment byte 2 goes back to segment byte 1 (the sustain loop); a note off clears the bit and moves the channel to segment byte 2 (the release), and the channel is turned off when it reaches the last level. The channel's envelope register gets the level * velocity * 2 / 256.
 
+### What the game plays
+
+OSInitMainSound installs GRAPH2 resource 96 as directory 0, loads its 13 wave samples (type 2, ids 0-12) with the list GamePcmSampleList (HOCKEY.BIN `$223D6`), then puts GamePcmSounds (HOCKEY.BIN `$222EA`) in directory 0 instead: 13 sound records (type 0, kind 6), ids `$60`-`$67` and `$6B`-`$6F`. Each plays one sample once (loop offset `$FFFF`), with no envelope, bend ranges 2 and the level `$FF`; the record's root note is `$54`, `$5A` or `$60`. `$67` (the hits) has the level `$96`, and `$6F` (the whistle) priority 8 where the others have 0.
+
+The byte 0 of a type 0 record is its kind: below 6 an FM instrument (the main CPU's sound engine sends those to the Z80), 6 a PCM sound, 7 a key map.
+
+The main CPU's sound engine (`docs/segacd_main_shell.md`, "The sound engine") sends the driver only what its sequences put on the channels they switch to PCM (controller 18): `$Cx` program changes (the sound: PcmSoundMapping), `$9x` notes with their velocity, and the `$8x` note off it times itself (with no loop, a note off finds nothing to stop). The game's sequences send no pitch bend or other controller to a PCM channel. Each stream is a port, so the slot is the stream number * 16 + the channel. Which sound effects use PCM, and which sample each plays, is in that doc.
+
 ## Not worked out
 
-Which packed commands the main CPU's sound engine sends and which records resource 96 holds (the sounds, key maps and envelopes of the game).
+Nothing in the sound path is left; the per-slot modulation (PcmSlotModulation, PcmModulationLevels) and the key maps are in the driver but unused by the game.

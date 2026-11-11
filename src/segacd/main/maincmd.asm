@@ -3,23 +3,23 @@
 ;	DispatchSoundOperation (after the Z80 sound image): d0 = 0 (z80load.asm, next) or 1-9 (mainmod.asm).
 
 
+LoadZ80SoundProgram	equ	$FF86C8
 TickSoundSequences	equ	$FF87B8
 StartSoundSequence	equ	$FF8A34
 StopSoundSequence	equ	$FF8ADE
+PlayZ80Channel16Note	equ	$FF8B36
 ClearZ80SoundBuffers	equ	$FF8B90
 RegisterSoundResourceBank	equ	$FF919C
 LoadZ80SoundResources	equ	$FF91B0
 RemoveZ80SoundResources	equ	$FF91FA
 ClearZ80SoundResourceDirectory	equ	$FF92F8
-X_FF86C8	equ	$FF86C8
-X_FF8B36	equ	$FF8B36
 
 	org	$FF865C
 
 DispatchSoundOperation
 	tst.w	d0
 	bne.s	.LFF8664
-	bra.w	X_FF86C8
+	bra.w	LoadZ80SoundProgram
 .LFF8664
 	subi.w	#$1,d0
 	bne.s	.LFF866E
@@ -35,7 +35,7 @@ DispatchSoundOperation
 .LFF8682
 	subi.w	#$1,d0
 	bne.s	.LFF868C
-	bra.w	X_FF8B36
+	bra.w	PlayZ80Channel16Note
 .LFF868C
 	subi.w	#$1,d0
 	bne.s	.LFF8696

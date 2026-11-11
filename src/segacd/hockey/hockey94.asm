@@ -24,6 +24,8 @@ InitScores	equ	$3CB50
 setupice	equ	$3E91C
 clearTeamStats	equ	$3F11E
 p_turnoff	equ	$47DAC
+GamePcmSounds	equ	$222EA
+GamePcmSampleList	equ	$223D6
 
 	org	$2B614
 
@@ -39,8 +41,8 @@ LoadGameGfx						;CD-only routine (a name given here, not a cartridge name)
 	move.l	a0,$47DA0.l
 	movem.l	(sp)+,d0-d2/d7/a0-a1
 	movea.l	$47DA0.l,a1
-	lea	$223D6.l,a2
-	lea	$222EA.l,a3
+	lea	(GamePcmSampleList).l,a2
+	lea	(GamePcmSounds).l,a3
 	move.w	#$8,d7
 	jsr	$6044.w
 	jsr	(InitSaveRAM).l

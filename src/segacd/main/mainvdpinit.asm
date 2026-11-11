@@ -15,6 +15,8 @@ GiveSubWordRamAndWait	equ	$FF49A2
 ClearAllVramCommand	equ	$FF4DE4
 Z80SoundImage	equ	$FF6E0C
 DispatchSoundOperation	equ	$FF865C
+SoundBank	equ	$FF963C
+Z80SoundResourceList	equ	$FFA0C6
 X_FF1006	equ	$FF1006
 X_FF6AD4	equ	$FF6AD4
 X_FF6D04	equ	$FF6D04
@@ -48,11 +50,11 @@ InitSoundCommand
 	move.w	#$184F,d1
 	movea.l	$A12022.l,a1
 	bsr.w	DispatchSoundOperation
-	lea	$FF963C.l,a0
+	lea	(SoundBank).l,a0
 	move.w	#$0,d1
 	move.w	#$6,d0
 	bsr.w	DispatchSoundOperation
-	lea	$FFA0C6.l,a0
+	lea	(Z80SoundResourceList).l,a0
 	move.w	#$7,d0
 	bsr.w	DispatchSoundOperation
 	jsr	(InstallSoundSequenceHInt).l

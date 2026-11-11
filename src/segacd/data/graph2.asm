@@ -808,7 +808,9 @@ Res95	incbin	..\cdbin\GRAPH2.BIN,$2CB000,28324
 ;	resource 96 (sector $5A4, 62,202 bytes):
 ;	the game's PCM wave samples: a record directory of 13 type 2 records (as StarterPcmRecords).
 ;	LoadGameGfx loads it (d0 = $60) into $47DA0 and passes it to OSInitMainSound (service 8, boot/sp.asm),
-;	which installs it in the sub CPU PCM driver; the list at HOCKEY.BIN $223D6 loads the samples
+;	which installs it in the sub CPU PCM driver; GamePcmSampleList (HOCKEY.BIN $223D6) loads the samples,
+;	which GamePcmSounds ($222EA) plays: the whistle, passes, shots, checks, hits, the crowd, the glass
+;	(docs/segacd_main_shell.md, the sound engine)
 Res96	incbin	..\cdbin\GRAPH2.BIN,$2D2000,62198
 	dc.b	$12,$34,$56,$78				;the end mark
 	dcb.b	$2E1800-*,0				;zero fill to sector $5C3
