@@ -62,6 +62,7 @@ CDNAMES=(
   --cdname StanleyCupSpritePtr=0x47D94
   --cdname HotMapPtr=0x47D98
   --cdname ColdMapPtr=0x47D9C
+  --cdname ScoutingSpeechClipsPtr=0x47DA4 # GRAPH2 resource 0 piece 3, the scouting speech clips (docs/segacd_announce.md)
 )
 # --entry: a cartridge routine the CD put new lines in front of. Its callers in other fragments enter at the
 # new first line, so the name goes there (checked by hand: the new lines fall through into the routine):

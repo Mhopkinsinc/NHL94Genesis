@@ -291,7 +291,7 @@ ScoutingReport						;CD: its first lines have no twin; the rest of it starts her
 	movea.l	#$FF8000,a5
 	move.l	d1,d3
 	asl.w	#$3,d1
-	movea.l	$47DA4.l,a0
+	movea.l	(ScoutingSpeechClipsPtr).l,a0
 	move.l	(a0,d1.w),d2
 	move.l	$4(a0,d1.w),d1
 	move.w	#$6,d7
@@ -312,7 +312,7 @@ ScoutingReport						;CD: its first lines have no twin; the rest of it starts her
 	move.l	d1,d0
 	bsr.w	.L289EC
 	asl.w	#$3,d1
-	movea.l	$47DA4.l,a0
+	movea.l	(ScoutingSpeechClipsPtr).l,a0
 	move.l	(a0,d1.w),d2
 	subi.w	#$2,d2
 	move.l	d2,$47D60.l

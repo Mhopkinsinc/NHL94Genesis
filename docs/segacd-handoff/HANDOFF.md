@@ -36,10 +36,10 @@
      labelled too, and hwread.asm's; the drawing commands (`$02`, `$04`-`$12`, `$17`, `$18`) have names for what they
      draw (pictures, tiles, text through a `.map.jim` font, frame rows, cell copies; "Drawing" in that doc). HOCKEY's
      header and TeamList are source now; the graphics pointer table has 38 of 44 entries named (`--cdname` in
-     `tools/segacd_hockey.sh`, and ScoutingSpeechClipsPtr by hand in `cdgfxptrs.asm`: the scouting report's speech
-     clips, `docs/segacd_announce.md`), the rest have no cartridge label (their comments say what they hold). When
-     `tools/segacd_hockey.sh` is next run, `--cdname ScoutingSpeechClipsPtr=0x47DA4` can go into CDNAMES so that
-     scout94_2 and scoutopen use the name.
+     `tools/segacd_hockey.sh`; ScoutingSpeechClipsPtr is the scouting report's speech clips,
+     `docs/segacd_announce.md`), the rest have no cartridge label (their comments say what they hold). The older
+     `scoutload.asm` and `scoutopen.asm` use the names too. A from-scratch run of `tools/segacd_hockey.sh`
+     (2026-11-10) reproduced every HOCKEY fragment except the lines that gained the new name.
   3. Formats: STARTER's data is five `.map.jim` pictures (the Credits title, its font, High Score Productions,
      the EA SPORTS logo sprites, sparkles; packed tiles in the cartridge's DecompressBytecode format, which
      MAIN.BIN's copy of the cartridge decompressor unpacks) and a PCM record directory (`startergfx.asm`). MAIN's
@@ -49,8 +49,11 @@
      The system program (sub CPU `$6000`) loads MAIN.BIN, GTABLE.BIN and STARTER.BIN and provides the `$6044`
      services, all named (`docs/segacd_boot.md`). Its PCM driver is STARTER's with command 9 added (a stream
      from sub CPU memory, which the scouting report uses to read its script aloud), and TimerInterrupt is what runs
-     the driver. Left: FilmSwitch's arguments (the SDK film code is named from its tags, as in STARTER) and the
-     driver's per-channel tables (`X_` addresses in `sp.asm`).
+     the driver. Its tables, the sound record, key map and envelope formats, and FilmSwitch's open arguments (the
+     film window's layout, which the main CPU's frame routine uses) are in that doc. `tools/segacd_port.py` takes
+     `--code` / `--data` ranges for CD-only code (used for the PCM pitch table in `sp.asm` and STARTER's `subdrv.asm`).
+     Left: which packed commands the game's sound engine sends and which records resource 96 holds; 54 of the
+     disc's films are in no PLAYER list (nothing found plays them).
 - Open questions:
   - The team struct is one word longer from `tmap` on; probably `tmsort` became a long. Confirm when a fragment uses
     `tmsort` (logic94 has `movea.w tmsort(a2),a0` among its CD lines).

@@ -649,6 +649,7 @@ sbut	equ	$7
 SCnum	equ	$52
 ScoresMapPtr	equ	$47D58
 ScoutingReportTextPtr	equ	$47CFC
+ScoutingSpeechClipsPtr	equ	$47DA4
 ScoutReport	equ	$8
 scsize	equ	$7
 SCstruct	equ	$80
